@@ -145,7 +145,7 @@ These are **recommendations only**, not confirmed requirements. Ask owner before
 7. **Controls visibility:** hide player controls after 3/5/10 seconds of inactivity, or keep visible until OK/Back? **Recommend:** 5 seconds, selectable where feasible.
 8. **Playback status/info:** show optional resolution/codec/buffering statistics (technical view), or only a plain-language status? **Recommend:** user-friendly default and optional diagnostics.
 9. **Settings transfer:** no backup/export initially, or export/import configuration and playlists as a local file (excluding secrets)? **Recommend:** add local export/import if feasible without complicating the first-run UI.
-10. **After local playback interruption:** automatically return to resumed video on next app/Dream entry, or allow a Home choice first? **Recommend:** obey existing D-42 last-scene rule in Dream mode; manually opening the app still shows Home.
+10. **Return of the internet during local fallback:** stay on local playback until the user switches back, ask the user, or return to live content after the current local video ends? **Recommend:** finish the active local video first, then restore the last live scene if available, with a setting to remain offline instead.
 
 ## Later-round topics (not approved yet)
 
