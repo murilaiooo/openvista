@@ -19,7 +19,10 @@ The following is already agreed:
 - **Live catalog:** online metadata updates with local fallback, reviewed community suggestions, country/city/category/favorites/availability filters, plus an optional panel for name, country, local time, resolution, source and verified status.
 - **Custom URLs:** add a camera with the TV keyboard or a planned secure QR-assisted phone flow.
 - **Automatic rotation:** user-configurable intervals between 1 and 60 minutes; unavailable cameras are immediately skipped.
-- **My videos:** internal-storage or USB folders, ordered playback, shuffle and multiple local-video playlists; camera playlists remain separate.
+- **My videos:** internal/USB folders **with automatic recursive subfolder scanning**, multiple local-video playlists (separate from camera playlists), sequence/shuffle, and automatic next-video playback with playlist repeat.
+- **Playlist management:** create, rename, reorder, duplicate and delete playlists; individual camera playlists support sequence or shuffle.
+- **Local media compatibility:** attempt **MP4, MKV, WebM and MOV** when supported by each TV's decoders, favor stable compatible playback, skip corrupt/unsupported files with unobtrusive notices and optional diagnostics.
+- **Local player:** fixed **10-second** forward/back seeks; resume each local video **where playback stopped**; **no subtitles** for local videos.
 - **Video playback:** fill/crop the screen by default, plus automatic live quality selection with a configurable cap where the source supports it.
 - **Immersive design:** full-screen scenery with an almost invisible interface; contextual camera controls differ from local-video seek controls.
 - **Information overlays:** compact clock and current weather by default, detailed 7-day forecasts (temperature, precipitation, wind, humidity, sunrise/sunset when supplied) on demand. Choose manual city search or optional device location; switch between camera and viewer weather contexts, with presets and a simple/advanced visual editor.
@@ -34,7 +37,7 @@ The following is already agreed:
 - **Fallback and connectivity:** if all webcams fail or the network drops, switch to the user-configured local playlist when available; check reconnection **without interrupting its current video**. Otherwise show a clear retry notice.
 - **Future wallpaper library:** deferred beyond the first APK. Local folders and live cameras come first. Do not assume media is freely redistributable.
 
-**48 product decisions have been confirmed across five interview rounds.** Provider contracts, actual camera availability, weather API, secure QR pairing, device-specific idle/input compatibility, playlist playback details and physical-device support remain **under research**. See [Product decisions](docs/product/decisions.md), [UX brief](docs/product/experience.md) and [runtime policy](docs/product/runtime-and-recovery.md).
+**58 product decisions have been confirmed across six interview rounds.** Source-provider contracts, weather API, secure QR pairing, actual decoder/container capabilities, player UI details and OS-specific Dream compatibility remain **under research**. See [Product decisions](docs/product/decisions.md), [UX brief](docs/product/experience.md), [local media](docs/product/local-media-and-playlists.md) and [runtime policy](docs/product/runtime-and-recovery.md).
 
 ## Proposed experience (not implemented)
 
@@ -70,6 +73,7 @@ No Gradle project or application code has been generated yet. The architecture w
 - [TV UX and interaction brief](docs/product/experience.md)
 - [Camera catalog and weather requirements](docs/product/content-and-weather.md)
 - [Screensaver runtime, power and recovery](docs/product/runtime-and-recovery.md)
+- [Local files, playlists and player behavior](docs/product/local-media-and-playlists.md)
 - [Decisions and brainstorming questions](docs/product/decisions.md)
 - [Proposed architecture](docs/architecture/overview.md)
 - [Reference projects and official sources](docs/research/references.md)

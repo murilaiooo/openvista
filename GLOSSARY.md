@@ -26,6 +26,11 @@ Use these terms consistently in product text, code, and issues.
 | Last scene | The most recently selected camera or local video, used as the preferred source when automatic screensaver playback starts again. |
 | Connection recovery check | Bounded verification that network access has returned while a configured offline fallback continues playing undisturbed. |
 | Optional runtime schedule | User-configured windows in which automatic screensaver behavior is eligible; exact schedule interaction rules remain open. |
+| Recursive media discovery | Scanning an accessible user-selected media folder and all of its accessible nested subfolders for candidate video files. |
+| Local-video resume position | The most recently saved timestamp used to restart a previously viewed local video where it was left. |
+| Seek step | Fixed ten-second forward or backward movement within a seekable local video. |
+| Playlist repeat | Playback advances through videos and starts again from the first eligible item when the playlist ends. |
+| Unplayable media | A video item the current TV cannot load or decode, or whose bytes are invalid/inaccessible. |
 | Overlay | Nonessential on-screen data above video, such as time, place, weather, or forecast. |
 | Playback mode | User-selected content type: live cameras or local videos. |
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |

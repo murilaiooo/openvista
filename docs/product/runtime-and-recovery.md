@@ -14,7 +14,7 @@
 - Automatic entry should **continue the last selected camera or video** where it is still accessible.
 - If the last camera is offline, apply the existing immediate skip and opt-in local-playlist fallback policy.
 - If the last video is missing (USB removed, permission revoked), inform the user and offer source selection.
-- The precise behavior for **video seek-position restoration** is not settled yet; decide in Round 6.
+- **Video seek-position restoration is confirmed in D-58:** on reopening an accessible local video, resume at its saved playback position, including last-video automatic screensaver entry. Exact checkpoint frequency, end-of-file behavior and stale-file handling are implementation details. Camera streams have no seekable prior position.
 
 ## Remote in automatic mode
 

@@ -4,6 +4,8 @@
 - OpenVista must only read media authorized by the user, through scoped storage/folder selection where available.
 - Do not request unrestricted filesystem access as a shortcut, and never upload user video files by default.
 - Preserve tree URI grants securely; allow folder change/revoke, handle missing USB drives and inaccessible URIs.
+- Recursive subfolder enumeration must stay inside the granted document tree, avoid infinite cycles and not assume direct filesystem paths. Do not expose file names/URIs in diagnostics by default.
+- Saved local-video resume positions must remain local to the app and be resilient to removed, replaced or inaccessible files; never upload watch history automatically.
 - No user media should be copied to or committed in the GitHub repo.
 
 ## Camera streams and wallpaper assets

@@ -1,6 +1,6 @@
 # OpenVista: product vision
 
-**Status:** Product discovery. The owner confirmed 48 decisions across rounds 1–5 by 2026-10-25; round 6 remains open.
+**Status:** Product discovery. The owner confirmed 58 decisions across rounds 1–6 by 2026-10-25; round 7 remains open.
 
 ## What the owner approved
 
@@ -12,9 +12,11 @@
 - **Custom camera URLs:** both TV keyboard and QR-assisted entry; secure pairing design remains open.
 - **Camera details:** optional panel for name, country, local time, resolution, verified status and source.
 - **Camera flow:** automatic scene rotation with configurable 1–60-minute interval; when a camera fails, advance immediately. If every camera fails or the internet drops, use a local video playlist **only when configured**; check for restored connectivity without interrupting a playing local video. Otherwise show a clear retry notice.
-- **My Videos:** video files in internal or USB storage, sequence/shuffle and **multiple separate camera/video playlists**.
+- **My Videos:** automatically scan all accessible subfolders of a selected internal/USB folder; try **MP4, MKV, WebM and MOV** where codecs permit. Maintain multiple **separate camera and video playlists**, with camera sequence/shuffle and playlist creation, renaming, reordering, duplication and deletion.
+- **Local video progression:** advance to next playable file at end, repeat the playlist, **skip corrupt/unsupported media** with unobtrusive notice and optional diagnostics; never loop forever over all-bad files.
+- **Local video controls:** fixed directional **±10-second** seek, with **resume from previous playback position** when the same video reopens. No local-video subtitle feature.
 - **Remote:** controls adapted by media type. In screensaver mode, **OK reveals controls, Back exits and directional keys navigate**, to the extent OEM dispatch allows. Cameras change via directional navigation; local videos support backward/forward seeking. Remaining key details will be specified later.
-- **Video presentation:** fill/crop image rather than stretch it; streaming quality automatic with selectable cap where the source supports quality levels.
+- **Video presentation:** fill/crop image rather than stretch it; streaming quality automatic with selectable cap where the source supports quality levels. Prefer stable compatible decoder/HDR handling instead of forcing unsupported quality; no universal transcoding or HDR fallback guarantee.
 - **Overlay information:** compact clock and current weather visible by default; seven-day detail on demand including temperatures, rain, wind, humidity, sunrise and sunset where provided. Weather can follow scene location or viewer city selected by manual search or optional device-supported location.
 - **Overlay customization:** quick presets and a complete visual editor with simple and advanced configuration; specific UI details to determine.
 - **Display-care options:** independent user-configurable settings to shift fixed overlays periodically and hide overlays after inactivity. They reduce but do not eliminate burn-in risk.
@@ -34,4 +36,4 @@ Actual source providers and rights, catalog feed design, contribution review, QR
 
 Prove DreamService and standard app-mode separately. Test map navigation on TV D-pad and hardware limitations of smooth transitions. Validate internal/USB media access, long-running playback, stream changes, quality caps, fallback state, overlay updates, display-care settings, PT-BR/English translations and 12/24-hour/°C/°F preferences on representative Android TV / Google TV / Fire TV hardware. No APK or validated OpenVista app exists yet.
 
-See [decisions](decisions.md), [UX brief](experience.md), [content and weather](content-and-weather.md), [runtime/recovery](runtime-and-recovery.md), [architecture](../architecture/overview.md), [tests](../testing/compatibility.md) and [roadmap](../roadmap.md).
+See [decisions](decisions.md), [UX brief](experience.md), [content and weather](content-and-weather.md), [runtime/recovery](runtime-and-recovery.md), [local media and playlists](local-media-and-playlists.md), [architecture](../architecture/overview.md), [tests](../testing/compatibility.md) and [roadmap](../roadmap.md).

@@ -45,3 +45,12 @@
 31. No unnecessary video/network activity while screen is off/inactive; catalog and forecast cached and refreshed only when appropriate.
 32. USB drive removed mid-video: clear notice and alternate source selection, no crash or infinite retry.
 33. Reboot the TV: OpenVista **does not auto-launch**. Normal user launch and OS Dream entry still work where supported.
+34. Automatic recursive scan includes nested folders (not just top-level), handles deep/large trees, unreadable entries and repeated document IDs within scoped permissions.
+35. Open MP4/MKV/WebM/MOV with representative codecs on diverse TVs; unsupported codec/container/DRM combinations skip gracefully, not presumed compatible by extension.
+36. Verify separate camera/video playlists, per-camera-playlist sequence/shuffle; create, rename, reorder, duplicate, delete without deleting underlying camera sources or video files.
+37. At local-video end, automatically advance; repeat at playlist end; handle one-item, empty and all-invalid lists without spinning forever.
+38. Directional local-video seek is **±10 seconds** exactly; clamp near start/end and handle nonseekable media safely.
+39. Stable playback/HDR fallbacks only where supported by actual device; no unverified HDR-to-SDR conversion claims.
+40. No local subtitle features (menus, sidecar loading or subtitle downloads); acknowledge that subtitles permanently embedded in video pixels cannot be removed.
+41. On corrupt/unsupported media, automatically skip and show a discreet error with optional diagnostics, bounded across a finite playlist.
+42. Last local video's saved timestamp resumes after manual reopen, app lifecycle and Dream entry where available; handle changed/missing file, invalid saved timestamp, removed USB and revoked grants.

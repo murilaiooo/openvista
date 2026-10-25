@@ -11,7 +11,8 @@ All milestones are **proposed**, not scheduled. Product interview must happen be
 - [x] Record round 3 visual and TV-interaction decisions (10 confirmed choices).
 - [x] Record round 4 catalog, weather and wallpaper decisions (10 confirmed choices).
 - [x] Record round 5 runtime, energy and performance decisions (10 confirmed choices).
-- [ ] Complete round 6 and remaining interviews; resolve follow-up ADRs.
+- [x] Record round 6 player, playlist and local-file decisions (10 confirmed choices).
+- [ ] Complete round 7 and remaining interviews; resolve follow-up ADRs.
 - [ ] Choose technical baseline after comparing original Kotlin project vs license-compliant reuse/fork.
 
 ## Phase 1: Feasibility spikes
@@ -25,7 +26,10 @@ All milestones are **proposed**, not scheduled. Product interview must happen be
 
 ## Phase 2: Vertical MVP (scope subject to interview)
 - [ ] Fullscreen ambient playback with source switching/failover.
-- [ ] Local folder selection, video catalog, playback order, repeat.
+- [ ] Local internal/USB folder selection with **recursive subfolder discovery**, MP4/MKV/WebM/MOV candidate recognition and supported-codec detection.
+- [ ] Separate camera/video playlists; create, rename, reorder, duplicate and delete; camera sequence/shuffle and automatic next-video/playlist repeat.
+- [ ] Fixed ±10-second local seeks; persistent last-video seek position on manual/Dream reopen; no local subtitle feature.
+- [ ] Stable decode/fallback and bounded skip-on-corrupt/unsupported-media handling with discreet alerts and optional details.
 - [ ] Live source management with legal attribution, verified availability, broad themed categories, remote catalog updates/local fallback, and reviewable community suggestions.
 - [ ] TV-keyboard custom URL input and secure QR-assisted input, design validated before implementation.
 - [ ] Opt-in all-camera-failed fallback to a user-selected local video playlist, with visible retry when unavailable.

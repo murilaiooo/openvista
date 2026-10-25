@@ -1,6 +1,6 @@
 # OpenVista interaction and visual experience
 
-**Status:** Product requirements confirmed through round 5 (2026-10-25). This is a UX brief, **not** a finished layout or tested app.
+**Status:** Product requirements confirmed through round 6 (2026-10-25). This is a UX brief, **not** a finished layout or tested app.
 
 ## Visual identity
 
@@ -22,10 +22,12 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 
 ## My Videos
 
-- Open a selected internal-storage or USB folder as permitted by Android's scoped-storage picker.
-- Play local media in sequence, shuffle or a **local-video playlist**. Camera playlists are maintained separately.
-- Fill/crop without stretching by default.
-- Unlike camera mode, the directional controls allow seeking backward/forward through the current video. Exact key map, playback controls, and seek interval require a later decision.
+- Open a selected internal-storage or USB folder as permitted by Android's scoped-storage picker; **scan accessible subfolders automatically**.
+- Treat **MP4/MKV/WebM/MOV** as candidate containers subject to the decoder on the TV. Prioritize stable compatible playback; skip unreadable or unsupported items with a discreet message and optional explanation.
+- Play local media in sequence or shuffle within a **local-video playlist** (camera playlists remain separate); automatically advance to the next video and **repeat the playlist** at its end.
+- Camera playlists independently support sequential/shuffled play. Users may create, rename, reorder, duplicate and delete playlists. Details of editing playlist contents are still open.
+- Fill/crop without stretching by default; omit subtitle settings, loading and display features for local videos.
+- Unlike camera mode, directional controls seek **exactly 10 seconds** backward/forward (clamped to valid media positions). On reopening a local video, **resume the last saved playback position**, including automatic Dream reentry where feasible.
 
 ## Weather and overlays
 

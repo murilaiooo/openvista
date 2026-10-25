@@ -1,6 +1,6 @@
 # OpenVista product decisions
 
-**Status:** Discovery. Rounds 1–5 confirmed (48 decisions). Round 6 open as of 2026-10-25.
+**Status:** Discovery. Rounds 1–6 confirmed (58 decisions). Round 7 open as of 2026-10-25.
 
 Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
@@ -104,25 +104,48 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 
 - Distinguish user-requested timeout selections from OS-owned timeout settings; gracefully explain when 1/3/5/10/15/30-minute choices are not available, without root, privileged APIs or unsupported device modifications.
 - Separate app-fullscreen awake requests from system DreamService and device standby policy. Schedules and energy-saving features must never silently override the TV.
-- Persist last selected camera/video and handle missing USB, offline camera and permissions revocation. Resume time within a local video is a **Round 6** decision.
+- Persist last selected camera/video and its local-video playback position (approved in D-58); handle missing USB, offline cameras, permissions revocation and files whose content changed since the checkpoint.
 - On loss of network, keep the configured local fallback playing while performing **bounded, non-disruptive** connection checks. Do not silently switch away from local playback when connectivity reappears until the restoration rule is agreed.
 - Treat a wake/resume event separately from boot and from intentional activity launch. Hardware/OS may consume D-pad or Back before the app sees them.
 - Validate smooth playback across representative devices under 4K, decoder limits, thermal conditions, transitions and background/screen-off lifecycle.
 
-## Round 6: local media, playlists and player interactions (OPEN)
+## Round 6: confirmed (D-49 to D-58)
 
-These recommendations are **not** requirements until the owner answers:
+| ID | Requirement | Owner's confirmed choice / boundary |
+| --- | --- | --- |
+| D-49 | Camera playlist order | Each **camera playlist supports sequential or shuffled** playback. Rotation interval remains user-configurable (D-11). |
+| D-50 | Playlist management | **Create, rename, reorder, duplicate and delete** multiple playlists. Camera and local-video playlists stay separate (D-14). Item reordering, safeguards and exact editing UI need implementation design. |
+| D-51 | Subfolder discovery | **Automatically and recursively include videos from all subfolders** of a user-selected accessible folder. Respect scoped storage, permission boundaries and removable-media failures. |
+| D-52 | Local formats | Try **MP4, MKV, WebM and MOV**, only where the TV's demuxers/codecs support the specific streams. Container extension alone does not guarantee playback. |
+| D-53 | End-of-video behavior | **Advance to the next video and loop the playlist** when its end is reached. Support single-item and empty-list edge cases safely. |
+| D-54 | Local video seeking | Directional seek step is **10 seconds**, backward/forward (D-21), clamped to media bounds; no alternate seek intervals are part of the confirmed scope. |
+| D-55 | HDR / decoder fallback | **Prioritize playback stability** and use a **compatible fallback when technically possible**. Do not claim an unsupported HDR stream can be converted to SDR automatically without a verified path. |
+| D-56 | Subtitles | **No subtitle feature for local videos**: the player focuses on ambient/scenic content. Do not add subtitle selection, external subtitle loading or forced subtitle overlays to the initial UI. |
+| D-57 | Invalid media | **Skip corrupt/unsupported video to the next playable item**, with an unobtrusive notice and optional error details. Cap attempts to prevent an infinite loop if everything fails. |
+| D-58 | Local resume | **Resume from the last saved playback position** when a previously viewed local video is reopened, including its use as the last scene in automatic screensaver mode where accessible. Exact checkpoint persistence intervals are an engineering detail. Live webcams have no seekable resume position. |
 
-1. **Camera playlist order:** allow sequence **and** shuffle per camera playlist, or shuffle only? **Recommend:** per-playlist sequence/shuffle toggle.
-2. **Playlist editing:** simple add/remove only, or rename, reorder and duplicate playlists? **Recommend:** create, rename, reorder, duplicate, remove, with confirmation for destructive actions.
-3. **Local folder scanning:** scan only chosen folder, or optional recursive subfolder discovery? **Recommend:** opt-in include subfolders.
-4. **Local media containers:** prioritize MP4 only, or include MKV/WebM/MOV where device codecs support playback? **Recommend:** MP4 + other compatible containers, skip unsupported gracefully.
-5. **End of a local video:** stop and return Home, replay same file, or auto-advance through playlist then loop? **Recommend:** advance to next item and repeat list.
-6. **Seek controls:** fixed ±10-second jumps, ±30-second jumps, or selectable seek interval? **Recommend:** selectable seek steps, initially 10 seconds.
-7. **HDR/decoder compatibility:** attempt highest supported quality, or prefer stable SDR/decoder fallback for hardware that cannot handle HDR? **Recommend:** stable hardware decoding/SDR fallback, respecting device capabilities.
-8. **Local subtitles:** no subtitles, embedded subtitles only, or optional embedded and matching external files? **Recommend:** optional subtitles when supported by the decoder; no requirement to auto-fetch subtitles.
-9. **Broken video files:** halt playback and explain, or skip bad files with a brief notice and optional diagnostics? **Recommend:** skip, notify unobtrusively, preserve diagnostic info.
-10. **Local-video resume:** restart each time, or remember last playback position when appropriate? **Recommend:** remember position when manually reopening a video; configure whether Dream mode starts from there.
+### Derived constraints (not extra approvals)
+
+- File enumeration is **recursive by default** within the folder tree actually granted by the TV picker; avoid cycles, unbounded work and traversal outside permitted URIs. Handle detached USB volumes, large trees, temporary permission loss and rescans.
+- Treat filename/container and codec support separately. Skipping an unplayable MKV/MOV or HDR source is compliant if compatible decoding is impossible; never claim transcoding as a guaranteed fallback.
+- Playlist operations must not conflate playlist **ordering** with ordering of **items inside a playlist**; item-edit interactions are open for follow-up specification.
+- Playback loop and bad-file skipping need a finite exhaustion outcome. Resume checkpoints must be validated against the current URI and duration, including completed or deleted files.
+- Preserve the media-type-specific remote controls: camera D-pad changes scene, local-video D-pad seeks ±10 seconds. OK and Back remain subject to operating-system input handling.
+
+## Round 7: settings and finishing player behavior (OPEN)
+
+These are **recommendations only**, not confirmed requirements. Ask owner before treating them as scope.
+
+1. **Settings organization:** simple grouped screens (Playback, Cameras, Weather, Appearance, Storage, About), or one long advanced list? **Recommend:** clearly grouped, minimal screens with Advanced only as needed.
+2. **Changing playback modes:** allow quick Camera/My Videos switch inside the fullscreen player, or require returning to Home? **Recommend:** quick contextual mode switch from the OK controls menu, with Back to Home.
+3. **Playback order default:** new camera playlists begin sequential or shuffled? **Recommend:** sequential; shuffle available per playlist.
+4. **Default camera rotation:** choose a starting interval (1/5/10/15 minutes), or ask during onboarding? **Recommend:** default 10 minutes, always editable.
+5. **Favorite management:** one Favorites hub with filters for cameras/local videos or separate favorites pages? **Recommend:** one hub with clear separate sections.
+6. **Playlist item editing:** allow add/remove only, or add/remove and reorder individual scenes/files? **Recommend:** reordering items plus easy batch add from catalog/library.
+7. **Controls visibility:** hide player controls after 3/5/10 seconds of inactivity, or keep visible until OK/Back? **Recommend:** 5 seconds, selectable where feasible.
+8. **Playback status/info:** show optional resolution/codec/buffering statistics (technical view), or only a plain-language status? **Recommend:** user-friendly default and optional diagnostics.
+9. **Settings transfer:** no backup/export initially, or export/import configuration and playlists as a local file (excluding secrets)? **Recommend:** add local export/import if feasible without complicating the first-run UI.
+10. **After local playback interruption:** automatically return to resumed video on next app/Dream entry, or allow a Home choice first? **Recommend:** obey existing D-42 last-scene rule in Dream mode; manually opening the app still shows Home.
 
 ## Later-round topics (not approved yet)
 
@@ -141,4 +164,5 @@ These recommendations are **not** requirements until the owner answers:
 - **2026-10-24:** D-19–D-28 confirmed by owner (round 3), overriding previous recommendations in favor of almost invisible UI, contextual remote behavior, 2D map with sidebar and both anti-static-overlay strategies.
 - **2026-10-24:** D-29–D-38 confirmed by owner (round 4): broad categories, online catalog with local fallback, reviewed community suggestions, keyboard/QR camera entry, optional info panel, filters, detailed seven-day weather, manual/optional auto location, deferred wallpaper library, and configurable local fallback.
 - **2026-10-25:** D-39–D-48 confirmed by owner (round 5): supported idle intervals, constrained keep-awake options, optional schedules, last-scene resume, OK/Back/directional Dream controls, non-disruptive offline fallback, fluency priority, minimal background work, USB removal notice and no boot auto-launch.
-- **2026-10-25:** Round 6 opened for local media, playlist and player details. Recommendations remain nonbinding.
+- **2026-10-25:** D-49–D-58 confirmed by owner (round 6): camera playlist order/shuffle, full playlist CRUD including reorder/duplicate, automatic recursive video scanning, MP4/MKV/WebM/MOV as device-supported, advance-and-loop, fixed ±10-second seeking, stable decoder/HDR fallback, no subtitles, skip defective files and resume last local-video position.
+- **2026-10-25:** Round 7 opened for settings, controls, playlist-item interactions and defaults. Recommendations remain nonbinding.
