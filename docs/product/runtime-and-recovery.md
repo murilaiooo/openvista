@@ -32,7 +32,7 @@
 ## Offline and resource management
 
 - On internet outage, switch to the **existing user-configured local playlist**, where available. If no configured playable fallback exists, show a clear retry state.
-- After switching to local playback, check reconnection periodically **without interrupting the playing video**. Whether/when to restore live playback after a successful check is **not decided**; do not switch back unexpectedly.
+- After switching to local playback, check reconnection periodically **without interrupting the playing video**. On verified connectivity and playable camera availability, **finish the active local video and then return to live cameras**, unless the user chooses **remain on local videos** (D-68). Avoid auto-switching immediately on a network-up signal; the exact user-setting UI remains an implementation detail.
 - Use **bounded, low-frequency retries** with backoff; no busy loops, repeated stream probes or unnecessary background decoding.
 - Prioritize **smooth playback** over forcing 4K; adapt quality within the stream's supported variants and reduce costly transition effects on weak devices.
 - When playback UI is inactive or screen-off, **pause/unload unnecessary playback and network tasks**. Use appropriately cached catalog and weather results; refresh only when needed and within provider/API limits.

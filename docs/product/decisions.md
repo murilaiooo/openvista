@@ -1,6 +1,6 @@
 # OpenVista product decisions
 
-**Status:** Discovery. Rounds 1–6 confirmed (58 decisions). Round 7 open as of 2026-10-25.
+**Status:** Discovery. Rounds 1–7 confirmed (68 decisions) on 2026-10-25. Round 8 (first-release boundaries) open.
 
 Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
@@ -132,20 +132,43 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 - Playback loop and bad-file skipping need a finite exhaustion outcome. Resume checkpoints must be validated against the current URI and duration, including completed or deleted files.
 - Preserve the media-type-specific remote controls: camera D-pad changes scene, local-video D-pad seeks ±10 seconds. OK and Back remain subject to operating-system input handling.
 
-## Round 7: settings and finishing player behavior (OPEN)
+## Round 7: confirmed (D-59 to D-68)
 
-These are **recommendations only**, not confirmed requirements. Ask owner before treating them as scope.
+| ID | Requirement | Owner's confirmed selection / acceptance boundary |
+| --- | --- | --- |
+| D-59 | Settings organization | **Basic settings plus a separate Advanced section, organized by categories**. Keep ordinary settings understandable and technical settings optional; precise taxonomy needs UX definition. |
+| D-60 | Fullscreen mode switching | **Quick Cameras / My Videos switch through the menu opened with OK**, without returning to Home. Respect existing context-sensitive directional controls and OS-owned DreamService key handling. |
+| D-61 | Default camera-playlist order | **Shuffle by default** for newly created camera playlists; the per-playlist sequence/shuffle option approved in D-49 remains available. This overrides the previous sequential-default recommendation. |
+| D-62 | Default automatic camera rotation | **5 minutes** initially, user-adjustable to **1–60 minutes** per D-11; the default is not a fixed requirement for all playlists. |
+| D-63 | Favorites presentation | **One Favorites screen with separate sections for cameras and local videos**. Keep media families visually distinguished. |
+| D-64 | Playlist item management | **Batch-add multiple items, remove and freely reorder items within a playlist**. This complements playlist create/rename/reorder/duplicate/delete in D-50; maintain separate camera/video playlists. |
+| D-65 | Player controls timeout | **Automatically hide contextual controls after 5 seconds of inactivity**. Do not conflate this controls timer with the separate, configurable weather/clock overlay hiding from D-25. |
+| D-66 | Playback diagnostics | **Optional technical diagnostics panel**, with codec/resolution/buffering/errors as available, while keeping the standard player UI simple. Unsupported metrics are labeled unavailable, never invented. |
+| D-67 | Preferences storage | **Automatically save settings, favorites and playlists on the TV only**. **No export/import or cloud synchronization** is part of the approved initial scope. Local persistence is not an external backup and may be lost on uninstall/factory reset. |
+| D-68 | Internet restored during local fallback | **Finish the current local video, then return to live cameras**, with an accessible option to **remain on local videos**. Do not interrupt a local video during connection checks; only resume live after connectivity and at least one playable camera are verified. |
 
-1. **Settings organization:** simple grouped screens (Playback, Cameras, Weather, Appearance, Storage, About), or one long advanced list? **Recommend:** clearly grouped, minimal screens with Advanced only as needed.
-2. **Changing playback modes:** allow quick Camera/My Videos switch inside the fullscreen player, or require returning to Home? **Recommend:** quick contextual mode switch from the OK controls menu, with Back to Home.
-3. **Playback order default:** new camera playlists begin sequential or shuffled? **Recommend:** sequential; shuffle available per playlist.
-4. **Default camera rotation:** choose a starting interval (1/5/10/15 minutes), or ask during onboarding? **Recommend:** default 10 minutes, always editable.
-5. **Favorite management:** one Favorites hub with filters for cameras/local videos or separate favorites pages? **Recommend:** one hub with clear separate sections.
-6. **Playlist item editing:** allow add/remove only, or add/remove and reorder individual scenes/files? **Recommend:** reordering items plus easy batch add from catalog/library.
-7. **Controls visibility:** hide player controls after 3/5/10 seconds of inactivity, or keep visible until OK/Back? **Recommend:** 5 seconds, selectable where feasible.
-8. **Playback status/info:** show optional resolution/codec/buffering statistics (technical view), or only a plain-language status? **Recommend:** user-friendly default and optional diagnostics.
-9. **Settings transfer:** no backup/export initially, or export/import configuration and playlists as a local file (excluding secrets)? **Recommend:** add local export/import if feasible without complicating the first-run UI.
-10. **Return of the internet during local fallback:** stay on local playback until the user switches back, ask the user, or return to live content after the current local video ends? **Recommend:** finish the active local video first, then restore the last live scene if available, with a setting to remain offline instead.
+### Derived consequences (not additional approvals)
+
+- User-facing Settings has concise categories and an explicit Advanced area. Preserve D-pad focus order; control-mode switch through OK must not create conflicts with pressing OK to reveal controls.
+- **Default** camera playlist behavior is shuffled (D-61); **capability** remains sequential or shuffled (D-49). The first interval shown to a new user is 5 minutes (D-62), and users may change it across the 1–60 minute range (D-11).
+- Five seconds (D-65) applies to the temporary **player control bar**, not to user-configured information-widget visibility and burn-in safeguards (D-25).
+- Local-only automatic storage means crash-consistent persistence of metadata/checkpoints is needed; this does **not** imply an uninstall-proof backup or syncing through an account.
+- On network restoration, finish **exactly the currently playing local item**, then seek a verified available camera unless the user elects to stay local. If no camera can play, stay in a safe local/retry state without skip storms.
+
+## Round 8: first-release boundaries and engineering blockers (OPEN)
+
+Questions are recommendations, **not approved scope**. These are intended to close the final high-impact product ambiguities before technical implementation plans.
+
+1. **First milestone:** release an explicitly labeled development preview as soon as a reliable manual app/player exists, or only publish an APK once the approved end-to-end features are available? **Recommend:** iterative GitHub pre-release builds for testers, stable v1 only after all agreed release requirements pass.
+2. **Initial device compatibility contract:** initially test Android 9/Fire OS 7 plus a modern Google TV, or promise all Android TV releases before any release? **Recommend:** publish device-by-device tested support; start with available Fire OS 7 and an Android TV/Google TV test device; do not label untested devices supported.
+3. **Camera catalog launch threshold:** start with 10, 25, or 50+ *verified authorized and working* public webcams? **Recommend:** quality first, target 25 if rights and reliable sources can actually be confirmed; release must not invent sources to meet a number.
+4. **Manual stream protocols:** accept only common HTTP-based HLS/DASH at launch or also RTSP where supported? **Recommend:** HLS/DASH first, evaluate RTSP after device testing; never accept arbitrary URLs as executable content.
+5. **QR pairing context:** require phone and TV on the same local network with explicit pairing confirmation, or use a hosted bridge? **Recommend:** local-network pairing with short-lived token, no accounts/third-party cloud; validate safety before implementation.
+6. **Offline map behavior:** show a simple cached/bundled list when offline, or require an offline full-world map? **Recommend:** camera list and basic cached metadata offline; network map tiles are not guaranteed offline.
+7. **Application update notification:** check GitHub Releases when users open Settings and provide a link, or background update checks? **Recommend:** unobtrusive manual check in About, no silent APK installs.
+8. **Version-1 quality gate:** fixed checklist with tested manual mode + feasible Dream mode, storage, playback, 24-hour soak, and rights/license checks, or ship based on visual inspection alone? **Recommend:** enforce checklist and label unsupported OEM features.
+9. **Curated-content safety:** restrict first-party catalog to generally family-appropriate public scenes or include any publicly accessible camera? **Recommend:** reviewed, family-appropriate licensed content; do not conflate publicly viewable with permissible embedding.
+10. **Crash reporting / privacy:** fully offline device-local diagnostics, optional user-exported reports, or automatic external telemetry? **Recommend:** local diagnostic logs that users can inspect/share intentionally, no automatic analytics/uploading.
 
 ## Later-round topics (not approved yet)
 
@@ -165,4 +188,5 @@ These are **recommendations only**, not confirmed requirements. Ask owner before
 - **2026-10-24:** D-29–D-38 confirmed by owner (round 4): broad categories, online catalog with local fallback, reviewed community suggestions, keyboard/QR camera entry, optional info panel, filters, detailed seven-day weather, manual/optional auto location, deferred wallpaper library, and configurable local fallback.
 - **2026-10-25:** D-39–D-48 confirmed by owner (round 5): supported idle intervals, constrained keep-awake options, optional schedules, last-scene resume, OK/Back/directional Dream controls, non-disruptive offline fallback, fluency priority, minimal background work, USB removal notice and no boot auto-launch.
 - **2026-10-25:** D-49–D-58 confirmed by owner (round 6): camera playlist order/shuffle, full playlist CRUD including reorder/duplicate, automatic recursive video scanning, MP4/MKV/WebM/MOV as device-supported, advance-and-loop, fixed ±10-second seeking, stable decoder/HDR fallback, no subtitles, skip defective files and resume last local-video position.
-- **2026-10-25:** Round 7 opened for settings, controls, playlist-item interactions and defaults. Recommendations remain nonbinding.
+- **2026-10-25:** D-59–D-68 confirmed by owner (round 7): basic/advanced categorized Settings, quick OK mode switch, shuffle default, five-minute default rotation, one Favorites hub with separate sections, batch add/reorder playlist items, five-second control timeout, optional technical diagnostics, TV-only automatic persistence and post-video reconnection return with stay-local option.
+- **2026-10-25:** Round 8 opened to define first-release boundaries, device test contract, allowed protocols/providers, secure QR design and quality gates. Recommendations remain nonbinding.

@@ -1,6 +1,6 @@
 # OpenVista interaction and visual experience
 
-**Status:** Product requirements confirmed through round 6 (2026-10-25). This is a UX brief, **not** a finished layout or tested app.
+**Status:** Product requirements confirmed through round 7 (2026-10-25). This is a UX brief, **not** a finished layout or tested app.
 
 ## Visual identity
 
@@ -14,6 +14,7 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 
 - Enter through the curated catalog or a **2D interactive map with clustered markers and a lateral list**. Preserve keyboard-free D-pad navigation; allow focus to move between map markers/list.
 - The user can add permitted custom URLs using **either the TV keyboard or a QR-assisted second-device flow** (secure pairing design still TBD).
+- New camera playlists start **shuffled** (user can change to sequence), with an initial **5-minute rotation** adjustable from 1–60 minutes.
 - Catalog includes broad themed categories, geographic filters, favorites and verified availability; camera metadata is updated online with a local fallback.
 - An optional on-demand camera information panel gives name, country, camera-local time, verified availability, resolution where known and attribution.
 - Fullscreen camera playback supports contextual directional scene changes and optional controls that appear during input. In supported DreamService mode, **OK shows controls and Back exits**; directional navigation is subject to OEM key handling.
@@ -25,9 +26,17 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 - Open a selected internal-storage or USB folder as permitted by Android's scoped-storage picker; **scan accessible subfolders automatically**.
 - Treat **MP4/MKV/WebM/MOV** as candidate containers subject to the decoder on the TV. Prioritize stable compatible playback; skip unreadable or unsupported items with a discreet message and optional explanation.
 - Play local media in sequence or shuffle within a **local-video playlist** (camera playlists remain separate); automatically advance to the next video and **repeat the playlist** at its end.
-- Camera playlists independently support sequential/shuffled play. Users may create, rename, reorder, duplicate and delete playlists. Details of editing playlist contents are still open.
+- Camera playlists independently support sequential/shuffled play. Users may create, rename, reorder, duplicate and delete playlists **and batch-add, remove and freely reorder individual playlist items**.
 - Fill/crop without stretching by default; omit subtitle settings, loading and display features for local videos.
 - Unlike camera mode, directional controls seek **exactly 10 seconds** backward/forward (clamped to valid media positions). On reopening a local video, **resume the last saved playback position**, including automatic Dream reentry where feasible.
+
+## Contextual controls and Favorites (Round 7)
+
+- **OK reveals quick controls** including direct **Cameras / My Videos switching**; dismiss the transient controls after **5 seconds without interaction**, without altering the separately configured clock/weather visibility.
+- Standard remote arrows navigate the focused menu while it is visible; otherwise preserve camera-change and local-video ±10-second seek mappings. In Dream mode, the OS may intercept keys.
+- One **Favorites** destination includes separate sections for camera favorites and local video favorites.
+- Basic settings use clear categories, while a separate Advanced area contains technical options. An optional diagnostics screen shows only measurements actually available from the decoder/source.
+- Automatically store playlists/favorites/preferences on TV; no account, import/export or cloud backup in the first release. Clearing app data or uninstalling may erase these.
 
 ## Weather and overlays
 
@@ -46,7 +55,7 @@ Show a **short, skippable** walkthrough for camera choice, optional local folder
 - Support OS-permitted idle intervals of **1, 3, 5, 10, 15 and 30 minutes**, explaining when OEM settings cannot be changed.
 - On automatic entry, attempt to continue the **last selected camera or video**; unavailable sources follow the configured fallback behavior.
 - Run continuously when allowed, with an optional user schedule and device-constrained keep-awake options. Never override TV sleep/standby or auto-open at boot.
-- During loss of internet, play a configured **local video fallback**. Check reconnection without pausing, restarting or replacing the playing local video.
+- During loss of internet, play a configured **local video fallback**. Check reconnection without pausing, restarting or replacing the playing local video. When an online camera is playable, **finish the active local file**, then return to cameras unless the user selects **remain on local videos**.
 - Disconnecting USB presents an understandable notice and alternative source choice instead of freezing.
 - Pause unnecessary off-screen playback and refresh data using provider-compatible caching. Prioritize smooth playback over forcing 4K.
 

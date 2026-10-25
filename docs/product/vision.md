@@ -1,21 +1,21 @@
 # OpenVista: product vision
 
-**Status:** Product discovery. The owner confirmed 58 decisions across rounds 1–6 by 2026-10-25; round 7 remains open.
+**Status:** Product discovery. The owner confirmed 68 decisions across rounds 1–7 by 2026-10-25; round 8 remains open.
 
 ## What the owner approved
 
 - **Platform:** a broadly compatible Android TV app, not a project exclusively for a Hisense/Fire TV. Google TV and Fire OS support must be validated on real devices.
 - **Two entry points:** manually opened TV app and optional automatic system screensaver where OEM/OS permissions allow; **no automatic launch at TV boot**. Offer idle options **1/3/5/10/15/30 minutes where supported**.
-- **Manual Home:** **three large image-backed cards**, Cameras, My Videos and Favorites.
+- **Manual Home:** **three large image-backed cards**, Cameras, My Videos and Favorites. Favorites is one hub with visually separate camera and local-video sections.
 - **Immersive viewing:** scenic video in fullscreen with an almost invisible UI and no permanent navigation chrome.
 - **Live cameras:** a broad authorized catalog including beaches, cities, mountains, wildlife, monuments, ski resorts and ports; updated automatically online with local metadata fallback; camera suggestions from the community reviewed before publication. Search/filter by country, city, category, favorites and verified availability. Find scenes through **2D interactive world map with clustered markers and a side list**.
 - **Custom camera URLs:** both TV keyboard and QR-assisted entry; secure pairing design remains open.
 - **Camera details:** optional panel for name, country, local time, resolution, verified status and source.
-- **Camera flow:** automatic scene rotation with configurable 1–60-minute interval; when a camera fails, advance immediately. If every camera fails or the internet drops, use a local video playlist **only when configured**; check for restored connectivity without interrupting a playing local video. Otherwise show a clear retry notice.
-- **My Videos:** automatically scan all accessible subfolders of a selected internal/USB folder; try **MP4, MKV, WebM and MOV** where codecs permit. Maintain multiple **separate camera and video playlists**, with camera sequence/shuffle and playlist creation, renaming, reordering, duplication and deletion.
+- **Camera flow:** automatic scene rotation **5 minutes by default**, adjustable 1–60 minutes; new camera playlists **shuffle by default**, with sequence as an option. When a camera fails, advance immediately. If every camera fails or the internet drops, use a local video playlist **only when configured**; check restored connectivity without interrupting a playing local video. Once a camera is available, **finish the active local video and then return to live cameras**, unless user chooses to remain local. Otherwise show a clear retry notice.
+- **My Videos:** automatically scan all accessible subfolders of a selected internal/USB folder; try **MP4, MKV, WebM and MOV** where codecs permit. Maintain separate camera/video playlists with creation, renaming, reordering, duplication, deletion and **batch add, remove and free reordering of items**.
 - **Local video progression:** advance to next playable file at end, repeat the playlist, **skip corrupt/unsupported media** with unobtrusive notice and optional diagnostics; never loop forever over all-bad files.
 - **Local video controls:** fixed directional **±10-second** seek, with **resume from previous playback position** when the same video reopens. No local-video subtitle feature.
-- **Remote:** controls adapted by media type. In screensaver mode, **OK reveals controls, Back exits and directional keys navigate**, to the extent OEM dispatch allows. Cameras change via directional navigation; local videos support backward/forward seeking. Remaining key details will be specified later.
+- **Remote:** context-specific controls; **OK reveals a contextual menu with Cameras/My Videos switching** that **auto-hides after 5 seconds of inactivity**; in supported Dream mode Back exits and directional keys navigate, subject to OEM dispatch. Cameras change with arrows; local videos seek ±10 seconds.
 - **Video presentation:** fill/crop image rather than stretch it; streaming quality automatic with selectable cap where the source supports quality levels. Prefer stable compatible decoder/HDR handling instead of forcing unsupported quality; no universal transcoding or HDR fallback guarantee.
 - **Overlay information:** compact clock and current weather visible by default; seven-day detail on demand including temperatures, rain, wind, humidity, sunrise and sunset where provided. Weather can follow scene location or viewer city selected by manual search or optional device-supported location.
 - **Overlay customization:** quick presets and a complete visual editor with simple and advanced configuration; specific UI details to determine.
@@ -23,6 +23,7 @@
 - **First run:** brief, optional/skippable tutorial to choose a camera, folder and weather context.
 - **Transitions and performance:** choose instant or smooth scene changes; prioritize **fluid playback** and adapt available video quality/effects to the decoder and thermal/resource limits of each TV.
 - **Energy and continuity:** continuous availability with an optional schedule and keep-awake options **subject to device power policy**; automatic Dream entry attempts the **last viewed camera/video**. Pause unnecessary background playback and cache updates. If USB is removed, explain and offer another source.
+- **Settings and data:** categorized Basic settings and separate Advanced section; optional technical playback diagnostics. **Automatically persist settings, favorites and playlists on-device only**. No export/import or cloud sync in initial scope.
 - **Audio:** muted initially, user can enable it where media provides audio.
 - **Localization and preferences:** Portuguese (Brazil) and English; detect the TV locale/region initially, with manual overrides for language, time and temperature.
 - **Business and delivery:** 100% free, no ads, no account; first release through GitHub APK.
@@ -36,4 +37,4 @@ Actual source providers and rights, catalog feed design, contribution review, QR
 
 Prove DreamService and standard app-mode separately. Test map navigation on TV D-pad and hardware limitations of smooth transitions. Validate internal/USB media access, long-running playback, stream changes, quality caps, fallback state, overlay updates, display-care settings, PT-BR/English translations and 12/24-hour/°C/°F preferences on representative Android TV / Google TV / Fire TV hardware. No APK or validated OpenVista app exists yet.
 
-See [decisions](decisions.md), [UX brief](experience.md), [content and weather](content-and-weather.md), [runtime/recovery](runtime-and-recovery.md), [local media and playlists](local-media-and-playlists.md), [architecture](../architecture/overview.md), [tests](../testing/compatibility.md) and [roadmap](../roadmap.md).
+See [decisions](decisions.md), [UX brief](experience.md), [content and weather](content-and-weather.md), [runtime/recovery](runtime-and-recovery.md), [local media and playlists](local-media-and-playlists.md), [settings and controls](settings-and-player.md), [architecture](../architecture/overview.md), [tests](../testing/compatibility.md) and [roadmap](../roadmap.md).

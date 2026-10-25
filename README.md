@@ -14,15 +14,17 @@ The following is already agreed:
 - **Two content modes:** (1) live cameras around the world, and (2) user-selected downloaded videos stored in a folder on the TV or attached storage.
 - **Two entry points:** a manually opened TV application plus automatic screensaver mode where the OS allows it. The app must **never auto-launch on TV boot**.
 - **Live sources:** both a browsable webcam catalog and user-provided permitted stream URLs.
-- **Home:** Cameras, My Videos and Favorites as three large image-backed cards.
+- **Home:** Cameras, My Videos and Favorites as three large image-backed cards; Favorites contains separate camera and video sections.
 - **Camera discovery:** broad curated categories (beaches, cities, mountains, wildlife, landmarks, ski resorts and ports), **2D world map with clustered markers and side list**, and permitted manual URLs.
 - **Live catalog:** online metadata updates with local fallback, reviewed community suggestions, country/city/category/favorites/availability filters, plus an optional panel for name, country, local time, resolution, source and verified status.
 - **Custom URLs:** add a camera with the TV keyboard or a planned secure QR-assisted phone flow.
-- **Automatic rotation:** user-configurable intervals between 1 and 60 minutes; unavailable cameras are immediately skipped.
+- **Automatic rotation:** **5 minutes by default**, configurable from 1 to 60 minutes; unavailable cameras are immediately skipped.
 - **My videos:** internal/USB folders **with automatic recursive subfolder scanning**, multiple local-video playlists (separate from camera playlists), sequence/shuffle, and automatic next-video playback with playlist repeat.
-- **Playlist management:** create, rename, reorder, duplicate and delete playlists; individual camera playlists support sequence or shuffle.
+- **Playlist management:** create, rename, reorder, duplicate and delete playlists; add many items at once, remove and freely reorder items. Camera playlists support sequence or shuffle, with **shuffle as the initial default**.
 - **Local media compatibility:** attempt **MP4, MKV, WebM and MOV** when supported by each TV's decoders, favor stable compatible playback, skip corrupt/unsupported files with unobtrusive notices and optional diagnostics.
 - **Local player:** fixed **10-second** forward/back seeks; resume each local video **where playback stopped**; **no subtitles** for local videos.
+- **Player UI:** pressing **OK** opens an automatically hiding **5-second contextual controls menu**, including quick Cameras/My Videos switching; technical playback diagnostics are optional.
+- **Settings:** simple categorized Basic settings with a separate Advanced section. Favorites, playlists and settings are **automatically stored on the TV only**; no cloud sync or import/export in the initial product.
 - **Video playback:** fill/crop the screen by default, plus automatic live quality selection with a configurable cap where the source supports it.
 - **Immersive design:** full-screen scenery with an almost invisible interface; contextual camera controls differ from local-video seek controls.
 - **Information overlays:** compact clock and current weather by default, detailed 7-day forecasts (temperature, precipitation, wind, humidity, sunrise/sunset when supplied) on demand. Choose manual city search or optional device location; switch between camera and viewer weather contexts, with presets and a simple/advanced visual editor.
@@ -34,10 +36,10 @@ The following is already agreed:
 - **Audio:** muted by default with an option to enable sound.
 - **Free by design:** no advertisements and no user account required.
 - **First release:** a downloadable APK via GitHub when implementation and compatibility tests pass.
-- **Fallback and connectivity:** if all webcams fail or the network drops, switch to the user-configured local playlist when available; check reconnection **without interrupting its current video**. Otherwise show a clear retry notice.
+- **Fallback and connectivity:** if all webcams fail or the network drops, switch to the user-configured local playlist when available; check reconnection **without interrupting its current video**. When an available camera returns, **finish the local video and return to live cameras**, unless the user chooses to stay local. Otherwise show a clear retry notice.
 - **Future wallpaper library:** deferred beyond the first APK. Local folders and live cameras come first. Do not assume media is freely redistributable.
 
-**58 product decisions have been confirmed across six interview rounds.** Source-provider contracts, weather API, secure QR pairing, actual decoder/container capabilities, player UI details and OS-specific Dream compatibility remain **under research**. See [Product decisions](docs/product/decisions.md), [UX brief](docs/product/experience.md), [local media](docs/product/local-media-and-playlists.md) and [runtime policy](docs/product/runtime-and-recovery.md).
+**68 product decisions have been confirmed across seven interview rounds.** Source/provider rights, weather API, secure QR pairing, actual decoder compatibility, cross-device DreamService behavior and first-release acceptance gates remain **under research**. See [Product decisions](docs/product/decisions.md), [UX brief](docs/product/experience.md), [player and settings](docs/product/settings-and-player.md) and [runtime policy](docs/product/runtime-and-recovery.md).
 
 ## Proposed experience (not implemented)
 
@@ -74,6 +76,8 @@ No Gradle project or application code has been generated yet. The architecture w
 - [Camera catalog and weather requirements](docs/product/content-and-weather.md)
 - [Screensaver runtime, power and recovery](docs/product/runtime-and-recovery.md)
 - [Local files, playlists and player behavior](docs/product/local-media-and-playlists.md)
+- [Settings, player controls and favorites](docs/product/settings-and-player.md)
+- [First-release blockers and validation plan](docs/product/first-release-blockers.md)
 - [Decisions and brainstorming questions](docs/product/decisions.md)
 - [Proposed architecture](docs/architecture/overview.md)
 - [Reference projects and official sources](docs/research/references.md)

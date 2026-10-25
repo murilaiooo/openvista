@@ -12,9 +12,9 @@
 ## Playlist domain
 
 - Keep **camera playlists** and **local-video playlists** separate (D-14).
-- **Each camera playlist** supports sequence or shuffle (D-49), while camera switching uses the existing 1–60 minute scene rotation when enabled.
+- **Each camera playlist** supports sequence or shuffle (D-49), with **shuffle as the default** for newly created camera playlists (D-61). Scene rotation is **5 minutes by default** but configurable from 1–60 minutes (D-62, D-11).
 - Local-video playlists support sequence and shuffle (D-03), and the end of an individual video advances to the next item; when the playlist is exhausted, **repeat from the beginning** (D-53), including single-item lists.
-- Users may **create, rename, reorganize/reorder, duplicate and delete** multiple playlists (D-50). Deleting a playlist must never delete source media files. The exact D-pad editing interface, confirmation screens and playlist-**item** reordering remain open.
+- Users may **create, rename, reorganize/reorder, duplicate and delete** multiple playlists (D-50). **Playlist items themselves support batch addition, removal and free reordering** (D-64). Deleting a playlist must never delete source media files. Exact D-pad editing/confirmation screens remain an implementation task.
 - Saved playlist entries referencing disconnected USB files or revoked URIs must be handled as unavailable, not destructive cleanup without approval.
 
 ## Local playback controls

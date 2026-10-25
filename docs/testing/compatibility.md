@@ -54,3 +54,13 @@
 40. No local subtitle features (menus, sidecar loading or subtitle downloads); acknowledge that subtitles permanently embedded in video pixels cannot be removed.
 41. On corrupt/unsupported media, automatically skip and show a discreet error with optional diagnostics, bounded across a finite playlist.
 42. Last local video's saved timestamp resumes after manual reopen, app lifecycle and Dream entry where available; handle changed/missing file, invalid saved timestamp, removed USB and revoked grants.
+43. Basic settings categories remain easy to navigate; separate Advanced area houses technical options without exposing them in normal player.
+44. OK reveals player controls with fast Cameras/My Videos switching; arrows navigate focused menu items without accidental seek/camera changes, respecting DreamService key restrictions.
+45. New camera playlists default to shuffle, can change to sequence; initial camera rotation is 5 minutes and configurable 1–60 minutes.
+46. Single Favorites hub separates camera entries from local-video favorites, with reliable add/remove persistence.
+47. Batch-add several playlist items, remove items and reorder items independently of reordering whole playlists; no cross-type mixing.
+48. Player controls disappear after exactly **five seconds** of user inactivity, without hiding/altering separate clock/weather widgets unless independently configured.
+49. Optional diagnostic panel shows actual available resolution, codec, buffering and error status; unsupported values display unknown/unavailable, private source tokens and file paths masked.
+50. User settings, favorites and playlists persist **automatically on device** across app relaunch; initial release has no import/export, remote sync or user account. Clearing app data removes app-owned state as expected.
+51. On network restoration during local fallback, the current video finishes before switching to a **verified playable** live camera; a user who selects remain local is not switched away.
+52. Network flaps or unavailable cameras never cause premature video interruption or endless retry loops.

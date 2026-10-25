@@ -31,6 +31,12 @@ Use these terms consistently in product text, code, and issues.
 | Seek step | Fixed ten-second forward or backward movement within a seekable local video. |
 | Playlist repeat | Playback advances through videos and starts again from the first eligible item when the playlist ends. |
 | Unplayable media | A video item the current TV cannot load or decode, or whose bytes are invalid/inaccessible. |
+| Basic settings | Categorized, plain-language controls for common viewing preferences. |
+| Advanced settings | A separate area for optional technical controls and diagnostics. |
+| Player controls | Temporary contextual controls shown over fullscreen playback, automatically hidden five seconds after user inactivity. |
+| Playlist item | An individual camera or local video stored as an ordered entry in its matching playlist type. |
+| Favorites hub | One screen with separate groups for favorited cameras and local videos. |
+| Local fallback return | After internet recovers, a configured local fallback finishes its active video before live cameras resume, unless the user chooses to stay local. |
 | Overlay | Nonessential on-screen data above video, such as time, place, weather, or forecast. |
 | Playback mode | User-selected content type: live cameras or local videos. |
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |
