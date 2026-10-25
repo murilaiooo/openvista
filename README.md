@@ -108,6 +108,7 @@ OpenVista will be developed as an **original Kotlin Android TV application**, wi
 | [Roadmap](docs/roadmap.md) | What's next and how work is prioritized |
 | [Implementation plan](docs/implementation/priority-plan.md) | Engineering stages, dependencies, and acceptance goals |
 | [Technical research](docs/research/platform-feasibility-2026-10-25.md) | Platform capabilities and open questions |
+| [Curated upstream code research](docs/research/curated-upstream-code-2026-10-25.md) | Ranked open-source references, source-file pointers, licenses and implementation sequence |
 | [Architecture](docs/architecture/overview.md) | Candidate components and boundaries |
 | [Compatibility](docs/testing/compatibility.md) | Test scope and device-specific limitations |
 | [Contributing](CONTRIBUTING.md) | How to propose improvements and collaborate |
