@@ -1,6 +1,6 @@
 # OpenVista release-artifact content isolation
 
-**Status:** Offline test utility available; no OpenVista APK or AAB has been built or inspected yet. This check is mandatory before any eventual binary release. It does not authorize publishing.
+**Status:** Offline guard available. The first isolated **local debug diagnostics APK** was built and passed this scan on 2026-10-25. This does **not** approve any binary publication; the actual future release artifact must be scanned again after release signing and packaging.
 
 ## Commands (Windows / Python 3.12)
 

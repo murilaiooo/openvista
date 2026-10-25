@@ -134,4 +134,4 @@ print("PASS: 78/78 D-ID mappings across 10 acceptance gates (planned, NOT TESTED
 print(f"PASS: local relative links valid across {len(files)} Markdown documents")
 print("PASS: active steering and ADR avoid stale interview/device claims")
 print("PASS: English-language prose checks and zero bundled runtime media (where runtime source exists)")
-print("NOTE: no APK, TV tests, camera permissions or runtime evidence validated")
+print("NOTE: documentation checks do not validate APK builds, device playback or media permissions")
