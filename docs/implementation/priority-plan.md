@@ -61,6 +61,18 @@ Each slice closes only with reproducible PC tests **and** a feature demonstratio
 | P2 | Dream integration; secure LAN URL entry; update integrity/installer; performance/privacy | OEM-specific and security tests |
 | P3 | 24h soak; licenses/privacy checks; compatibility matrix; controlled release | Checked acceptance contract + owner release approval |
 
+## GitHub P0 issue tracker (created)
+
+- [#2 — DreamService and storage feasibility](https://github.com/murilaiooo/openvista/issues/2) (existing; initial TV scope updated).
+- [#3 — Authorized global webcams and rights register](https://github.com/murilaiooo/openvista/issues/3) (existing; >=25-camera stable-v1 gate added).
+- [#4 — Read-only Hisense and Windows toolchain baseline](https://github.com/murilaiooo/openvista/issues/4).
+- [#5 — Media3 HLS/DASH and local-container device test](https://github.com/murilaiooo/openvista/issues/5).
+- [#6 — Weather/map provider terms and offline behaviors](https://github.com/murilaiooo/openvista/issues/6).
+- [#7 — Android Fire OS 7 updater and installer constraints](https://github.com/murilaiooo/openvista/issues/7).
+- [#8 — Same-LAN QR pairing security prototype](https://github.com/murilaiooo/openvista/issues/8).
+
+P1–P3 tickets should be created only as the P0 proof removes uncertainty. Each implementation issue must cite the corresponding tested artifact.
+
 ## Definition of done
 
 - Link work to decision IDs and tests.
