@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenVista local diagnostic report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "capturedAtUtc", "appVersion", "capabilityEvidence", "device", "display", "resources", "videoDecoders", "pickers", "input", "checks", "warnings"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "capturedAtUtc": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "appVersion": { "type": "string" },
+    "capabilityEvidence": { "type": "string" },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manufacturer", "model", "androidVersion", "apiLevel", "supportedAbis", "availableCpuCores"],
+      "properties": {
+        "manufacturer": { "type": "string" },
+        "model": { "type": "string" },
+        "androidVersion": { "type": "string" },
+        "apiLevel": { "type": "integer" },
+        "supportedAbis": { "type": "array", "items": { "type": "string" } },
+        "availableCpuCores": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "display": {
+      "type": "object",
+      "required": ["currentMode", "supportedModes", "advertisedHdrTypes"],
+      "properties": {
+        "currentMode": { "anyOf": [{ "$ref": "#/$defs/mode" }, { "type": "null" }] },
+        "supportedModes": { "type": "array", "items": { "$ref": "#/$defs/mode" } },
+        "advertisedHdrTypes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "required": ["totalMemoryBytes", "availableMemoryBytes", "appPartitionTotalBytes", "appPartitionAvailableBytes"],
+      "properties": {
+        "totalMemoryBytes": { "$ref": "#/$defs/nullableBytes" },
+        "availableMemoryBytes": { "$ref": "#/$defs/nullableBytes" },
+        "appPartitionTotalBytes": { "$ref": "#/$defs/nullableBytes" },
+        "appPartitionAvailableBytes": { "$ref": "#/$defs/nullableBytes" }
+      }
+    },
+    "videoDecoders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "mimeType", "supports1080p30", "supports4k30", "supports4k60", "hardwareClassification"],
+        "properties": {
+          "name": { "type": "string" }, "mimeType": { "type": "string" },
+          "supports1080p30": { "$ref": "#/$defs/nullableBool" },
+          "supports4k30": { "$ref": "#/$defs/nullableBool" },
+          "supports4k60": { "$ref": "#/$defs/nullableBool" },
+          "hardwareClassification": { "type": "string" }
+        }
+      }
+    },
+    "pickers": {
+      "type": "object",
+      "required": ["openDocumentResolvable", "openDocumentTreeResolvable", "createDocumentResolvable", "usbEnumerationTested"],
+      "properties": {
+        "openDocumentResolvable": { "type": "boolean" },
+        "openDocumentTreeResolvable": { "type": "boolean" },
+        "createDocumentResolvable": { "type": "boolean" },
+        "usbEnumerationTested": { "const": false }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["leanbackAdvertised", "gamepadAdvertised", "dpadFunctionalTest"],
+      "properties": {
+        "leanbackAdvertised": { "type": "boolean" },
+        "gamepadAdvertised": { "type": "boolean" },
+        "dpadFunctionalTest": { "enum": ["not_tested", "pass", "fail", "unsupported"] }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": { "enum": ["pass", "fail", "unsupported", "not_tested"] }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "mode": {
+      "type": "object",
+      "required": ["width", "height", "refreshRateHz"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "refreshRateHz": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "nullableBool": { "type": ["boolean", "null"] },
+    "nullableBytes": { "type": ["integer", "null"], "minimum": 0 }
+  }
+}

@@ -1,6 +1,6 @@
 # OpenVista: agent instructions
 
-OpenVista completed **eight product interview rounds (D-01–D-78)**. It is now in **engineering research / feasibility validation**; there is **no OpenVista app code or APK** yet. Never claim tested device support, approved providers, working streams or fully automatic installation without reproducible evidence.
+OpenVista completed **eight product interview rounds (D-01–D-78)**. Engineering has started: an isolated, read-only Kotlin diagnostics app was built and tested on the owner-approved Hisense on 2026-10-25. This is **not the media player or a public APK release**. Never claim other-device compatibility, validated media playback, approved providers, or automatic installation without reproducible evidence.
 
 ## Working agreements
 
