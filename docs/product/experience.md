@@ -1,6 +1,6 @@
 # OpenVista interaction and visual experience
 
-**Status:** Product requirements confirmed in rounds 1–3 (2026-10-24). This is a UX brief, **not** final layout implementation or tested UI.
+**Status:** Product requirements confirmed through round 5 (2026-10-25). This is a UX brief, **not** a finished layout or tested app.
 
 ## Visual identity
 
@@ -16,7 +16,7 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 - The user can add permitted custom URLs using **either the TV keyboard or a QR-assisted second-device flow** (secure pairing design still TBD).
 - Catalog includes broad themed categories, geographic filters, favorites and verified availability; camera metadata is updated online with a local fallback.
 - An optional on-demand camera information panel gives name, country, camera-local time, verified availability, resolution where known and attribution.
-- Fullscreen camera playback supports contextual directional scene changes and optional controls that appear during input.
+- Fullscreen camera playback supports contextual directional scene changes and optional controls that appear during input. In supported DreamService mode, **OK shows controls and Back exits**; directional navigation is subject to OEM key handling.
 - Automatically rotate the active camera after the configured 1–60 minute interval.
 - An unavailable camera is **skipped immediately**. If all candidates fail, use the user's preconfigured **local-video playlist fallback** if accessible; otherwise show a clear notice and Retry, never loop forever.
 
@@ -38,6 +38,15 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 ## First-run onboarding
 
 Show a **short, skippable** walkthrough for camera choice, optional local folder and weather setup. Never require a user account, location permission, or payment to enter the manual Home. The user must be able to revisit setup from settings.
+
+## Automatic screensaver runtime (Round 5)
+
+- Support OS-permitted idle intervals of **1, 3, 5, 10, 15 and 30 minutes**, explaining when OEM settings cannot be changed.
+- On automatic entry, attempt to continue the **last selected camera or video**; unavailable sources follow the configured fallback behavior.
+- Run continuously when allowed, with an optional user schedule and device-constrained keep-awake options. Never override TV sleep/standby or auto-open at boot.
+- During loss of internet, play a configured **local video fallback**. Check reconnection without pausing, restarting or replacing the playing local video.
+- Disconnecting USB presents an understandable notice and alternative source choice instead of freezing.
+- Pause unnecessary off-screen playback and refresh data using provider-compatible caching. Prioritize smooth playback over forcing 4K.
 
 ## Scene transitions and device constraints
 

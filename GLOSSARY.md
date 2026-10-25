@@ -21,6 +21,11 @@ Use these terms consistently in product text, code, and issues.
 | Advanced overlay editor | Interactive TV-focused customization of overlay elements beyond quick presets; exact controls remain open. |
 | Scene transition | Visual change between successive cameras or local videos, user-selectable as instant or smooth, subject to available device resources. |
 | Display-care controls | Independent settings to reposition static informational overlays and hide them after inactivity, reducing but not eliminating image-retention risk. |
+| Idle activation interval | Time of TV inactivity before its OS starts a configured screensaver; OpenVista offers only intervals supported by that device/OS. |
+| Keep-awake preference | User-requested playback/display continuity that cannot override TV sleep, screen-off or OEM restrictions. |
+| Last scene | The most recently selected camera or local video, used as the preferred source when automatic screensaver playback starts again. |
+| Connection recovery check | Bounded verification that network access has returned while a configured offline fallback continues playing undisturbed. |
+| Optional runtime schedule | User-configured windows in which automatic screensaver behavior is eligible; exact schedule interaction rules remain open. |
 | Overlay | Nonessential on-screen data above video, such as time, place, weather, or forecast. |
 | Playback mode | User-selected content type: live cameras or local videos. |
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |

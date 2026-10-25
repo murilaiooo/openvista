@@ -36,3 +36,12 @@
 22. Seven-day weather detail: rain, wind, humidity, sunrise/sunset plus unavailable-value labels; manual city input and opt-in device location denial path.
 23. All cameras unavailable: configured playable local playlist fallback, missing-USB fallback, and explicit retry when unconfigured; no infinite skip loop.
 24. Verify first APK has **no integrated wallpaper download library**, which is deferred to later releases.
+25. Idle activation options 1/3/5/10/15/30 minutes are usable **only where supported**; unsupported OEM cases get explicit guidance and manual mode still works.
+26. Optional stay-awake and scheduling controls respect TV sleep/standby and do not force unsupported power states.
+27. Automatic Dream entry resumes last camera/video when accessible; unavailable USB, offline sources and permission denial recover gracefully.
+28. OK reveals contextual controls, Back exits and arrows navigate **if dispatched by OS**; record device/OS exceptions and reserved keys.
+29. Internet disconnected: configured local playlist plays; bounded reconnect probes continue without playback interruption or automatically switching to an online feed.
+30. Smooth playback priority: adapt quality and transitions under low CPU/RAM, decoder restrictions, 1080p/4K load and thermal stress.
+31. No unnecessary video/network activity while screen is off/inactive; catalog and forecast cached and refreshed only when appropriate.
+32. USB drive removed mid-video: clear notice and alternate source selection, no crash or infinite retry.
+33. Reboot the TV: OpenVista **does not auto-launch**. Normal user launch and OS Dream entry still work where supported.

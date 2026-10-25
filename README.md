@@ -12,7 +12,7 @@ The following is already agreed:
 
 - **TV-first:** designed for Android TV devices generally, not a single TV model. Include Google TV and Fire TV/Fire OS in the compatibility test plan.
 - **Two content modes:** (1) live cameras around the world, and (2) user-selected downloaded videos stored in a folder on the TV or attached storage.
-- **Two entry points:** a manually opened TV application plus automatic screensaver mode where the OS allows it.
+- **Two entry points:** a manually opened TV application plus automatic screensaver mode where the OS allows it. The app must **never auto-launch on TV boot**.
 - **Live sources:** both a browsable webcam catalog and user-provided permitted stream URLs.
 - **Home:** Cameras, My Videos and Favorites as three large image-backed cards.
 - **Camera discovery:** broad curated categories (beaches, cities, mountains, wildlife, landmarks, ski resorts and ports), **2D world map with clustered markers and side list**, and permitted manual URLs.
@@ -25,14 +25,16 @@ The following is already agreed:
 - **Information overlays:** compact clock and current weather by default, detailed 7-day forecasts (temperature, precipitation, wind, humidity, sunrise/sunset when supplied) on demand. Choose manual city search or optional device location; switch between camera and viewer weather contexts, with presets and a simple/advanced visual editor.
 - **Display care:** separately configurable widget repositioning and hiding after inactivity (risk reduction, not burn-in prevention guarantee).
 - **Setup and transitions:** short skippable setup, plus a user choice of instant or smooth scene switches according to device performance.
+- **Idle and power:** optional **1/3/5/10/15/30-minute screensaver activation** where supported, optional schedule and stay-awake options subject to TV power policies. Automatic playback **resumes the last camera or video**; OK reveals controls, Back exits, arrows navigate where OS dispatch permits.
+- **Resource priority:** prioritize stable, fluid playback through adaptive quality/effects; pause unnecessary background playback and use cached updates. On USB removal, explain the missing drive and allow another source.
 - **Localization:** Brazilian Portuguese and English at launch; auto-detect TV region with manual language, clock-format and temperature overrides.
 - **Audio:** muted by default with an option to enable sound.
 - **Free by design:** no advertisements and no user account required.
 - **First release:** a downloadable APK via GitHub when implementation and compatibility tests pass.
-- **Fallback:** if all webcams are unavailable, optionally switch to a user-configured local video playlist; otherwise show a clear retry notice.
+- **Fallback and connectivity:** if all webcams fail or the network drops, switch to the user-configured local playlist when available; check reconnection **without interrupting its current video**. Otherwise show a clear retry notice.
 - **Future wallpaper library:** deferred beyond the first APK. Local folders and live cameras come first. Do not assume media is freely redistributable.
 
-**38 product decisions have been confirmed across four interview rounds.** Specific provider contracts, actual camera availability, weather API, secure QR pairing design, exact remote key mappings, TV idle/power policies and physical-device compatibility are **still open**. See [Product decisions](docs/product/decisions.md) and [UX brief](docs/product/experience.md).
+**48 product decisions have been confirmed across five interview rounds.** Provider contracts, actual camera availability, weather API, secure QR pairing, device-specific idle/input compatibility, playlist playback details and physical-device support remain **under research**. See [Product decisions](docs/product/decisions.md), [UX brief](docs/product/experience.md) and [runtime policy](docs/product/runtime-and-recovery.md).
 
 ## Proposed experience (not implemented)
 
@@ -67,6 +69,7 @@ No Gradle project or application code has been generated yet. The architecture w
 - [Vision and requirements](docs/product/vision.md)
 - [TV UX and interaction brief](docs/product/experience.md)
 - [Camera catalog and weather requirements](docs/product/content-and-weather.md)
+- [Screensaver runtime, power and recovery](docs/product/runtime-and-recovery.md)
 - [Decisions and brainstorming questions](docs/product/decisions.md)
 - [Proposed architecture](docs/architecture/overview.md)
 - [Reference projects and official sources](docs/research/references.md)

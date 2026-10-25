@@ -26,7 +26,11 @@
 - No root; no invasive TV settings changes without explicit approval, supported procedure and rollback.
 - Limit reconnect loops, network transfer and decoder usage; expose a manual quality or data-saving setting if warranted.
 - Protect OLED/QD-OLED against fixed overlays; user options to hide/move/dim them.
-- Respect power/sleep, accessibility and normal uninstall semantics.
+- Respect power/sleep, accessibility and normal uninstall semantics. Keep-awake preferences and optional schedules must not bypass device standby or manufacturer limitations.
+- **No auto-launch at TV boot**, no privileged boot hacks or background services to force a screensaver to start. Use system DreamService eligibility only when supported.
+- Suspend playback and unnecessary network activity while inactive or screen-off; cache catalog/weather updates within provider terms and retry network recovery at bounded intervals.
+- On network loss, switching to a locally stored fallback is opt-in. Reconnection checks must not interrupt the active offline video. Do not silently switch away from the user's playing content.
+- On USB removal or revoked folder grants, explain that the source is missing and allow a different selection; never crash or retry indefinitely.
 
 ## Reporting vulnerabilities
 For now, contact the repository owner privately rather than publishing exploits, secrets or private stream URLs in issues.

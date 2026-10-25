@@ -10,15 +10,18 @@ All milestones are **proposed**, not scheduled. Product interview must happen be
 - [x] Record round 2 user-experience decisions (10 confirmed choices).
 - [x] Record round 3 visual and TV-interaction decisions (10 confirmed choices).
 - [x] Record round 4 catalog, weather and wallpaper decisions (10 confirmed choices).
-- [ ] Complete round 5 and remaining interviews; resolve follow-up ADRs.
+- [x] Record round 5 runtime, energy and performance decisions (10 confirmed choices).
+- [ ] Complete round 6 and remaining interviews; resolve follow-up ADRs.
 - [ ] Choose technical baseline after comparing original Kotlin project vs license-compliant reuse/fork.
 
 ## Phase 1: Feasibility spikes
 - [ ] Validate AndroidX Media3 local MP4 and permissioned live HLS on TV.
 - [ ] Validate OS/document-picker URI permission persistence, including external storage.
 - [ ] Test a basic DreamService and normal app-mode on representative Android TV, Google TV, Fire TV.
+- [ ] Prototype supported idle intervals (1/3/5/10/15/30 min), OK/Back/arrows in DreamService, no boot autostart and constrained keep-awake/schedules.
+- [ ] Prototype last-scene persistence, network-to-local fallback with non-disruptive reconnect probes and USB hot-unplug recovery.
 - [ ] Verify weather service licensing, forecast accuracy and data caching policy.
-- [ ] Document decoder limits, memory, CPU and bitrate findings.
+- [ ] Document decoder limits, memory, CPU and bitrate findings, including automatic quality/effect degradation and paused background resource usage.
 
 ## Phase 2: Vertical MVP (scope subject to interview)
 - [ ] Fullscreen ambient playback with source switching/failover.
