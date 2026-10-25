@@ -1,27 +1,37 @@
 # OpenVista: product vision
 
-**Status: discovery. Updated 2026-10-24.**
+**Status:** Product discovery, round 1 decisions confirmed on 2026-10-24.
 
 ## Confirmed by the project owner
-- OpenVista is an ambient / screensaver app for **Android TV generally**, not a device-specific Hisense app. Consider Google TV and Fire TV variants, but do not promise untested compatibility.
-- Offer **live cameras from around the world** and **looping downloaded videos** placed in a user-selected folder on the TV or external storage.
-- Display a clock, weather conditions, and a **7-day forecast**. Exact overlays and locations need decisions.
-- Investigate a possible library of video wallpapers, including permissioned integrations with existing libraries.
-- Conduct a thorough product interview before implementation. Keep decisions, research, specs and tickets in GitHub.
 
-## Proposed principles (not yet approved)
-- Smooth D-pad navigation and accessible UI.
-- Full-screen immersive video; overlays can disappear.
-- Hardware decoding where possible and graceful degradation on old TVs.
-- Manual-launch mode always available; optional DreamService on compatible OS versions.
-- Local videos remain offline-friendly; network streams fail over gracefully.
-- Privacy by default and minimal permissions; licensed/permissioned media sources.
+- OpenVista is an immersive Android TV screensaver and ambient-video **app for the wider Android TV ecosystem**, not just a Hisense/Fire TV model. Evaluate Google TV and Fire TV/Fire OS variants but never promise untested support.
+- **Two entry points:** normal app opened manually and automatic screensaver mode **where permitted by the device/OS**.
+- **Live cameras:** browse a catalog of scenes around the world or enter permitted stream URLs manually.
+- **My videos:** choose a folder of downloaded scenic videos on the TV and play in sequence, shuffle, or playlists. USB/NAS support details remain unresolved.
+- **Weather:** clock, current conditions and seven-day forecast goals, with option to show the current camera location or viewer location. Viewer geolocation is never required by default.
+- **Overlays:** fully customizable; their controls, styling, placement and default appearance are still open.
+- **Audio:** mute by default, with optional sound.
+- **Economics:** free, no advertisements, no account required.
+- **First distribution:** APK through GitHub, not an initial store-release commitment.
+- Investigate a future discoverable library of video wallpapers, respecting source licenses; this is not yet an MVP feature.
+- Use the relevant Matt Pocock engineering skills and document owner decisions, architecture hypotheses and findings in GitHub.
+
+## Proposed product principles (not approved requirements yet)
+
+- Smooth, accessible D-pad navigation, without needing a keyboard/mouse for common use.
+- Fullscreen video that can remain immersive with optional overlays.
+- Hardware decode where possible, with degradation on lower-powered TV hardware.
+- Manual app mode always available; DreamService where compatible.
+- Graceful offline behavior, retry and failover for network cameras.
+- Privacy by default, minimal permissions, no mandatory cloud backend or telemetry.
 
 ## Success metrics to specify later
-- Playback resilience for long sessions (24-hour soak tests).
-- Input navigation, refresh/fallback quality, correct weather location/timezone.
-- Memory, thermal and network behavior on low-power Android TV devices.
-- Folder selection and persistence across reboot; user controls playback order.
-- Representative hardware matrix across Android TV, Google TV, and Fire TV.
 
-See [open decisions](decisions.md), [architecture](../architecture/overview.md), [roadmap](../roadmap.md).
+- Long-running playback reliability (proposed: 24-hour soak test).
+- Folder permissions across reboot, including removal/reinsertion of external storage where supported.
+- Stable live video switching and invalid-source recovery.
+- Clock and forecast accuracy for both weather contexts.
+- CPU, memory, dropped frames and bandwidth on low-powered TVs.
+- Representative device test matrix before declaring compatibility.
+
+See [decisions](decisions.md), [architecture](../architecture/overview.md), and [roadmap](../roadmap.md).

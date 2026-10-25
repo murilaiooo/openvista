@@ -1,6 +1,6 @@
 # ADR 0001: App mode and optional Android screensaver mode
 
-- **Status:** Proposed (not approved)
+- **Status:** Proposed technical architecture; **product requirement approved** on 2026-10-24 (both modes).
 - **Date:** 2026-10-24
 
 ## Context
@@ -17,5 +17,7 @@ Never alter the device's default screensaver, ambient service or power policy wi
 - Improves device coverage and usability without privileged access.
 - Adds lifecycle/testing complexity and may need device-specific docs.
 
-## Validation required before accepting
-Prototype DreamService/manual mode on Fire OS 7 plus at least one Google TV and another Android TV class. Test wake/remote behavior, no black screen and normal rollback. Confirm owner wants **both** entry points.
+## Product approval and technical validation
+The owner confirmed **both** automatic screensaver and manually launched app in round 1. This approves the product behavior, not universal OEM support or a specific technical implementation.
+
+Before accepting the shared playback-core architecture, prototype DreamService/manual mode on Fire OS 7 plus at least one Google TV and another Android TV class. Test wake/remote behavior, no black screen and normal rollback. Clearly document devices where only manual mode is supported.

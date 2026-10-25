@@ -12,18 +12,23 @@ The following is already agreed:
 
 - **TV-first:** designed for Android TV devices generally, not a single TV model. Include Google TV and Fire TV/Fire OS in the compatibility test plan.
 - **Two content modes:** (1) live cameras around the world, and (2) user-selected downloaded videos stored in a folder on the TV or attached storage.
-- **Ambient viewing:** long-running, distraction-free full-screen playback suitable for use as a screensaver.
-- **Information overlays:** clock, current weather, and a 7-day forecast are product goals.
+- **Two entry points:** a manually opened TV application plus automatic screensaver mode where the OS allows it.
+- **Live sources:** both a browsable webcam catalog and user-provided permitted stream URLs.
+- **My videos:** a selected folder with ordered, shuffled and playlist playback.
+- **Information overlays:** fully customizable clock, weather conditions and 7-day forecast, switchable between camera location and viewer location.
+- **Audio:** muted by default with an option to enable sound.
+- **Free by design:** no advertisements and no user account required.
+- **First release:** a downloadable APK via GitHub when implementation and compatibility tests pass.
 - **Future library:** explore a discoverable library of curated live wallpapers and optional integrations. Do not assume media is freely redistributable.
 
-Product details (providers, browsing, layouts, personalization, distribution, licensing and free/commercial policy) remain **open for user decisions**. See [Product decisions](docs/product/decisions.md).
+These eight decisions were confirmed in the first product interview. Details including exact camera providers, UI navigation, playlists, default overlays and hardware support are **still open**. See [Product decisions](docs/product/decisions.md).
 
 ## Proposed experience (not implemented)
 
 1. Open OpenVista from the TV launcher; choose **Live cameras** or **My videos**.
 2. Browse safe, curated live-camera collections or choose a local media folder.
-3. Enter ambient full-screen playback; use the remote to pause, switch scenes, reveal minimal information, or return to the library.
-4. Enable optional overlays: location name, local time, viewer time, live weather, and 7-day forecast.
+3. Enter ambient full-screen playback; the remote interactions and rotation rules will be chosen in the next interview.
+4. Customize optional overlays for clock, local time, location, weather and a 7-day forecast.
 5. Where supported by the TV OS, select OpenVista as the system screensaver. Devices that block third-party screensavers can still use the manual app mode.
 
 ## Compatibility is device-specific

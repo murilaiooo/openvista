@@ -6,7 +6,8 @@ All milestones are **proposed**, not scheduled. Product interview must happen be
 - [x] Create GitHub repository and record high-level product intent.
 - [x] Select/install relevant Matt Pocock skills for Codex and Claude Code.
 - [x] Document architecture hypotheses, reference sources, content-rights checks, glossary, workflow and open questions.
-- [ ] Complete interview rounds and record decisions / ADRs.
+- [x] Record round 1 product decisions (8 confirmed choices).
+- [ ] Complete remaining interview rounds and resolve follow-up ADRs.
 - [ ] Choose technical baseline after comparing original Kotlin project vs license-compliant reuse/fork.
 
 ## Phase 1: Feasibility spikes
