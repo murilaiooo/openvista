@@ -47,7 +47,7 @@ The Android API also reports specific codec entries and video size/rate support.
 - Device feature list advertises `android.hardware.usb.host`, Amazon USB storage and `android.software.leanback`.
 - `com.android.documentsui` exists; the diagnostic app resolved `ACTION_OPEN_DOCUMENT`, `ACTION_OPEN_DOCUMENT_TREE`, and `ACTION_CREATE_DOCUMENT`.
 - **Observed:** Export JSON opened the app's explicit consent dialog and the OS document picker (`com.android.documentsui.picker.PickActivity`). Back correctly returned to the app.
-- **Not yet verified:** successful file save through the Fire OS document picker using automated D-pad input; an attempted save did not create the expected file. No report was falsely marked saved. USB folder traversal, actual persistence of URI grants and handling USB removal remain untested.
+- **Verified:** after approval, the system picker created `openvista-device-check.json` in Downloads via the touch-input interface. The exported **7,356-byte** file was pulled via ADB, parsed, and validated against JSON Schema Draft 2020-12 with `jsonschema==4.25.1`. It contained **24 decoder entries**, the expected API 28 model, and no forbidden identifiers, URIs or network addresses in the checked fields. **OEM limitation:** tested D-pad/Tab navigation did not move focus to the picker Save button; saving with only a physical remote remains unverified. USB folder traversal, persisted URI grants and removal recovery also remain untested.
 - Android feature list advertises D-pad/Leanback, gamepad and HDMI-CEC. ADB-injected D-pad Center activated **Run Device Check** and **Export JSON** after the app was foregrounded. The improved focused button received visible cyan highlight on the real 4K TV screen.
 - An existing OEM DreamService window briefly intercepted the first remote input before the OpenVista app was foregrounded. This **does not** prove OpenVista DreamService compatibility; #2 remains independent.
 
@@ -77,13 +77,13 @@ The SDK existed but `ANDROID_HOME` was initially unset. Setting it to the instal
 - Four Kotlin/JUnit tests passed: schema fields, privacy exclusions, unsupported capability handling, and sanitized labels.
 - Android Lint passed with no blocking errors after adding a TV launcher banner, an icon, and data extraction rules. Non-blocking dependency/version and SDK toolchain warnings do not constitute hardware test results.
 - Verified `apksigner` debug v2 signature; APK inspection showed **zero requested Android permissions** and **zero bundled media/playlist entries**.
-- ADB installed and launched exactly the diagnostic application; it showed a read-only idle state before action and real capability results after the user's Run Device Check action.
+- ADB installed and launched exactly the diagnostic application; it showed a read-only idle state before action and real capability results after Run Device Check. After the owner's one-app approval, only this test package was installed. ADB key events verified D-pad app controls and Back navigation. The system picker accepted touch input for the Save action.
 - The package remains an owner-authorized local test installation, not a public OpenVista release. A sanitized on-device screenshot is available at [the device-check screenshot](hisense-device-check.png). Replacing it with a different OpenVista app requires removing this package first.
 
 ## Open validation gates
 
-1. Confirm saving an actual JSON document via the OEM picker with the TV's physical remote. Verify saved content against `diagnostic-report-schema.json`.
-2. Verify Back/Exit and Home return consistently after sleep/wake and after document-picker cancellation.
+1. **Complete:** save an actual JSON document through the OEM picker using ADB touch input; validate the real report against `diagnostic-report-schema.json` (PASS). **Follow-up (#9):** prove or provide an accessible alternative for picker Save using only the Fire TV remote; the external DocumentsUI button did not gain focus with tested D-pad or Tab sequences.
+2. **Complete:** picker Back returned to the diagnostic Activity and a second Back returned to the previously foreground app; the existing diagnostic package stayed installed. Sleep/wake behavior remains for a future regression test.
 3. Measure actual Media3 playback, codec/bitrate behavior and 4K HDR decode under #5, without conflating advertised capabilities with playback.
 4. Test M3U file import and USB/internal folder selection separately under #3 and #9.
 5. Test DreamService OEM selection and lifecycle separately under #2.

@@ -51,7 +51,7 @@ The `-r` option **updates this same diagnostic package** without installing a se
 1. Open the diagnostic app manually. Confirm that it shows an idle state with no collection on startup.
 2. Use only D-pad/OK to focus **Run Device Check** and inspect device/display/codec/picker information.
 3. Focus **Export JSON**. Verify the warning/consent dialog appears. Cancel it to verify no file is created.
-4. Approve export and choose a destination using the system document picker. Validate the JSON against `docs/testing/diagnostic-report-schema.json`; avoid sensitive information.
+4. Approve export and choose a destination using the system document picker. On the Hisense, an ADB **touchscreen** tap on the system Save button was confirmed to complete this action. The OEM picker Save button has **not** been confirmed D-pad reachable, so do not imply a physical remote-only save works. Validate the exported report, without printing private content: `python -m pip install jsonschema==4.25.1`, then `python scripts/validate_diagnostic_report.py PATH_TO_EXPORTED_JSON`. Never commit the exported report.
 5. Press Back/Exit. Verify the existing launcher, other apps, and their settings remain unchanged.
 6. Mark codec resolution, USB picker access, sustained 4K playback and DreamService as *unverified* until separate real-device tests prove them.
 
