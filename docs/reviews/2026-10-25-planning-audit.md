@@ -1,5 +1,7 @@
 # OpenVista: comprehensive planning audit — 2026-10-25
 
+**Historical planning audit:** the camera-catalog licensing blocker and 25-feed release threshold documented below have been **superseded by C-01**. The product is now a user-managed media player and does not distribute streams or media files. Original review findings remain for traceability.
+
 **Scope:** repository `murilaiooo/openvista` at `5221c76` before this audit; eight-round owner decision log (D-01–D-78), 27 project skills, README, AGENTS, CONTRIBUTING, glossary, ADR-0001, research, architecture, P0–P3 plan, 10 v1 gates, GitHub issues #1–#8 and local validation. **No app source code/APK existed when reviewed. No TV state was changed.**
 
 ## Verdict

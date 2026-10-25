@@ -9,9 +9,9 @@ Use these terms consistently in product text, code, and issues.
 | Live wallpaper | A looping scenic video file or licensed downloadable visual, generally not a real-time camera. |
 | My videos | Media files the user owns or is permitted to play from a folder selected on their TV or attached storage. |
 | Scene | The currently visible camera feed or video, plus optional location and weather metadata. |
-| Collection | A set of scenes organized for browsing (for example, cameras by place or theme). |
+| Collection | A user's group of scenes organized for browsing by place, theme or playlist. |
 | Playlist | A user-defined, named sequence of scenes; camera playlists and local-video playlists are separate media types. |
-| Custom source | A permitted live-camera stream URL added by the user rather than selected from the curated catalog. |
+| Custom source | A live-camera stream URL added by a user rather than supplied by OpenVista. |
 | Weather context | The location whose forecast is displayed: the viewed camera location or the viewer's chosen location. |
 | Camera map | An interactive world map for selecting available live cameras by geographic location. |
 | Scene rotation | Automatic switching to another available scene after a user-configured interval from 1 to 60 minutes. |
@@ -38,7 +38,7 @@ Use these terms consistently in product text, code, and issues.
 | Favorites hub | One screen with separate groups for favorited cameras and local videos. |
 | Local fallback return | After internet recovers, a configured local fallback finishes its active video before live cameras resume, unless the user chooses to stay local. |
 | Local engineering APK | Development build installed locally for technical tests; not a public GitHub release or stable v1. |
-| Public v1 acceptance gate | Evidence checklist required before a signed stable app release, including lawful working cameras, 24h stability, privacy and license checks. |
+| Public v1 acceptance gate | Evidence checklist required before stable release, including user-source handling, zero bundled media, 24-hour stability, privacy and compatibility tests. |
 | APK updater | Component that checks, downloads and requests install of authentic application updates; unattended installation is conditional on Android installer permissions and ownership. |
 | Local QR pairing | Short-lived, explicitly approved transfer from phone to TV on the same LAN/Wi-Fi for a permitted stream URL. |
 | Sanitized report | On-device diagnostic summary with sensitive identifiers removed, copied/shared only by user request. |

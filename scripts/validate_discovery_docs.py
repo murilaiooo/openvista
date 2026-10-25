@@ -21,13 +21,17 @@ expected = list(range(1, 79))
 if decision_ids != expected:
     errors.append("Canonical decisions are not exactly D-01..D-78 in order (no duplicates allowed).")
 
+if "C-01" not in decisions:
+    errors.append("Current user-managed content clarification C-01 is missing.")
+
 if not all(x in decisions for x in ["Round 8: confirmed", "Product discovery outcome"]):
     errors.append("Eight-round completion is not recorded in decisions.")
 
 summary_contracts = [
-    ("README.md", "78 product decisions"),
-    ("docs/product/vision.md", "78 confirmed decisions"),
-    ("docs/product/v1-acceptance.md", "D-01–D-78"),
+    ("README.md", "docs/product/decisions.md"),
+    ("docs/product/user-managed-content.md", "C-01"),
+    ("docs/product/vision.md", "78 historical decisions"),
+    ("docs/product/v1-acceptance.md", "C-01 user-managed content clarification"),
     ("docs/implementation/priority-plan.md", "78 owner-approved"),
 ]
 for path, marker in summary_contracts:
@@ -77,6 +81,39 @@ if candidate_path.exists():
     if not all(cam.get("rightsReview") and cam.get("sourceRows") for cam in cameras):
         errors.append("Provenance or rights-review status missing.")
 
+# Guard the English-only repository language requirement without flagging real place names.
+portuguese_prose = [
+    "praias e litoral", "cidades e arquitetura", "lagos e marinas",
+    "data do teste:", "fontes dos candidatos:", "além dos 52",
+    "resolução medida", "teste seguinte:", "sem estabilidade garantida",
+    "descoberta via", "stream servido pela", "não é órgão público",
+]
+for file in [*docs, *(ROOT / "scripts").glob("*.py")]:
+    if file.name == "validate_discovery_docs.py" or file.name.endswith("_temp.py"):
+        continue
+    body = file.read_text(encoding="utf-8").casefold()
+    for phrase in portuguese_prose:
+        if phrase in body:
+            errors.append(f"Non-English prose found in {file.relative_to(ROOT)}: {phrase}")
+
+# Prevent future runtime tree from accidentally bundling research streams or media.
+runtime_roots = [ROOT / name for name in ("app", "androidApp", "application")]
+for runtime in runtime_roots:
+    if not runtime.exists():
+        continue
+    for file in runtime.rglob("*"):
+        if not file.is_file():
+            continue
+        if file.suffix.lower() in (".m3u", ".m3u8", ".mpd", ".mp4", ".mkv", ".webm", ".mov"):
+            errors.append(f"Bundled media/playlist prohibited: {file.relative_to(ROOT)}")
+        elif file.suffix.lower() in (".kt", ".java", ".xml", ".json", ".txt"):
+            try:
+                text_content = file.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            if re.search(r"https?://[^\\s\\\"']+\\.(?:m3u8|mpd)", text_content):
+                errors.append(f"Hard-coded media endpoint in app source: {file.relative_to(ROOT)}")
+
 # Structural sanity checks (not claims of runtime verification).
 for path in ("AGENTS.md", "CONTRIBUTING.md"):
     if "in product discovery" in (ROOT / path).read_text(encoding="utf-8").lower():
@@ -94,4 +131,5 @@ print("PASS: all 78 ordered, unique approved decisions; eight rounds complete")
 print("PASS: 78/78 D-ID mappings across 10 acceptance gates (planned, NOT TESTED)")
 print(f"PASS: local relative links valid across {len(files)} Markdown documents")
 print("PASS: active steering and ADR avoid stale interview/device claims")
+print("PASS: English-language prose checks and zero bundled runtime media (where runtime source exists)")
 print("NOTE: no APK, TV tests, camera permissions or runtime evidence validated")

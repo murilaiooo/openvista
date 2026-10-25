@@ -1,12 +1,12 @@
 # OpenVista: requirements-to-acceptance traceability
 
-**Audit date:** 2026-10-25. **Canonical scope:** [78 approved decisions](decisions.md). This map assigns **every** decision to one **primary** [v1 acceptance gate](v1-acceptance.md); a requirement may influence other gates. **NOT TESTED** means planned, not passed. Documentation checks do not prove app behavior.
+**Audit date:** 2026-10-25. **Scope correction C-01:** historical first-party catalog assumptions (including D-71) are superseded by **user-managed sources and zero bundled feeds**. G01 now validates import, empty state, and release package isolation, not an upstream 25-camera inventory. **Canonical scope:** [78 approved decisions](decisions.md). This map assigns **every** decision to one **primary** [v1 acceptance gate](v1-acceptance.md); a requirement may influence other gates. **NOT TESTED** means planned, not passed. Documentation checks do not prove app behavior.
 
 ## Gate coverage and evaluation ownership
 
 | Gate | Domain | P0 evidence / delivery relationship |
 | --- | --- | --- |
-| G01 | Legal playable webcam streams & catalog | #3 rights + #5 HLS/DASH; 25 legitimate family-safe sources before public v1 |
+| G01 | User-managed stream and playlist library | #3 source import + #5 HLS/DASH; empty-library UX and zero bundled feeds/media for public v1 |
 | G02 | Manual app UX | #4 baseline; P1 UI and navigation tickets not yet created |
 | G03 | DreamService, timing, power | #2 with #4 baseline; may be OEM unsupported |
 | G04 | Local USB / playlist / decoder | #5 Media3, new SAF/USB spike issue needed |

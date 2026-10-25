@@ -35,7 +35,7 @@ These are **research findings**, not completed local/TV prototypes or an enginee
 ## Camera rights and forecast/map licenses
 
 - An internet-accessible HLS feed is **not necessarily authorized** for third-party display/distribution. Keep a source-permission inventory (owner, terms, embedding permissions, attribution, family-safety review, uptime, testing timestamp).
-- Do not promise 25 sources until the register contains 25 distinct, verified lawful streams. **Provider review is outstanding**.
+- **Scope updated after this research:** OpenVista does not ship first-party cameras. The historical 25-source quota is superseded by C-01; validate **user-provided stream/list imports** instead. Any media test fixture remains outside the APK.
 - Investigate weather forecast provider terms, seven-day field support, attribution/caching quotas, map tile usage policy and offline map metadata. No weather or map service was approved automatically by the user.
 - QR local pairing requires a separate security threat model before implementation.
 

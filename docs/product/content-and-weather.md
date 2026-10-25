@@ -4,12 +4,12 @@
 
 ## Live camera discovery and catalog
 
-- Curate a **broad themed directory** covering beaches, cities, mountains, wildlife, landmarks/monuments, ski resorts, ports and other useful categories. **Before stable v1** verify at least **25 distinct authorized, family-appropriate and genuinely working cameras**; each must have rights, attribution, stream verification and safety review evidence.
+- Organize **user-added cameras and imported source lists** into optional themes (beaches, cities, mountains, wildlife, landmarks, ski resorts, ports and more) when the user supplies a category or metadata. **Do not prepopulate or distribute a first-party camera feed catalog.** With no sources, display a clear add-source empty state.
 - Search/filter by **country, city, category, favorites and available-only**.
 - Provide an interactive **2D map with clustered markers and a side list** compatible with TV D-pad navigation. If online tiles cannot load, show a **local list of saved/cached camera metadata and a clear online-map-unavailable notice**; list availability doesn't mean streams play offline.
-- Catalog **metadata updates automatically over the internet**, but ships with a **local fallback catalog** (built-in or last-known verified metadata). A metadata fallback does **not** make video feeds reachable while offline.
-- Source rights: include licensed/authorized camera integrations only. Community members may submit suggestions, but a **review process** must approve stream URL, rights, attribution, safe content and playback before publishing. Specific provider list and review workflow remain research work.
-- Provide an **optional details panel** showing scene name, country, camera-location local time, actual/known resolution, verified availability status and source attribution.
+- User-supplied remote list metadata may refresh only when configured and authorized by the user; always keep a locally saved copy of imported source metadata and show honest offline status. There is **no built-in catalog feed** or central OpenVista camera service.
+- Source library belongs to the user. OpenVista never publishes a shared directory of submitted camera feeds; therefore no community-content publication/review pipeline is needed. Parse user-entered sources defensively and never publish, upload, or log private source URLs.
+- Provide an **optional details panel** showing scene name and, only when actually supplied/verified, country, camera-local time, resolution, availability and source attribution. Do not infer latitude/longitude or country from URL host alone.
 - Availability can be **available, unavailable, or unknown**. Do not infer continuous availability solely from a previously playable link.
 
 ## Adding your own camera

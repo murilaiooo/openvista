@@ -44,7 +44,7 @@
       "codec": "h264"
     },
     {
-      "label": "Faro — Praia",
+      "label": "Faro — Beach",
       "name": "Faro | Praia de Faro Este",
       "source": "beachcam_meo",
       "url": "https://video-auth1.iol.pt/beachcam/bcfaro/playlist.m3u8",
@@ -140,7 +140,7 @@
       "codec": "h264"
     },
     {
-      "label": "Sopot — Praia",
+      "label": "Sopot — Beach",
       "name": "PL - Sopot - Sopot - Plaża Małe Molo",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/sopot_plaza_male_molo_obrotowa.stream/playlist.m3u8",
@@ -152,7 +152,7 @@
       "codec": "h264"
     },
     {
-      "label": "Sopot — píer",
+      "label": "Sopot — Pier",
       "name": "PL - Sopot - Sopot Molo",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/sopot_molo_skwer_kuracyjny_obrotowa.stream/playlist.m3u8",
@@ -164,7 +164,7 @@
       "codec": "h264"
     },
     {
-      "label": "Dębki — praia",
+      "label": "Dębki — Beach",
       "name": "PL - Dębki - Dębki Plaża",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/debki_plaza_static.stream/playlist.m3u8",
@@ -176,7 +176,7 @@
       "codec": "h264"
     },
     {
-      "label": "Jastarnia — praia",
+      "label": "Jastarnia — Beach",
       "name": "PL - Jastarnia - Jastarnia Plaża, Dom Zdrojowy",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/jastarnia_plaza_dom_zdrojowy_obrotowa.stream/playlist.m3u8",
@@ -188,7 +188,7 @@
       "codec": "h264"
     },
     {
-      "label": "Jastarnia — píer",
+      "label": "Jastarnia — Pier",
       "name": "PL - Jastarnia - Jastarnia Molo",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/jastarnia_molo_static.stream/playlist.m3u8",
@@ -200,7 +200,7 @@
       "codec": "h264"
     },
     {
-      "label": "Jurata — píer",
+      "label": "Jurata — Pier",
       "name": "PL - Jurata - Jurata Molo",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/jurata_molo_static.stream/playlist.m3u8",
@@ -212,7 +212,7 @@
       "codec": "h264"
     },
     {
-      "label": "Gdynia Orłowo — praia",
+      "label": "Gdynia Orłowo — Beach",
       "name": "PL - Gdynia - Gdynia Orłowo",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/gdynia_orlowo_plaza_obrotowa.stream/playlist.m3u8",
@@ -224,7 +224,7 @@
       "codec": "h264"
     },
     {
-      "label": "Gdynia — marina",
+      "label": "Gdynia — Marina",
       "name": "PL - Gdynia - Gdynia Przystań jachtowa",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/gdynia_marina_obrotowa.stream/playlist.m3u8",
@@ -248,7 +248,7 @@
       "codec": "h264"
     },
     {
-      "label": "Władysławowo — praia",
+      "label": "Władysławowo — Beach",
       "name": "PL - Władysławowo - Władysławowo Plaża",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/wladyslawowo_plaza_obrotowa.stream/playlist.m3u8",
@@ -260,7 +260,7 @@
       "codec": "h264"
     },
     {
-      "label": "Puck — píer",
+      "label": "Puck — Pier",
       "name": "PL - Puck - Puck Molo",
       "source": "opencctv",
       "url": "https://ls.tkchopin.pl:9043/live/puck_molo_static.stream/playlist.m3u8",
@@ -272,7 +272,7 @@
       "codec": "h264"
     },
     {
-      "label": "Kalamata — praia (Grécia)",
+      "label": "Kalamata — Beach (Greece)",
       "name": "GR - Messenia - Kalamata - Kalamata Beach 1",
       "source": "manual",
       "url": "https://livecameras.gr:30443/live/kala3/playlist.m3u8",
@@ -284,7 +284,7 @@
       "codec": "h264"
     },
     {
-      "label": "Arachova — cidade (Grécia)",
+      "label": "Arachova — Town (Greece)",
       "name": "GR - Boeotia - Arachova - Arachova",
       "source": "manual",
       "url": "https://livecameras.gr:30443/live/arach1/playlist.m3u8",
@@ -296,7 +296,7 @@
       "codec": "h264"
     },
     {
-      "label": "Giżycko — marina do lago",
+      "label": "Giżycko — Lake Marina",
       "name": "PL - Giżycko - Jezioro Boczne Marina Lester Club",
       "source": "opencctv",
       "url": "https://stream.mazury24.eu/m_lester2/index.m3u8",
@@ -308,7 +308,7 @@
       "codec": "h264"
     },
     {
-      "label": "Mikołajki — lago",
+      "label": "Mikołajki — Lake",
       "name": "PL - Mikołajki - Jezioro Beldany Klub Mila Kamien",
       "source": "opencctv",
       "url": "https://stream.mazury24.eu/m_mila1/index.m3u8",
@@ -318,7 +318,7 @@
       "reason": "https://stream.mazury24.eu/m_mila1/index.m3u8: Server returned 404 Not Found"
     },
     {
-      "label": "Kietlice — lago",
+      "label": "Kietlice — Lake",
       "name": "PL - Kietlice - Jezioro Mamry Przystan Kietlice",
       "source": "opencctv",
       "url": "https://stream.mazury24.eu/m_kietlice/index.m3u8",
@@ -330,7 +330,7 @@
       "codec": "h264"
     },
     {
-      "label": "Wyndham Rio Mar — praia (Porto Rico)",
+      "label": "Wyndham Rio Mar — Beach (Puerto Rico)",
       "name": "Wyndham Rio Mar Beach",
       "source": "opencctv",
       "url": "https://s116.ipcamlive.com/streams/74llks5jnccdtta26/stream.m3u8",
@@ -350,7 +350,7 @@
       "reason": "https://s90.ipcamlive.com/streams/5aphdzkj7brmstsuu/stream.m3u8: Server returned 404 Not Found"
     },
     {
-      "label": "Cabarete — praia (República Dominicana)",
+      "label": "Cabarete — Beach (Dominican Republic)",
       "name": "Cabarete Beach Webcam",
       "source": "opencctv",
       "url": "https://s141.ipcamlive.com/streams/8dkfu0njvp2fpwgm4/stream.m3u8",
@@ -360,7 +360,7 @@
       "reason": "https://s141.ipcamlive.com/streams/8dkfu0njvp2fpwgm4/stream.m3u8: Server returned 404 Not Found"
     },
     {
-      "label": "Rzepiska — panorâmica das Tatras",
+      "label": "Rzepiska — Tatra Panorama",
       "name": "Rzepiska Tatry panorama na żywo kamery HD w Polsce",
       "source": "webcamera_pl",
       "url": "https://hoktastream1.webcamera.pl/airnet_cam_d60f3c/airnet_cam_d60f3c.stream/playlist.m3u8",

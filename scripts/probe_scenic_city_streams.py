@@ -6,26 +6,26 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 SOURCE=pathlib.Path.home()/"AppData/Local/Temp/openvista-streams.geojson"
 OUT=ROOT/"docs/research/scenic-city-1080p-probe-results-2026-10-25.json"
 TARGETS=[
-("Cracóvia — praça principal","krakow_cam_702b61.stream/playlist.m3u8"),
-("Varsóvia — praça do castelo","warszawa_cam_5f3b1a"),
-("Wrocław — praça da cidade","wroclaw_przed_cam_16c68e"),
-("Zakopane — rua central","krupowki2_cam_62169a"),
-("Opole — praça","opole_cam_8b53d4"),
-("Malbork — castelo","malbork_cam_0ffc99"),
-("Florença — centro histórico","via-della-scala.stream"),
-("Torre de TV — Tallinn","teletorn.smil"),
-("Mississauga — praça da cidade","LiveStageWebcam.stream-audiodestin"),
-("Whistler — vila","whistlervillagefitz"),
+("Kraków — Main Square","krakow_cam_702b61.stream/playlist.m3u8"),
+("Warsaw — Castle Square","warszawa_cam_5f3b1a"),
+("Wrocław — Town Square","wroclaw_przed_cam_16c68e"),
+("Zakopane — Central Street","krupowki2_cam_62169a"),
+("Opole — Square","opole_cam_8b53d4"),
+("Malbork — Castle","malbork_cam_0ffc99"),
+("Florence — Historic Center","via-della-scala.stream"),
+("Tallinn — TV Tower","teletorn.smil"),
+("Mississauga — Town Square","LiveStageWebcam.stream-audiodestin"),
+("Whistler — Village","whistlervillagefitz"),
 ("Rzepiska — Tatras","airnet_cam_d60f3c"),
 ("Bukowina — hotel","bukovina_cam_7aa04f"),
 ("Karpacz — panorama","karpacz_cam_ab594f"),
-("Wintergreen — montanhas","wintergreen2.stream"),
-("Bryce Resort — montanhas","bryceresort.stream"),
-("Massanutten Resort — cume","massresort3.stream"),
-("Arachova — cidade grega","/live/arach1/"),
-("Kraków — praça de Podgórze","krakow_cam_c44608"),
+("Wintergreen — Mountains","wintergreen2.stream"),
+("Bryce Resort — Mountains","bryceresort.stream"),
+("Massanutten Resort — Summit","massresort3.stream"),
+("Arachova — Greek Town","/live/arach1/"),
+("Kraków — Podgórze Square","krakow_cam_c44608"),
 ("Bishkek — panorama","cam.kt.kg/cam33"),
-("Krakow — praça Rynek principal, outra câmera","krakow_cam_9a3b91")
+("Kraków — Main Market Square (alternate camera)","krakow_cam_9a3b91")
 ]
 data=json.loads(SOURCE.read_text(encoding="utf-8"))["features"]
 props=[x["properties"] for x in data]

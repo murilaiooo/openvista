@@ -1,5 +1,7 @@
 # OpenVista — review of 60 live stream links (2026-10-25)
 
+**Historical research for playback feasibility only.** The current OpenVista product uses **user-provided sources and ships no live-camera lists or video files** (C-01). The staged data below is **not intended for public app inclusion**. Historical references to a 25-camera release quota are superseded.
+
 **Original user research:** [60 direct HLS/DASH addresses](live-cameras-50-2026-10-25.md). The filename contains "50" historically; the table actually has **60 endpoints for 59 distinct cameras**. Do not rename the original file merely to match the count: existing links would break.
 
 **Staged, machine-readable candidates:** [catalog/candidates/live-cameras-2026-10-25.json](../../catalog/candidates/live-cameras-2026-10-25.json), generated with [import_live_camera_candidates.py](../../scripts/import_live_camera_candidates.py). **No feed has been approved for automatic inclusion in public builds**; all staged records set `publishEnabled:false`.

@@ -19,7 +19,7 @@
 | 0.2 | Screensaver permission & remote | Minimal standalone Activity plus DreamService; can OEM select it, request 1/3/5/10/15/30 min, send OK/Back/arrows, and respect sleep? | Real-device support/limitation matrix; manual Activity remains valid even if Dream unavailable |
 | 0.3 | SAF and USB | Prototype system folder-picker, persisted URI grants, recursive subfolders, USB unplug/replug, picker absent and missing files | Which folders the actual Fire OS 7 grants, with repeatable steps and limitations |
 | 0.4 | Media3 decoding | **PC preliminary:** 38 distinct scenic/urban HLS links passed 1080p+ ffprobe, 4 frames decoded with FFmpeg ([report](../research/scenic-fullhd-test-links-2026-10-25.md)). **Still pending:** actual Media3 on Hisense, DASH, local formats, buffering/4K/HDR/CPU/RAM and DRM limits | Per-source **real-device** matrix; never infer TV support from PC success |
-| 0.5 | Licensed webcam catalog | Start with [59 staged candidate camera identities / 60 direct links](../research/live-cameras-import-review-2026-10-25.md); research operator-specific rights/embeds (especially Iowa terms and Caltrans ownership), attribution, image quality, family-safety, and verify eligible streams via Media3 on Hisense | Register of **25+ separately permitted and actually playable cameras**; pending candidate JSON is **not** a release catalog |
+| 0.5 | User-managed camera/list imports | Define source-list ingestion formats (for example user-supplied M3U/M3U8), check parser safety, metadata and storage; use [research streams](../research/live-cameras-import-review-2026-10-25.md) **only as external private test fixtures** for HLS/DASH feasibility | Zero bundled sources, clean empty state, robust user-source import, accessible on-device playback and release-artifact scan |
 | 0.6 | Weather and maps | Compare official weather/map terms, 7-day fields, quotas, cached/offline fallback; prototype remote-friendly 2D clustering and list | Approved license/architecture recommendation and test note, no premature provider lock-in |
 | 0.7 | Automatic app updates | Read PackageInstaller/unknown-source rules; test two throwaway *locally signed* versions on Hisense, system user prompts, cert continuity, install ownership and failure cases | Written feasibility verdict for unattended install vs required system confirmation; no privilege bypass |
 | 0.8 | Local QR pairing | Threat model LAN phone+TV, short-lived token, explicit on-TV confirmation, replay/CSRF and malicious URL protections | Secure local pairing proof, or documented blocker and safe design alternative |
@@ -32,7 +32,7 @@
 2. **Minimal Media3 player:** authorized live HLS/DASH and local media; default mute, fill/crop, performance-first decoder selection, buffering/errors and proper pause/destroy.
 3. **Local media library:** SAF internal + USB picker, recursive scan, compatible containers, invalid-file skip, last position resume, 10-second seek, next-item progression and repeat.
 4. **Playlists and preferences:** separate camera/video playlists, batch add/remove/reorder, camera shuffle default, 5-minute rotation configurable to 1–60, Favorites sections and local automatic persistence.
-5. **Camera catalog & discovery:** validated 25-source catalog with owner/rights metadata, safe remote update with bundled fallback, available/unknown/offline filters, 2D map with clustered pins and lateral D-pad list.
+5. **User source discovery:** user-added URLs and imported playlists, local indexing, optional category/location metadata, available/unknown/offline filters, 2D map for geolocated entries and an accessible empty state. No bundled catalog or source feed.
 6. **Weather and widgets:** authorized seven-day provider, camera/viewer city context, optional consented location, presets, basic/advanced overlay editor and moving/hiding static widgets.
 7. **Player UX and resilience:** OK quick mode switching, controls hide at 5 seconds, Basic/Advanced settings, optional real metrics panel; all-camera offline/local fallback and finish-current-video before live recovery.
 
@@ -48,7 +48,7 @@ Each slice closes only with reproducible PC tests **and** a feature demonstratio
 ## P3 — stable v1 verification, then approval for public release
 
 12. Run a documented **24-hour real-device soak** following [Hisense soak protocol](../testing/hisense-24h-soak-protocol.md): freeze numeric limits first, then measure playback/idle/network/USB, dropped frames, RAM/CPU/thermal trends and failures.
-13. Audit >=25 rights-cleared, family-appropriate streams using [per-source proof records](../research/webcam-source-evidence-template.md) for attribution, actual on-TV HLS/DASH playback, region and failure handling. Audit weather/map contracts and QR/updater security.
+13. Audit user-source parsing and playback, absence of bundled stream URLs/assets in signed builds, weather/map terms and QR/updater security. Private test streams are not release assets.
 14. Reconcile D-01–D-78 against the [acceptance matrix](../product/v1-acceptance.md); document all device-limited unsupported behavior and user-visible fallbacks.
 15. Prepare signed reproducible APK, changelog, local test evidence and exact compatibility wording (Hisense tested only). **Ask owner before the first GitHub binary publication**.
 
@@ -64,7 +64,7 @@ Each slice closes only with reproducible PC tests **and** a feature demonstratio
 ## GitHub P0 issue tracker (created)
 
 - [#2 — DreamService selection / idle / remote feasibility](https://github.com/murilaiooo/openvista/issues/2) (Hisense first, independently of USB).
-- [#3 — Authorized global webcams and rights register](https://github.com/murilaiooo/openvista/issues/3) (existing; >=25-camera stable-v1 gate added).
+- [#3 — User-supplied streams, source lists and zero-bundle packaging](https://github.com/murilaiooo/openvista/issues/3) (updated after owner clarification C-01).
 - [#4 — Read-only Hisense and Windows toolchain baseline](https://github.com/murilaiooo/openvista/issues/4).
 - [#5 — Media3 HLS/DASH and local-container device test](https://github.com/murilaiooo/openvista/issues/5).
 - [#9 — Standalone SAF/USB scoped-tree and recursive folders probe](https://github.com/murilaiooo/openvista/issues/9) (blocked by #4).

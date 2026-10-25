@@ -4,7 +4,9 @@ OpenVista completed **eight product interview rounds (D-01–D-78)**. It is now 
 
 ## Working agreements
 
-- Treat `docs/product/decisions.md` as the **canonical 78 owner-approved decisions** and `docs/product/v1-acceptance.md` as release gates. `docs/product/vision.md` summarizes requirements; research findings and proposed architectures are not approvals.
+- **English-only repository:** Write all README/documentation, code comments, UI source strings, configuration descriptions, GitHub issues, pull requests, and commit messages in **English**, regardless of the language used by the owner in conversation. Preserve official proper nouns, URLs, and external identifiers.
+
+- Treat `docs/product/decisions.md` as the **historical record of 78 owner-approved decisions**, with the later **C-01 user-managed content clarification** overriding first-party catalog assumptions. See `docs/product/user-managed-content.md` and `docs/product/v1-acceptance.md` before implementing source handling. `docs/product/vision.md` summarizes requirements; research findings and proposed architectures are not approvals.
 - Discovery interviews are complete. Research facts first; ask the owner only about proven blockers or changes in scope, using relevant `grilling` / `domain-modeling` skills. Do not reopen settled choices without an evidence-backed reason.
 - Never silently turn a proposal into a confirmed requirement.
 - Work in small, dependency-aware GitHub issues and branches. Prefer research proofs and vertical slices to architecture speculation. Keep `main` coherent; do not overwrite uncommitted work.
@@ -13,11 +15,11 @@ OpenVista completed **eight product interview rounds (D-01–D-78)**. It is now 
 - For planning/spec changes, consult [planning audit](docs/reviews/2026-10-25-planning-audit.md), [critical path](docs/implementation/critical-path.md), [78-ID traceability](docs/product/requirement-traceability.md) and [P0 research issues](docs/implementation/priority-plan.md). Do not call documentation checks Android tests.
 - Provide reliable fallback when live feeds fail, when the device lacks a decoder, or when the weather source is unavailable.
 - Prioritize low CPU/memory, stable hardware decoding, no video burn-in hotspots, accessible D-pad focus, and minimal permissions.
-- Do not ship sample live-camera URLs or video assets until usage/redistribution permission and uptime are verified.
+- **Do not ship any live-camera URLs, streaming playlists, hosted catalogs, research feed fixtures, or videos in the app.** Users supply their own sources and local media. Keep research fixtures out of all public APK/release assets, verified by package checks.
 - Do not hardcode API keys, user locations, or authentication material into version control.
 - GitHub Actions is not a substitute for local reproducible tests and physical TV validation.
 - **First APK stays local for tests on Hisense 58U6HF / Fire OS 7**. Other TVs are unverified; first GitHub binary release requires explicit owner approval. Do not install on or change a TV in a planning/documentation audit.
-- v1 requires >=25 **authorized and actually playable HLS/DASH webcam streams**, documented 24h soak, privacy/license review; never mistake static webcam images or restricted embeds for native live streams.
+- Public v1 must work with **zero bundled streams**, user-managed source URL/list import, and meaningful empty states; verify no research stream URLs or playlist assets end up in the APK. Retain the documented 24-hour stability, privacy, and real-device playback gates.
 - Target Fire OS 7 / Android 9 **cannot use API-31-only `SessionParams.setRequireUserAction`**; never promise unattended APK self-installation. Use supported system install confirmation when required.
 
 ## Agent skills

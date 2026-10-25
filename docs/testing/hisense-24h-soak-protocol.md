@@ -27,7 +27,7 @@ Collect samples at an explicit fixed interval (propose every **60 seconds**, adj
 - Crash, persistent black video, missing app responsiveness, all-broken-source infinite loop, excessive CPU/RAM/thermal growth or unauthorized installation automatically fails relevant gate and requires root-cause evidence before rerun.
 - A metric unavailable on the actual Fire OS build is recorded **NOT MEASURABLE**, not zero.
 - Repair and restart a full 24-hour run after a gate-changing bug fix; do not concatenate disjoint test periods into a fake soak.
-- Verify camera permissions and backend availability separately: player stability doesn't itself license or qualify 25 sources.
+- Verify user-provided source handling and network availability separately: player stability does not establish any third-party redistribution rights, and release builds must contain no media/test feeds.
 
 ## Evidence artifact contract
 

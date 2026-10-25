@@ -12,10 +12,10 @@
 
 ## Camera streams and wallpaper assets
 - A publicly viewable webcam does **not** mean its stream is freely embeddable, cached, mirrored, or redistributed.
-- For each shipped provider: record title/owner, official permission or API terms, commercial policy, attribution, link, family-appropriate content review and fallback behavior. **Stable v1 requires >=25 distinct authorized, actually working and safe cameras**, verified on target hardware.
+- OpenVista **does not ship camera streams, stream playlists, or video files**. User-supplied sources are parsed and stored locally under user control. Verify that no research URLs or playlist fixtures are embedded in public APK assets; third-party media use remains subject to applicable source terms.
 - Do not scrape tokenized video streams or bypass authentication, paywalls, geo restrictions or access controls.
 - Accept custom user-provided media sources only where allowed by the applicable terms.
-- Keep the catalog separate from the code so invalid sources can be disabled without distributing a broken APK. Online metadata updates must validate integrity and schema; cache a verified copy and ship bundled fallback metadata.
+- Keep the user's source library separate from app code. Refresh a user-imported remote list only with explicit configuration, with validated schema and bounded network activity; keep locally saved source metadata available when disconnected. Never bundle external live-stream fixtures.
 - Community camera suggestions require human moderation/review, permission and attribution evidence, compatibility checks and a removal/takedown path; do not publish suggestions automatically.
 - Display available-only filters and live/quality metadata only when supported by actual observations. Treat unknown as unknown rather than falsely labeling sources online.
 - QR-assisted URL entry is restricted to phone and TV on the same local network with **explicit TV pairing confirmation**; must not leak local endpoints or private tokens. Review LAN exposure, binding scope, pairing confirmation, short token expiry, replay/CSRF and untrusted URLs before implementation.

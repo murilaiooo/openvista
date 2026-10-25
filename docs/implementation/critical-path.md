@@ -11,9 +11,9 @@ flowchart TD
     A --> D["#9: SAF/USB nested folder proof"]
     A --> H["#7: Android 9 updater feasibility"]
     A --> I["#8: LAN QR threat model"]
-    E["#3: Provider rights research"] --> F["25 legally permitted HLS/DASH candidates"]
+    E["#3: User-source input formats"] --> F["Safe list import + zero-source UX"]
     B --> F
-    F --> J["P1: lawful camera catalog"]
+    F --> J["P1: user-managed source library"]
     B --> K["P1: manually launched TV player"]
     D --> K
     C --> L["P2: optional DreamService"]
@@ -30,7 +30,7 @@ flowchart TD
 
 ## Independent research frontier (not all need TV access)
 
-- [#3](https://github.com/murilaiooo/openvista/issues/3): source-provider **terms and rights** research can begin immediately; do not count a snapshot/iframe as an HLS/DASH stream.
+- [#3](https://github.com/murilaiooo/openvista/issues/3): define **user-managed stream and playlist imports** and how location/category metadata is handled. The application must ship with no media sources.
 - [#6](https://github.com/murilaiooo/openvista/issues/6): official map/weather license + quota comparison can start without any APK.
 - [#4](https://github.com/murilaiooo/openvista/issues/4): read-only Hisense/Windows toolchain baseline unlocks device-specific experiments.
 
@@ -46,7 +46,7 @@ flowchart TD
 
 1. **No app code / test artifact gate:** currently NO APK; do not call docs/URL lookup a successful P0 prototype.
 2. **Local first APK:** only on Hisense for development; it may have one permitted HLS/DASH and one local video, not 25 webcams. Label incomplete, do not publish binaries.
-3. **Catalog gate:** no release as stable v1 before **25 separately authorized, family-appropriate, playable** live streams with evidence.
+3. **Source gate:** release builds contain **zero bundled cameras, streaming playlists or video files**; user-added HLS/DASH and list import must work, including the no-sources empty state.
 4. **DreamService gate:** if OEM blocks third-party selection, do not hack system settings or mark it supported; ship/continue manual Activity with clear limitation and obtain any necessary owner acceptance.
 5. **Updater gate:** verified download must not be described as silent install. Android system confirmation remains mandatory where required.
 6. **v1 quality gate:** define tolerances for 24h soak (frame drops, repeated buffering, memory creep, background work, crash and retry counts) *before* running it, based on initial hardware measurements.

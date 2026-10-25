@@ -9,21 +9,21 @@
       "error": null
     },
     {
-      "name": "Kalamata — praia (Grécia)",
+      "name": "Kalamata — Beach (Greece)",
       "url": "https://livecameras.gr:30443/live/kala3/playlist.m3u8",
       "resolution": "2560x1440",
       "oneFrameDecoded": true,
       "error": null
     },
     {
-      "name": "Sopot — Praia",
+      "name": "Sopot — Beach",
       "url": "https://ls.tkchopin.pl:9043/live/sopot_plaza_male_molo_obrotowa.stream/playlist.m3u8",
       "resolution": "2560x1440",
       "oneFrameDecoded": true,
       "error": null
     },
     {
-      "name": "Varsóvia — praça do castelo",
+      "name": "Warsaw — Castle Square",
       "url": "https://hoktastream2.webcamera.pl/warszawa_cam_5f3b1a/warszawa_cam_5f3b1a.stream/chunks.m3u8",
       "resolution": "1920x1080",
       "oneFrameDecoded": true,

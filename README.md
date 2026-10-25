@@ -1,130 +1,135 @@
-# OpenVista
+<div align="center">
 
-**Turn your Android TV into a window to the world.**
+<img src="assets/branding/openvista-cover.png" alt="OpenVista — A window to everywhere. An atmospheric illustration of mountains, water, and a glowing horizon." width="100%" />
 
-OpenVista is a planned, open-source Android TV screensaver and immersive ambient-video app. It will play **live public webcams** or **your own local looping videos**, with optional clock and weather information.
+<br />
 
-> **Status: requirements approved; technical research and prototype planning.** This repository contains 78 confirmed decisions, research, test plans, staged camera candidates and agent skills. There is **no working OpenVista APK yet**. Candidate camera links are **not** automatically licensed or included in a public app.
+**Your screen. Your scenery. Your moment.**
 
-## Product foundations
+An open-source ambient video experience designed for **Android TV, Google TV, and Fire TV**.
 
-The following is already agreed:
+Turn your TV into a calm, immersive window with live streams and your own local videos — enhanced by an elegant clock, weather, and distraction-free controls.
 
-- **TV-first:** designed for Android TV devices generally, not a single TV model. Include Google TV and Fire TV/Fire OS in the compatibility test plan.
-- **Two content modes:** (1) live cameras around the world, and (2) user-selected downloaded videos stored in a folder on the TV or attached storage.
-- **Two entry points:** a manually opened TV application plus automatic screensaver mode where the OS allows it. The app must **never auto-launch on TV boot**.
-- **Live sources:** both a browsable webcam catalog and user-provided permitted stream URLs.
-- **Home:** Cameras, My Videos and Favorites as three large image-backed cards; Favorites contains separate camera and video sections.
-- **Camera discovery:** broad curated categories (beaches, cities, mountains, wildlife, landmarks, ski resorts and ports), **2D world map with clustered markers and side list**, and permitted manual URLs.
-- **Live catalog:** online metadata updates with local fallback, reviewed community suggestions, country/city/category/favorites/availability filters, plus an optional panel for name, country, local time, resolution, source and verified status.
-- **Custom URLs:** add a camera with the TV keyboard or a planned secure QR-assisted phone flow.
-- **Automatic rotation:** **5 minutes by default**, configurable from 1 to 60 minutes; unavailable cameras are immediately skipped.
-- **My videos:** internal/USB folders **with automatic recursive subfolder scanning**, multiple local-video playlists (separate from camera playlists), sequence/shuffle, and automatic next-video playback with playlist repeat.
-- **Playlist management:** create, rename, reorder, duplicate and delete playlists; add many items at once, remove and freely reorder items. Camera playlists support sequence or shuffle, with **shuffle as the initial default**.
-- **Local media compatibility:** attempt **MP4, MKV, WebM and MOV** when supported by each TV's decoders, favor stable compatible playback, skip corrupt/unsupported files with unobtrusive notices and optional diagnostics.
-- **Local player:** fixed **10-second** forward/back seeks; resume each local video **where playback stopped**; **no subtitles** for local videos.
-- **Player UI:** pressing **OK** opens an automatically hiding **5-second contextual controls menu**, including quick Cameras/My Videos switching; technical playback diagnostics are optional.
-- **Settings:** simple categorized Basic settings with a separate Advanced section. Favorites, playlists and settings are **automatically stored on the TV only**; no cloud sync or import/export in the initial product.
-- **Video playback:** fill/crop the screen by default, plus automatic live quality selection with a configurable cap where the source supports it.
-- **Immersive design:** full-screen scenery with an almost invisible interface; contextual camera controls differ from local-video seek controls.
-- **Information overlays:** compact clock and current weather by default, detailed 7-day forecasts (temperature, precipitation, wind, humidity, sunrise/sunset when supplied) on demand. Choose manual city search or optional device location; switch between camera and viewer weather contexts, with presets and a simple/advanced visual editor.
-- **Display care:** separately configurable widget repositioning and hiding after inactivity (risk reduction, not burn-in prevention guarantee).
-- **Setup and transitions:** short skippable setup, plus a user choice of instant or smooth scene switches according to device performance.
-- **Idle and power:** optional **1/3/5/10/15/30-minute screensaver activation** where supported, optional schedule and stay-awake options subject to TV power policies. Automatic playback **resumes the last camera or video**; OK reveals controls, Back exits, arrows navigate where OS dispatch permits.
-- **Resource priority:** prioritize stable, fluid playback through adaptive quality/effects; pause unnecessary background playback and use cached updates. On USB removal, explain the missing drive and allow another source.
-- **Localization:** Brazilian Portuguese and English at launch; auto-detect TV region with manual language, clock-format and temperature overrides.
-- **Audio:** muted by default with an option to enable sound.
-- **Free by design:** no advertisements and no user account required.
-- **First APK:** **local testing only on Hisense 58U6HF / Fire OS 7**. GitHub APK publication comes later, after approval, v1 validation and **at least 25 authorized, working and family-appropriate webcams**. All other TVs remain untested initially.
-- **Live protocols:** **HLS and MPEG-DASH** at launch; other protocols such as RTSP are deferred.
-- **QR input:** phone and TV on the same local Wi-Fi/LAN, with explicit pairing confirmation.
-- **Offline map:** show a local saved/cached camera list and explain that online map tiles are unavailable.
-- **Application updates:** desired automatic update download **and** installation, subject to verified Android installer support; if the system requires user approval, display its installation confirmation rather than bypassing protections.
-- **Diagnostics privacy:** keep errors locally and allow optional user-initiated copy/share of a sanitized report, with no automatic upload.
-- **Fallback and connectivity:** if all webcams fail or the network drops, switch to the user-configured local playlist when available; check reconnection **without interrupting its current video**. When an available camera returns, **finish the local video and return to live cameras**, unless the user chooses to stay local. Otherwise show a clear retry notice.
-- **Future wallpaper library:** deferred beyond the first APK. Local folders and live cameras come first. Do not assume media is freely redistributable.
+<br />
 
-**78 product decisions are confirmed across eight completed interview rounds.** Product discovery is complete; source/provider rights, weather/map contracts, decoder and DreamService feasibility, secure QR pairing and silent update feasibility require real technical evidence before coding dependent features. See [decisions](docs/product/decisions.md), [v1 acceptance contract](docs/product/v1-acceptance.md) and [implementation plan](docs/implementation/priority-plan.md).
+[![Project status](https://img.shields.io/badge/status-in%20development-4DDBC4?style=for-the-badge&labelColor=11283F)](docs/roadmap.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-84C7FF?style=for-the-badge&labelColor=11283F)](LICENSE)
+[![Android TV](https://img.shields.io/badge/platform-Android%20TV-9EC5C1?style=for-the-badge&labelColor=11283F)](docs/testing/compatibility.md)
 
-## Proposed experience (not implemented)
+[**Explore the vision**](docs/product/vision.md) · [**Project roadmap**](docs/roadmap.md) · [**Contribute**](CONTRIBUTING.md) · [**Issues**](https://github.com/murilaiooo/openvista/issues)
 
-1. Open OpenVista from the TV launcher; choose **Cameras**, **My Videos**, or **Favorites**.
-2. Discover cameras through the catalog or an interactive map, or select permitted custom URLs; browse video folders on internal or USB storage.
-3. Watch scenes in immersive full-screen playback with automatic 1–60-minute rotation, immediate camera skip on failure, and user-defined camera/video playlists.
-4. Customize clock, local time, location and 7-day forecast using presets or a visual overlay editor.
-5. Where supported by the TV OS, select OpenVista as the system screensaver. Devices that block third-party screensavers can still use the manual app mode.
+</div>
 
-## Compatibility is device-specific
+---
 
-A normal Android TV app can open manually on supported devices. **Automatic system-screensaver integration is not guaranteed**: Android/Google TV and Fire OS versions differ in DreamService policy, OEM UI, and permissions. Avoid privileged permissions, root requirements, or irreversible ADB modifications.
+## A beautiful reason to leave the TV on
 
-The first hardware target for validation is a **Hisense 58U6HF / Fire OS 7**, but it is a test device, **not the product's compatibility boundary**. Validate on Google TV and other Android TV devices before making broad claims.
+OpenVista is being built around a simple idea: a television can become something more than a screen full of menus.
 
-## Technical direction to investigate
+Imagine a quiet beach at sunrise, a city skyline after dark, or a favorite landscape playing in the background — with just the information you choose, arranged exactly where you want it.
 
-| Area | Candidate | Status |
-| --- | --- | --- |
-| App | Kotlin, native Android TV | Proposed |
-| Media | AndroidX Media3 / ExoPlayer (MP4, HLS, device-supported codecs) | Proposed |
-| Screensaver | Android DreamService + regular fullscreen Activity | Feasibility and OS compatibility to verify |
-| Local files | Android Storage Access Framework, URI permission persistence | Research needed per device |
-| Weather | Licensed forecast provider, caching, offline fallback | Provider and license undecided |
-| Remote | D-pad-first navigation and accessible focus states | Product requirement |
-| Catalog | Source metadata + verified permission to display streams | Provider contract undecided |
+The experience is designed for the couch, not a phone: **immersive visuals, effortless remote navigation, and as little interface as possible.**
 
-No Gradle project or application code has been generated yet. The architecture will be decided after the product interview and targeted prototypes.
+## What OpenVista is designed to do
 
-## Roadmap and documentation
+<table>
+<tr>
+<td width="50%" valign="top">
 
-- [Vision and requirements](docs/product/vision.md)
-- [TV UX and interaction brief](docs/product/experience.md)
-- [Camera catalog and weather requirements](docs/product/content-and-weather.md)
-- [Screensaver runtime, power and recovery](docs/product/runtime-and-recovery.md)
-- [Local files, playlists and player behavior](docs/product/local-media-and-playlists.md)
-- [Settings, player controls and favorites](docs/product/settings-and-player.md)
-- [First-release blockers and validation plan](docs/product/first-release-blockers.md)
-- [38 scenic and urban HLS links probed at real Full HD or higher](docs/research/scenic-fullhd-test-links-2026-10-25.md) — **research only, not app assets**; [M3U test playlist](docs/research/scenic-fullhd-test-only-2026-10-25.m3u) (52 individual PC probes, including 38 distinct successes; 4 streams decoded for one frame; no Hisense test yet).
-- [60 live HLS/DASH links / 59 cameras (research list)](docs/research/live-cameras-50-2026-10-25.md) — original report of manifest + ffprobe checks on 2026-10-25; not proof of third-party integration rights.
-- [Camera inventory and licensing review](docs/research/live-cameras-import-review-2026-10-25.md) — grouped by agency/source; all candidate feeds disabled pending licensing and on-TV tests.
-- [Quarantined machine-readable camera candidates](catalog/candidates/live-cameras-2026-10-25.json) — generated by [importer](scripts/import_live_camera_candidates.py), **59 camera identities / 60 URLs, 0 approved for public catalog**.
-- [First-release acceptance contract](docs/product/v1-acceptance.md)
-- [Engineering implementation plan and priorities](docs/implementation/priority-plan.md)
-- [2026-10-25 comprehensive planning audit](docs/reviews/2026-10-25-planning-audit.md)
-- [All 78 decisions mapped to v1 gates](docs/product/requirement-traceability.md)
-- [P0 dependency graph and stop/go rules](docs/implementation/critical-path.md)
-- [24-hour physical-TV soak testing protocol](docs/testing/hisense-24h-soak-protocol.md)
-- [Proof checklist for 25 licensed playable cameras](docs/research/webcam-source-evidence-template.md)
-- [Official-platform feasibility research](docs/research/platform-feasibility-2026-10-25.md)
-- [Decisions and brainstorming questions](docs/product/decisions.md)
-- [Proposed architecture](docs/architecture/overview.md)
-- [Reference projects and official sources](docs/research/references.md)
-- [Content rights and security](docs/SECURITY_AND_CONTENT.md)
-- [Delivery milestones](docs/roadmap.md)
-- [Glossary](GLOSSARY.md)
-- [Agent guidance](AGENTS.md)
-- [Engineering skills selected](docs/skill-selection.md)
-- [Contributing](CONTRIBUTING.md)
+### 🌎 Live scenes
 
-## Development workflow
+Play compatible **HLS and MPEG-DASH** streams you add to your collection. Organize cameras into playlists, switch scenes with the remote, and explore location-based entries through a planned interactive map.
 
-1. Resolve high-impact decisions with **grill-with-docs** and record ADRs.
-2. Use **research**, **to-spec**, and **to-tickets** to turn approved decisions into implementation-sized GitHub issues.
-3. Prototype device-sensitive playback, folder selection, and DreamService before committing to a large architecture.
-4. Build vertical slices using **tdd** where feasible; test on emulator and physical hardware.
-5. Run **code-review** and regression checks before merging small PRs. Never claim cross-device support without testing it.
+</td>
+<td width="50%" valign="top">
 
-### Matt Pocock skills
+### 🎞️ Your videos
 
-27 relevant skills from [mattpocock/skills](https://github.com/mattpocock/skills) are vendored for Codex under `.agents/skills/` and Claude Code under `.claude/skills/`, using the upstream `skills` installer. The install lock is kept in `skills-lock.json`.
+Select video folders on internal storage or USB drives, including nested folders. Build playlists, shuffle or loop your favorites, and resume a video where you left off.
 
-From the repository root, to update the installed skills:
+</td>
+</tr>
+<tr>
+<td valign="top">
 
-```sh
-npx skills@latest update -p -y
-```
+### ☀️ Time & weather
 
-See [skill selection](docs/skill-selection.md) for why these skills were chosen. Review upstream changes before committing updates.
+Add a clean clock, current conditions, or a detailed seven-day forecast. Choose a city, customize the visual style, and keep the scenery front and center.
 
-## License
+</td>
+<td valign="top">
 
-The repository's code is released under [MIT](LICENSE), unless otherwise indicated. Third-party videos, webcams, forecasts, imagery, and third-party code retain **their own licenses and permissions**; MIT does not grant redistribution rights to them.
+### ✨ Made for the big screen
+
+Full-screen playback, remote-first controls, quick source switching, customizable transitions, and thoughtful performance handling for TV hardware.
+
+</td>
+</tr>
+</table>
+
+### Thoughtful by design
+
+- **Personalize the experience:** flexible playlists, favorites, clock and weather layouts, plus simple and advanced settings.
+- **Keep things effortless:** default five-minute scene rotation, with adjustable timing and automatic recovery from unavailable sources.
+- **Stay in control:** audio muted by default, local settings storage, no required account, no ads, and no automatic analytics.
+- **Choose how it runs:** open it like a regular TV app; use system screensaver integration where your device allows it.
+- **Use the remote naturally:** press OK for a compact control menu, switch between cameras and videos, then return to an unobstructed view.
+
+## How it will work
+
+1. **Choose your source.** Add a compatible live stream or select videos stored on your TV or an attached drive.
+2. **Make it yours.** Arrange sources into playlists, save favorites, and set the scene rotation you prefer.
+3. **Enjoy the view.** Enter full-screen ambient mode, optionally add weather and time, and let your TV fade into the background.
+
+> [!IMPORTANT]
+> **OpenVista is in active development.** The app is not downloadable yet, and the features above describe its planned experience rather than completed functionality. Device support and system screensaver integration will be confirmed through real hardware testing.
+
+## Development status
+
+| Area | Status |
+| :-- | :-- |
+| Product direction and interaction requirements | Defined |
+| Media playback, file browsing, and TV navigation | Research and prototype planning |
+| Automatic screensaver integration | Device-dependent; not yet verified |
+| Android TV / Google TV / Fire TV compatibility | Not yet verified |
+| First development APK | Not yet available |
+| Public release | Not scheduled |
+
+The initial engineering test device is a **Hisense 58U6HF running Fire OS 7**. This does **not** imply support for other devices yet.
+
+OpenVista will be developed as an **original Kotlin Android TV application**, with **Media3 / ExoPlayer** and Android's supported storage and system APIs evaluated through real prototypes.
+
+## Project documentation
+
+| Start here | What you'll find |
+| :-- | :-- |
+| [Product vision](docs/product/vision.md) | What we're building and why |
+| [TV experience](docs/product/experience.md) | Remote navigation, playback, overlays, and customization |
+| [Roadmap](docs/roadmap.md) | What's next and how work is prioritized |
+| [Implementation plan](docs/implementation/priority-plan.md) | Engineering stages, dependencies, and acceptance goals |
+| [Technical research](docs/research/platform-feasibility-2026-10-25.md) | Platform capabilities and open questions |
+| [Architecture](docs/architecture/overview.md) | Candidate components and boundaries |
+| [Compatibility](docs/testing/compatibility.md) | Test scope and device-specific limitations |
+| [Contributing](CONTRIBUTING.md) | How to propose improvements and collaborate |
+
+The [decision log](docs/product/decisions.md) preserves the approved requirements and design history. Research-only test assets are kept separate from runtime content.
+
+## Build with us
+
+OpenVista is an open-source project, and thoughtful contributions are welcome — especially around Android TV navigation, media playback, accessible interface design, storage, weather, performance, and device testing.
+
+Browse the [open issues](https://github.com/murilaiooo/openvista/issues), read the [contribution guide](CONTRIBUTING.md), and keep proposed changes focused and reproducible.
+
+**Repository language:** English for documentation, code comments, issues, and pull requests.
+
+---
+
+<div align="center">
+
+**A window to everywhere.**
+
+Made for quiet moments, curious minds, and bigger screens.
+
+[MIT License](LICENSE) · [Roadmap](docs/roadmap.md) · [Contributing](CONTRIBUTING.md)
+
+</div>

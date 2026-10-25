@@ -1,6 +1,6 @@
 # OpenVista: product vision
 
-**Status:** All eight product interview rounds completed on 2026-10-25, with 78 confirmed decisions. Engineering research/feasibility and implementation planning are the next stage.
+**Status:** Eight interview rounds (78 historical decisions), followed by owner clarification **C-01: user-supplied content only**. Engineering research/feasibility and implementation planning are the next stage.
 
 ## What the owner approved
 
@@ -8,8 +8,8 @@
 - **Two entry points:** manually opened TV app and optional automatic system screensaver where OEM/OS permissions allow; **no automatic launch at TV boot**. Offer idle options **1/3/5/10/15/30 minutes where supported**.
 - **Manual Home:** **three large image-backed cards**, Cameras, My Videos and Favorites. Favorites is one hub with visually separate camera and local-video sections.
 - **Immersive viewing:** scenic video in fullscreen with an almost invisible UI and no permanent navigation chrome.
-- **Live cameras:** a broad authorized, family-appropriate catalog including beaches, cities, mountains, wildlife, monuments, ski resorts and ports, with a stable-v1 release gate of **at least 25 licensed, actually working cameras**. Catalog updates online with local metadata fallback; community suggestions require review. Filter country/city/category/favorites/verified availability. Discover through a **2D map with clustered markers and side list**; offline, show locally saved/cached camera list with clear online-map-unavailable notice.
-- **Custom camera URLs:** both TV keyboard and QR-assisted entry; **phone and TV must use the same local Wi-Fi/LAN with explicit pairing confirmation**, with implementation security still to be validated. HLS and MPEG-DASH are the initially approved stream protocols.
+- **Live cameras:** a **user-managed library** of compatible HLS/DASH sources and imported lists, browsable by categories and available metadata (beaches, cities, mountains, etc.). Filter favorites, country, city and availability where metadata exists. The **2D world map with marker clusters and a side list** visualizes sources with usable location information. Offline, show locally saved sources with an honest no-network notice. OpenVista does not ship or host camera feeds or playlists.
+- **Custom camera URLs and lists:** user-provided stream URLs and source playlists, entered using the TV keyboard, a future validated list-import flow, or QR-assisted input; **phone and TV must use the same local Wi-Fi/LAN with explicit pairing confirmation**, with implementation security still to be validated. HLS and MPEG-DASH are the initially approved stream protocols.
 - **Camera details:** optional panel for name, country, local time, resolution, verified status and source.
 - **Camera flow:** automatic scene rotation **5 minutes by default**, adjustable 1–60 minutes; new camera playlists **shuffle by default**, with sequence as an option. When a camera fails, advance immediately. If every camera fails or the internet drops, use a local video playlist **only when configured**; check restored connectivity without interrupting a playing local video. Once a camera is available, **finish the active local video and then return to live cameras**, unless user chooses to remain local. Otherwise show a clear retry notice.
 - **My Videos:** automatically scan all accessible subfolders of a selected internal/USB folder; try **MP4, MKV, WebM and MOV** where codecs permit. Maintain separate camera/video playlists with creation, renaming, reordering, duplication, deletion and **batch add, remove and free reordering of items**.
@@ -31,7 +31,7 @@
 
 ## Engineering evidence still required
 
-The eight decision rounds are complete. Confirm actual source providers/rights and 25-camera inventory, weather/map licensing, device-supported HLS/DASH and local codecs, safe same-LAN QR pairing, Hisense-specific DreamService/input, update installer behavior and 24-hour stability/privacy gate. These are research and prototype tasks, not another blanket interview.
+The eight decision rounds are complete; C-01 updates content ownership. Validate user-entered source and playlist handling, empty-library UX, weather/map licensing, device-supported HLS/DASH and local codecs, safe same-LAN QR pairing, Hisense-specific DreamService/input, update installer behavior, and the 24-hour stability/privacy gate. No bundled source inventory is required. These are research and prototype tasks, not another blanket interview.
 
 ## Proposed validation
 

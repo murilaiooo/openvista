@@ -1,81 +1,88 @@
-"""Build research-only scenic test playlist from real local ffprobe JSON results.
+"""Generate an English-language scenic HLS playlist for private feasibility testing.
 
-Does not change the OpenVista runtime catalog or authorize redistribution.
+The URLs are research fixtures and MUST NOT be bundled with the OpenVista app.
 """
 import json
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[1]
-BASE=ROOT/"docs/research"
-PROBES=[BASE/"scenic-1080p-probe-results-2026-10-25.json",BASE/"scenic-city-1080p-probe-results-2026-10-25.json"]
-OUT_MD=BASE/"scenic-fullhd-test-links-2026-10-25.md"
-OUT_M3U=BASE/"scenic-fullhd-test-only-2026-10-25.m3u"
-data=[json.loads(p.read_text(encoding="utf-8")) for p in PROBES]
-attempts=sum(d.get("attempted",0) for d in data)
-merged={}
-duplicates=0
-for d in data:
-    for r in d["results"]:
-        if r.get("status") != "verified_1080plus":
+ROOT = Path(__file__).resolve().parents[1]
+BASE = ROOT / "docs/research"
+PROBES = [
+    BASE / "scenic-1080p-probe-results-2026-10-25.json",
+    BASE / "scenic-city-1080p-probe-results-2026-10-25.json",
+]
+REPORT = BASE / "scenic-fullhd-test-links-2026-10-25.md"
+PLAYLIST = BASE / "scenic-fullhd-test-only-2026-10-25.m3u"
+
+data = [json.loads(p.read_text(encoding="utf-8")) for p in PROBES]
+attempts = sum(x.get("attempted", 0) for x in data)
+unique = {}
+duplicates = 0
+for document in data:
+    for item in document["results"]:
+        if item.get("status") != "verified_1080plus":
             continue
-        if r["url"] in merged:
-            duplicates+=1
+        if item["url"] in unique:
+            duplicates += 1
         else:
-            merged[r["url"]]=r
-rows=list(merged.values())
-def group(r):
-    s=(r["label"]+" "+r.get("name","")).lower()
-    if any(x in s for x in ["praia","beach","nazaré","arrifana","carcavelos","caparica","faro","sopot","meia praia","matosinhos","dębki","jurata","jastarnia","hel","władysławowo","apúlia","espinho","leça","orłowo","kalamata"]):
-        return "Praias e litoral"
-    if any(x in s for x in ["lago","marina","píer","puck","giżycko","kietlice"]):
-        return "Lagos e marinas"
-    if any(x in s for x in ["montanha","tatras","bukowina","wintergreen","bryce","karpacz","rzepiska"]):
-        return "Montanhas"
-    return "Cidades e arquitetura"
-sorts={"Praias e litoral":0,"Lagos e marinas":1,"Cidades e arquitetura":2,"Montanhas":3}
-rows.sort(key=lambda r:(sorts[group(r)],r["label"].casefold()))
-lines=[
-"# OpenVista — streams HLS de paisagens, praias e cidades (pesquisa local)",
-"",
-"**Data do teste:** 25 de outubro de 2026. **Propósito:** avaliar reprodução técnica no PC e futuramente na Hisense, **não** distribuir câmeras junto ao OpenVista.",
-"",
-f"**Resultado:** {len(rows)} URLs únicos com vídeo identificado em **1920×1080 ou superior**, em {attempts} tentativas de ffprobe distribuídas em duas baterias ({duplicates} links repetidos entre as baterias). O ffprobe abriu a transmissão e informou codec/resolução; **isso não é um teste contínuo de reprodução nem um teste no Fire OS/Media3**.",
-"",
-"Fontes dos candidatos: [Live-Environment-Streams](https://github.com/william-ricchiuti/Live-Environment-Streams) (dados públicos de pesquisa); resolução atual medida diretamente pelo **ffprobe no Windows**, diferente de apenas confiar nos metadados do repositório. Não houve autenticação, extração de token temporário, contorno de paywall ou download prolongado de vídeo.",
-"",
-"## Playlist de testes",
-"",
-"Abra [scenic-fullhd-test-only-2026-10-25.m3u](scenic-fullhd-test-only-2026-10-25.m3u) no VLC ou player compatível com HLS. **Arquivo de testes separado do código do app**. Não está no catálogo distribuído, nos assets do APK ou na configuração de reprodução padrão.",
-"",
-"## Links aprovados apenas na verificação técnica de resolução",
-"",
-"| Ambiente | Local | Resolução medida | Codec | Manifest HLS |",
-"| --- | --- | ---: | --- | --- |",
+            unique[item["url"]] = item
+
+rows = list(unique.values())
+
+def group(row):
+    label = (row["label"] + " " + (row.get("name") or "")).lower()
+    if any(word in label for word in ["beach", "praia do norte", "meia praia", "coast", "nazaré", "arrifana", "carcavelos", "caparica", "faro", "sopot", "matosinhos", "dębki", "jurata", "jastarnia", "hel", "władysławowo", "apúlia", "espinho", "leça", "orłowo", "kalamata"]):
+        return "Beaches & Coast"
+    if any(word in label for word in ["lake", "marina", "pier", "píer", "puck", "giżycko", "kietlice"]):
+        return "Lakes & Marinas"
+    if any(word in label for word in ["mountain", "tatras", "bukowina", "wintergreen", "bryce", "karpacz", "rzepiska"]):
+        return "Mountains"
+    return "Cities & Architecture"
+
+order = {"Beaches & Coast": 0, "Lakes & Marinas": 1, "Cities & Architecture": 2, "Mountains": 3}
+rows.sort(key=lambda r: (order[group(r)], r["label"].casefold()))
+lines = [
+    "# OpenVista — scenic, beach, and city HLS streams (private feasibility research)",
+    "",
+    "**Test date:** October 25, 2026. **Purpose:** investigate playback on Windows and later on the Hisense TV, **not** distribute camera feeds with OpenVista.",
+    "",
+    f"**Results:** {len(rows)} distinct URLs reported an actual video stream at **1920×1080 or higher** in {attempts} ffprobe attempts across two batches ({duplicates} overlapping successful URLs). The probe opened each reachable stream and read its codec and dimensions. **It was not an extended playback stability test or a Fire OS/Media3 test.**",
+    "",
+    "Candidate source: [Live-Environment-Streams](https://github.com/william-ricchiuti/Live-Environment-Streams). Actual resolutions were measured using **ffprobe on Windows**, rather than inferred from upstream metadata. No login bypass, token extraction, paywall circumvention, or lengthy video recording was performed.",
+    "",
+    "## Test playlist",
+    "",
+    "Open [scenic-fullhd-test-only-2026-10-25.m3u](scenic-fullhd-test-only-2026-10-25.m3u) with VLC or a compatible HLS player. This playlist is **a separate local research fixture**; it is not used by the public app or included in APK assets.",
+    "",
+    "## Links that passed the resolution probe",
+    "",
+    "| Scene type | Location / subject | Measured resolution | Codec | HLS manifest |",
+    "| --- | --- | ---: | --- | --- |",
 ]
-for x in rows:
-    lines.append(f"| {group(x)} | {x['label']} | {x['actualWidth']}×{x['actualHeight']} | {x.get('codec') or 'desconhecido'} | `{x['url']}` |")
-lines += [
-"",
-"## Teste adicional: quadro decodificado",
-"",
-"Além dos 52 testes de sondagem, o **FFmpeg conseguiu decodificar um quadro real de vídeo no Windows** em quatro transmissões: **Nazaré (1920×1080)**, **Kalamata (2560×1440)**, **Sopot (2560×1440)** e **Varsóvia (1920×1080)**, sem salvar imagens ou vídeos. Os resultados estão em [scenic-sample-frame-decode-2026-10-25.json](scenic-sample-frame-decode-2026-10-25.json). Isso comprova uma amostra, **não** estabilidade prolongada nem funcionamento no Media3 da TV.",
-"",
-"## Observações técnicas",
-"",
-"- **Full HD** foi definido como largura de pelo menos 1920 pixels **e** altura de pelo menos 1080. A câmera superwide 5120×1440 não deve ser confundida com 4K UHD 3840×2160.",
-"- **Sem estabilidade garantida:** câmeras mudam de URL, restringem acessos, entram em manutenção, podem ficar escuras à noite ou trocar de qualidade.",
-"- **Problemas encontrados:** algumas transmissões de Porto Rico e da República Dominicana não responderam ao ffprobe nesta rodada; suas URLs não foram incluídas na playlist Full HD.",
-"- **Teste seguinte:** reproduzir cenas selecionadas por vários minutos no Media3 da Hisense com métricas de quedas de frames, buffer, CPU e RAM, comparando 1080p, 1440p e panorâmicas superwide.",
-"- **Direitos:** estes são endereços para teste técnico privado, não uma declaração de autorização para colocar seus vídeos num APK publicado. Se o produto algum dia passar a distribuir um catálogo com feeds incorporados, será necessária revisão dos termos de cada operador.",
-"",
-"Comandos para repetir a pesquisa: baixar `streams.geojson` do repositório-fonte para `%TEMP%\\openvista-streams.geojson` e executar `python scripts/probe_scenic_streams.py`, depois `python scripts/probe_scenic_city_streams.py`, seguido de `python scripts/build_scenic_test_playlist.py`. Estes testes usam `ffprobe`, não alteram a TV.",
-"",
-]
-OUT_MD.write_text("\n".join(lines).rstrip()+"\n",encoding="utf-8")
-m3u=["#EXTM3U","# Test-only OpenVista playlist. Not approved for redistribution inside an app."]
-for x in rows:
-    name=x["label"].replace(","," ")
-    m3u.append(f'#EXTINF:-1 group-title="{group(x)}", {name} ({x["actualWidth"]}x{x["actualHeight"]})')
-    m3u.append(x["url"])
-OUT_M3U.write_text("\n".join(m3u)+"\n",encoding="utf-8")
-print(f"Generated {len(rows)} unique ffprobe-verified Full-HD+ test links; {attempts} attempts, {duplicates} duplicates; output: {OUT_MD.name} and {OUT_M3U.name}")
+for item in rows:
+    codec = item.get("codec") or "unknown"
+    lines.append(f'| {group(item)} | {item["label"]} | {item["actualWidth"]}×{item["actualHeight"]} | {codec} | `{item["url"]}` |')
+
+lines.extend([
+    "",
+    "## Additional verification: one decoded frame",
+    "",
+    "On top of the resolution probes, **FFmpeg decoded one real video frame on Windows** for four samples: **Nazaré (1920×1080)**, **Kalamata (2560×1440)**, **Sopot (2560×1440)**, and **Warsaw (1920×1080)**, without storing image or video files. See [the one-frame decode results](scenic-sample-frame-decode-2026-10-25.json). This proves individual sample decoding, **not** sustained playback or Media3 compatibility on the TV.",
+    "",
+    "## Technical notes",
+    "",
+    "- **Full HD** means at least 1920 pixels wide and 1080 pixels tall. A 5120×1440 ultra-wide panorama is not standard 3840×2160 UHD.",
+    "- **No uptime guarantee:** sources may change their URLs, reject clients, go offline, appear dark at local night, or downgrade stream quality.",
+    "- **Failures:** some Puerto Rico and Dominican Republic feeds did not respond in the probe; they are not in the Full HD shortlist.",
+    "- **Next test:** play selected sources for several minutes on Media3/Hisense, measure frame drops, buffering, CPU, and RAM at 1080p, 1440p, and ultra-wide dimensions.",
+    "- **Rights and scope:** these URLs are for private technical testing, not a promise to bundle them in any release. OpenVista now has a user-managed source model: the software ships no feeds, lists, or videos.",
+    "",
+    "To reproduce the research, obtain the upstream `streams.geojson` at `%TEMP%\\openvista-streams.geojson`, run `python scripts/probe_scenic_streams.py`, `python scripts/probe_scenic_city_streams.py`, and then `python scripts/build_scenic_test_playlist.py`. These tools use ffprobe and do not change TV settings.",
+])
+REPORT.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+playlist = ["#EXTM3U", "# Private OpenVista feasibility playlist; never bundle into a release."]
+for item in rows:
+    playlist.append(f'#EXTINF:-1 group-title="{group(item)}",{item["label"]} ({item["actualWidth"]}x{item["actualHeight"]})')
+    playlist.append(item["url"])
+PLAYLIST.write_text("\n".join(playlist).rstrip() + "\n", encoding="utf-8")
+print(f"Built English report and M3U: {len(rows)} sources, {attempts} probes, {duplicates} overlaps.")

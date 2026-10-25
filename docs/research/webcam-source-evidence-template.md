@@ -1,6 +1,6 @@
 # Camera source evidence template (G01)
 
-**Status:** evidence template; [59 candidates / 60 HLS/DASH URLs were staged on 2026-10-25](live-cameras-import-review-2026-10-25.md), but **zero cameras have completed authorization + OpenVista TV verification**. Use this only after reviewing upstream terms; a public web page or a working manifest is not authorization.
+**Status:** **optional historical template** only if a future, separately authorized first-party catalog is ever proposed. Current C-01 scope requires **no bundled feeds**. This is an evidence template; [59 candidates / 60 HLS/DASH URLs were staged on 2026-10-25](live-cameras-import-review-2026-10-25.md), but **zero cameras have completed authorization + OpenVista TV verification**. Use this only after reviewing upstream terms; a public web page or a working manifest is not authorization.
 
 ## One evidence record per candidate
 

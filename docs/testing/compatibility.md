@@ -11,7 +11,7 @@
 
 **Recording rule:** no 'supported' flag without reproducible results on that device/OS build. **Only Hisense 58U6HF / Fire OS 7 is scheduled for initial tests; all other devices are untested.** Test manual app mode separately from system screensaver integration.
 
-**Stable-v1 quality gate:** before public publication, verify >=25 distinct authorized, family-appropriate actually working webcams on Hisense, full playback/compatibility/licensing/privacy checklist, and at least **24 hours** of documented device playback/soak. The first development APK is **local only**.
+**Stable-v1 quality gate:** verify **empty-library behavior and user-supplied camera/playlist imports with no bundled streams or videos**, plus full playback/compatibility/privacy checklist and at least **24 hours** of documented device playback/soak. Superseded 25-project-camera target is no longer active (C-01). The first development APK is **local only**.
 
 ## Acceptance test scenarios
 1. Cold boot / launch and input focus; Back exits cleanly.
@@ -67,7 +67,7 @@
 51. On network restoration during local fallback, the current video finishes before switching to a **verified playable** live camera; a user who selects remain local is not switched away.
 52. Network flaps or unavailable cameras never cause premature video interruption or endless retry loops.
 53. HLS and MPEG-DASH permitted test streams work within actual codec support; unsupported RTSP is not advertised as v1 functionality.
-54. At least 25 distinct authorized, family-appropriate, correctly attributed cameras individually tested as working for stable v1; track source rights and dates.
+54. Release build contains **zero bundled stream URLs/media**; user-added HLS/DASH and safe list imports function on the device, even when library starts empty.
 55. QR entry uses same LAN/Wi-Fi with explicit on-TV confirmation, expiring token, resistance to unapproved entry and correct cancellation.
 56. On loss of map tiles/network, saved/cached camera list appears with a notice that online map is unavailable; unavailable video streams are not implied to work.
 57. App-update pipeline validates trusted release and APK signer/version, supports intended automatic download; records when Android PackageInstaller **requires explicit user action** and cannot silently install.

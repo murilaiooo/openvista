@@ -19,7 +19,7 @@
       "locationLabel": "Iowa, USA",
       "categoryAsReported": "Traffic",
       "organization": "Iowa DOT",
-      "sourceCredit": "Iowa DOT (511ia.org; descoberta via OpenCCTV)",
+      "sourceCredit": "Iowa DOT (511ia.org; discovered via OpenCCTV)",
       "sourceRows": [
         1
       ],
@@ -46,7 +46,7 @@
       "locationLabel": "Ames, Iowa, USA",
       "categoryAsReported": "Traffic",
       "organization": "Iowa DOT",
-      "sourceCredit": "Iowa DOT (descoberta via OpenCCTV)",
+      "sourceCredit": "Iowa DOT (discovered via OpenCCTV)",
       "sourceRows": [
         2
       ],
@@ -73,7 +73,7 @@
       "locationLabel": "Ankeny, Iowa, USA",
       "categoryAsReported": "Traffic",
       "organization": "Iowa DOT",
-      "sourceCredit": "Iowa DOT (descoberta via OpenCCTV)",
+      "sourceCredit": "Iowa DOT (discovered via OpenCCTV)",
       "sourceRows": [
         3
       ],
@@ -98,7 +98,7 @@
       "id": "candidate-004",
       "name": "US-101 Ventura Blvd",
       "locationLabel": "Los Angeles, California, USA",
-      "categoryAsReported": "Traffic/cidade",
+      "categoryAsReported": "Traffic/city",
       "organization": "Caltrans",
       "sourceCredit": "Caltrans — https://cwwp2.dot.ca.gov/vm/streamlist.htm",
       "sourceRows": [
@@ -125,7 +125,7 @@
       "id": "candidate-005",
       "name": "US-101 Eureka, 14th St",
       "locationLabel": "Eureka, California, USA",
-      "categoryAsReported": "Traffic/cidade",
+      "categoryAsReported": "Traffic/city",
       "organization": "Caltrans",
       "sourceCredit": "Caltrans — https://cwwp2.dot.ca.gov/vm/loc/d1/us101eureka14thlookingnorthc039.htm",
       "sourceRows": [
@@ -233,7 +233,7 @@
       "id": "candidate-009",
       "name": "I-280 Monterey Blvd",
       "locationLabel": "San Francisco, California, USA",
-      "categoryAsReported": "Traffic/cidade",
+      "categoryAsReported": "Traffic/city",
       "organization": "Caltrans",
       "sourceCredit": "Caltrans — https://cwwp2.dot.ca.gov/vm/loc/d4/tv320i280onmontereybl.htm",
       "sourceRows": [
@@ -289,7 +289,7 @@
       "locationLabel": "Annapolis, Maryland, USA",
       "categoryAsReported": "Traffic",
       "organization": "Maryland SHA",
-      "sourceCredit": "Maryland SHA (descoberta via OpenCCTV)",
+      "sourceCredit": "Maryland SHA (discovered via OpenCCTV)",
       "sourceRows": [
         11
       ],
@@ -316,7 +316,7 @@
       "locationLabel": "Annapolis, Maryland, USA",
       "categoryAsReported": "Traffic",
       "organization": "Maryland SHA",
-      "sourceCredit": "Maryland SHA (descoberta via OpenCCTV)",
+      "sourceCredit": "Maryland SHA (discovered via OpenCCTV)",
       "sourceRows": [
         12
       ],
@@ -341,9 +341,9 @@
       "id": "candidate-013",
       "name": "12th St S at South Clark St",
       "locationLabel": "Arlington, Virginia, USA",
-      "categoryAsReported": "Traffic/cidade",
+      "categoryAsReported": "Traffic/city",
       "organization": "VDOT",
-      "sourceCredit": "VDOT (descoberta via OpenCCTV)",
+      "sourceCredit": "VDOT (discovered via OpenCCTV)",
       "sourceRows": [
         13
       ],
@@ -368,9 +368,9 @@
       "id": "candidate-014",
       "name": "10th St N at Highland",
       "locationLabel": "Arlington, Virginia, USA",
-      "categoryAsReported": "Traffic/cidade",
+      "categoryAsReported": "Traffic/city",
       "organization": "Arlington County",
-      "sourceCredit": "Arlington County, VA (descoberta via OpenCCTV)",
+      "sourceCredit": "Arlington County, VA (discovered via OpenCCTV)",
       "sourceRows": [
         14
       ],
@@ -395,9 +395,9 @@
       "id": "candidate-015",
       "name": "12th St S at Clark (cam122)",
       "locationLabel": "Arlington, Virginia, USA",
-      "categoryAsReported": "Traffic/cidade",
+      "categoryAsReported": "Traffic/city",
       "organization": "Arlington County",
-      "sourceCredit": "Arlington County, VA (descoberta via OpenCCTV)",
+      "sourceCredit": "Arlington County, VA (discovered via OpenCCTV)",
       "sourceRows": [
         15
       ],
@@ -424,7 +424,7 @@
       "locationLabel": "Clayton, Missouri, USA",
       "categoryAsReported": "Traffic",
       "organization": "MoDOT",
-      "sourceCredit": "MoDOT (descoberta via OpenCCTV)",
+      "sourceCredit": "MoDOT (discovered via OpenCCTV)",
       "sourceRows": [
         16
       ],
@@ -451,7 +451,7 @@
       "locationLabel": "Bridgeton, Missouri, USA",
       "categoryAsReported": "Traffic",
       "organization": "MoDOT",
-      "sourceCredit": "MoDOT (descoberta via OpenCCTV)",
+      "sourceCredit": "MoDOT (discovered via OpenCCTV)",
       "sourceRows": [
         17
       ],
@@ -478,7 +478,7 @@
       "locationLabel": "Dexter, Missouri, USA",
       "categoryAsReported": "Traffic",
       "organization": "MoDOT",
-      "sourceCredit": "MoDOT (descoberta via OpenCCTV)",
+      "sourceCredit": "MoDOT (discovered via OpenCCTV)",
       "sourceRows": [
         18
       ],
@@ -505,7 +505,7 @@
       "locationLabel": "Ocean City, Maryland, USA",
       "categoryAsReported": "Beach",
       "organization": "IPCamLive / camera owner",
-      "sourceCredit": "Descoberta via OpenCCTV; stream servido pela IPCamLive (não é órgão público)",
+      "sourceCredit": "Discovered via OpenCCTV; stream hosted by IPCamLive (not a public agency)",
       "sourceRows": [
         19
       ],
@@ -532,7 +532,7 @@
       "locationLabel": "Manistee, Michigan, USA",
       "categoryAsReported": "Beach",
       "organization": "IPCamLive / camera owner",
-      "sourceCredit": "Descoberta via OpenCCTV; stream servido pela IPCamLive (não é órgão público)",
+      "sourceCredit": "Discovered via OpenCCTV; stream hosted by IPCamLive (not a public agency)",
       "sourceRows": [
         20
       ],
@@ -559,7 +559,7 @@
       "locationLabel": "Villa Gesell, Buenos Aires, Argentina",
       "categoryAsReported": "Beach",
       "organization": "Gesell",
-      "sourceCredit": "gesell.com.ar (descoberta via OpenCCTV)",
+      "sourceCredit": "gesell.com.ar (discovered via OpenCCTV)",
       "sourceRows": [
         21
       ],

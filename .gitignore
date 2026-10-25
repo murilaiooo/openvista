@@ -20,6 +20,9 @@ captures/
 .cxx/
 out/
 
+# Local diagnostic logs may contain sensitive stream URLs and are not public evidence
+*.log
+
 # Local secrets, state and developer scratch
 .env
 .env.*
@@ -33,6 +36,8 @@ out/
 .tmp/
 .tmp*/
 node_modules/
+__pycache__/
+*.pyc
 
 # Media belongs to users or licensed providers, not this code repo
 *.mp4

@@ -4,6 +4,8 @@
 
 Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
+> **Current-scope clarification C-01 (2026-10-25):** OpenVista does **not** supply camera streams, source lists, or videos. Users bring their own. This **supersedes** the first-party curated-content assumptions in D-02, D-10, D-29–D-31, D-71, and D-77 while retaining library browsing, map, filtering, playback, and customization goals. The original decision rows remain unchanged for historical traceability. See [User-managed content](user-managed-content.md). No bundled 25-camera release gate remains.
+
 ## Product baseline
 
 OpenVista is a free, ad-free, account-free ambient Android TV application and, where the OS allows, an automatic system screensaver. It shows public, permitted live cameras or looping user-owned videos. It includes configurable clock and weather overlays (current conditions and seven-day forecast), with weather for the camera location or the user's chosen location. First **test APK is local-only**, and GitHub is a later public distribution target (D-69 refines D-08). No APK exists yet.
@@ -180,6 +182,14 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 ## Product discovery outcome
 
 The owner answered **all eight rounds**. The next step is engineering research/prototypes plus a v1 acceptance matrix and prioritized issues. New product questions should be raised only for actual blockers, not continue repetitive wide-round interviews.
+
+## Source-scope amendment C-01 (confirmed after round 8)
+
+- The owner explicitly clarified: **the OpenVista project does not provide camera feeds, streaming lists, or video media to end users**. Each user supplies and manages their own.
+- The earlier requirement to curate/distribute at least **25 first-party cameras** is superseded. Testing private/temporary research feeds is not a promise to ship those feeds.
+- User-controlled source import and an empty-library experience are required. Import parser format details remain an engineering choice, to be validated before making support claims.
+- All project documentation, code comments, issue discussions, pull requests, and public copy must be **English**, even when the owner's instructions are Portuguese. Original place names and URLs are retained.
+- This amendment does not re-open unrelated playback, UX, screensaver, privacy, performance, or hardware compatibility decisions.
 
 ## Later engineering questions (not approved yet)
 

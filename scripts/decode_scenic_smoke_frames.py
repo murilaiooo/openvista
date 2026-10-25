@@ -5,7 +5,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 BASE=ROOT/"docs/research"
 files=[BASE/"scenic-1080p-probe-results-2026-10-25.json",BASE/"scenic-city-1080p-probe-results-2026-10-25.json"]
 allrows=[r for f in files for r in json.loads(f.read_text(encoding="utf-8"))["results"]]
-targets=["Nazaré — Praia do Norte","Kalamata — praia (Grécia)","Sopot — Praia","Varsóvia — praça do castelo"]
+targets=["Nazaré — Praia do Norte","Kalamata — Beach (Greece)","Sopot — Beach","Warsaw — Castle Square"]
 def test(label):
     found=next(r for r in allrows if r["label"]==label and r["status"]=="verified_1080plus")
     cmd=["ffmpeg","-nostdin","-hide_banner","-loglevel","error","-rw_timeout","9000000","-i",found["url"],"-frames:v","1","-an","-sn","-f","null","-"]

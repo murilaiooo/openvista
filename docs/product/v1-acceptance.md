@@ -1,13 +1,13 @@
 # OpenVista v1: acceptance contract and release stages
 
-**Owner-confirmed scope:** decisions D-01–D-78, last confirmed 2026-10-25. This page separates a **local engineering APK** from future **stable public v1.0**. It is not a record of completed testing.
+**Owner-confirmed scope:** the 78 historical decisions, as modified by the later **C-01 user-managed content clarification**. The app ships no camera feeds, source lists, or videos. This page separates a **local engineering APK** from future **stable public v1.0**. It is not a record of completed testing.
 
 ## Local engineering APK (first artifact)
 
 - Build and install on the **Hisense 58U6HF running Fire OS 7** for owner-led tests. Never upload first test APK to GitHub Releases without a subsequent explicit release instruction.
 - Prototype may be deliberately incomplete, but every missing requirement must be tracked, visibly labeled and must not be described as stable v1.
 - **P0 acceptance of first app-mode playback slice:** opens by TV launcher, D-pad focus works, plays at least one *legally permitted test* HLS/DASH feed and one supported local file via a supported access path, cleanly exits and restores basic state, no boot auto-launch, no privileged system changes.
-- If no licensed live feed can be secured for prototype: validate Media3 on local assets or provider-authorized testing streams first. Do not insert scraped/public-looking feeds to shortcut permission checks.
+- Test HLS/DASH playback with ordinary user-selected test sources and local media files; keep temporary research playlists outside the application, and do not bundle or publish any media with the APK. Never circumvent authentication or access controls.
 - Test package identity/signing, no destructive replacement of existing TV apps and an installation rollback route.
 
 ## Stable v1.0 public GitHub release criteria
@@ -16,7 +16,7 @@ This is **not** permission to publish a release automatically; the owner will ch
 
 | Gate | Minimum evidence required | Pass condition |
 | --- | --- | --- |
-| G-01 Permitted cameras | Per-camera [source evidence record](../research/webcam-source-evidence-template.md): official owner permission/attribution, country/category/location and tested HLS/DASH live stream on Hisense | **25+ distinct authorized, family-appropriate and working public cameras**, actual playback verified on Hisense; no stolen/geo-bypassed links |
+| G-01 User-managed sources | Source entry, saved list import, empty-library behavior, source metadata and security tests on the Hisense | **No built-in camera streams, playlists, or videos in public builds**; user-added HLS/DASH and compatible source lists work reliably, without leaked private URLs |
 | G-02 App mode | Test cases with logs/screenshots/video from Hisense / Fire OS 7 | Manual Home, catalog and map, favorites, playback, remote, overlays/clock/weather and settings meet approved behavior |
 | G-03 Screensaver | DreamService state and system settings capability captured on target | Works if OS/OEM allows; otherwise honest unsupported guidance, with app mode fully usable |
 | G-04 Local media | Internal & USB test media; deep/nested folders; MP4/MKV/WebM/MOV matrix | Accessible source paths and supported codecs play; unsupported files skip and explain; playlists/resume/±10 sec/loop function |
@@ -29,7 +29,7 @@ This is **not** permission to publish a release automatically; the owner will ch
 
 ## Streaming formats
 
-- Public and user-entered **HLS** and **MPEG-DASH** are the intended first supported streaming formats; stream samples, DRM/encryption and hardware codecs are separate capability gates.
+- User-entered **HLS** and **MPEG-DASH** are the intended first supported streaming formats, with source-list import evaluated independently. DRM/encryption and hardware codecs are separate capability gates.
 - **RTSP and other protocols are not in first-release scope** without a later decision. A URL is not automatically an executable feed.
 - Prior saved local-video formats MP4/MKV/WebM/MOV are container *candidates*, only if the TV can decode them.
 

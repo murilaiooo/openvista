@@ -23,5 +23,5 @@
 - Prototype app-mode and DreamService **initially only on Hisense 58U6HF / Fire OS 7**, recording all other devices as unverified. Expand test matrix in later, explicitly planned compatibility work.
 - Test folder picker on devices with missing/limited document provider.
 - Measure streams in 1080p and 4K on low-end TV hardware.
-- Read content-provider ToS before shipping endpoints. Target **25+ permitted, verified working family-appropriate webcams** before stable v1.
+- **No third-party media endpoints are shipped** under owner clarification C-01. User-provided URLs and research-only fixtures are separate; focus public release testing on safe input, playback and package-content inspection.
 - Read [official platform feasibility notes](platform-feasibility-2026-10-25.md), including Android's user-action restrictions for package updates and HLS/DASH support.
