@@ -30,9 +30,9 @@
 14. Skip first-run guide without granting optional locations/folder access; revisit later from settings.
 15. Instant and smooth transition options: monitor dropped frames, decoder usage and degradation on constrained TVs.
 16. Locale defaults from device and manual PT-BR/English, clock 12/24h and °C/°F overrides.
-17. Remote catalog metadata refresh, version validation, offline bundled/last-known metadata and degraded stream behavior without network.
+17. User-configured remote source-list refresh, version/import validation, locally saved metadata and honest offline stream states without network.
 18. Broad categories, country/city/favorites/available-only filters with available/unavailable/unknown states, map/list consistency.
-19. Reviewed community-submitted camera metadata: licensing, source attribution, safety and untrusted URL checks.
+19. User-managed source handling: reject invalid URL schemes and unsafe/malformed lists, mask credentials, and never automatically publish user source metadata.
 20. Custom URL entry via TV keyboard and secure QR-assisted pairing (confirm approval, expiry and local-network isolation); no account requirement.
 21. Optional scene metadata panel: source, scene name, country, local time, actual resolution and verified status.
 22. Seven-day weather detail: rain, wind, humidity, sunrise/sunset plus unavailable-value labels; manual city input and opt-in device location denial path.
@@ -44,7 +44,7 @@
 28. OK reveals contextual controls, Back exits and arrows navigate **if dispatched by OS**; record device/OS exceptions and reserved keys.
 29. Internet disconnected: configured local playlist plays; bounded reconnect probes continue without playback interruption or automatically switching to an online feed.
 30. Smooth playback priority: adapt quality and transitions under low CPU/RAM, decoder restrictions, 1080p/4K load and thermal stress.
-31. No unnecessary video/network activity while screen is off/inactive; catalog and forecast cached and refreshed only when appropriate.
+31. No unnecessary video/network activity while screen is off/inactive; imported source metadata and forecast caches refreshed only when appropriate.
 32. USB drive removed mid-video: clear notice and alternate source selection, no crash or infinite retry.
 33. Reboot the TV: OpenVista **does not auto-launch**. Normal user launch and OS Dream entry still work where supported.
 34. Automatic recursive scan includes nested folders (not just top-level), handles deep/large trees, unreadable entries and repeated document IDs within scoped permissions.

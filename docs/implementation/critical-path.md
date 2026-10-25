@@ -37,7 +37,7 @@ flowchart TD
 ## Device-dependent frontier (blocked by verified #4 baseline)
 
 - [#2](https://github.com/murilaiooo/openvista/issues/2): DreamService input/idle. Actual support may be unsupported while manual app is still feasible.
-- [#5](https://github.com/murilaiooo/openvista/issues/5): HLS/DASH and local video codec proof; release catalog needs both rights and actual playable streams.
+- [#5](https://github.com/murilaiooo/openvista/issues/5): HLS/DASH and local video codec proof; user-managed playback needs validated source imports, permissions for test fixtures and actual playable streams.
 - [#9 — SAF/USB](https://github.com/murilaiooo/openvista/issues/9): standalone measurable proof, because scoped folder picker and USB unplug are independent of DreamService.
 - [#7](https://github.com/murilaiooo/openvista/issues/7): Android **9** package installer path. `SessionParams.setRequireUserAction` is **API 31+**, so do not build the Fire OS 7 implementation around it.
 - [#8](https://github.com/murilaiooo/openvista/issues/8): LAN pairing threat model before opening a listener.

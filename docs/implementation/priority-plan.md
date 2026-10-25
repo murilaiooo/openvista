@@ -6,7 +6,7 @@
 
 - First APK: **local tests only**. No binary GitHub release until owner explicitly approves publication.
 - First tested device: **Hisense 58U6HF / Fire OS 7**. Other Android TV, Google TV, Fire TV versions remain **not verified**. This does not reduce the product's long-term platform intent.
-- Stable v1 must pass [v1 acceptance](../product/v1-acceptance.md), including **at least 25 distinct lawful, working, family-appropriate webcams**, documented 24-hour soak, privacy/licenses and compatibility results.
+- Stable v1 must pass [v1 acceptance](../product/v1-acceptance.md), including **user-managed HLS/DASH and playlist imports with zero bundled streams/media**, documented 24-hour soak, privacy, security and compatibility results.
 - Supported public live protocols initially: **HLS and MPEG-DASH**, not RTSP. Device codecs and HDR are test-dependent.
 - **Never** root the TV, use privileged hacks/ADB workarounds to bypass package installation, automatically open at boot, publish unauthorized streams, or substitute guesswork for evidence.
 - Skills: use the installed repository skills for architecture, specification, testing and code review. Run validation locally on the Windows dev machine; don't require GitHub Actions.
@@ -24,7 +24,7 @@
 | 0.7 | Automatic app updates | Read PackageInstaller/unknown-source rules; test two throwaway *locally signed* versions on Hisense, system user prompts, cert continuity, install ownership and failure cases | Written feasibility verdict for unattended install vs required system confirmation; no privilege bypass |
 | 0.8 | Local QR pairing | Threat model LAN phone+TV, short-lived token, explicit on-TV confirmation, replay/CSRF and malicious URL protections | Secure local pairing proof, or documented blocker and safe design alternative |
 
-**Dependencies:** P0.1 before device tests; P0.4 before declaring any catalog stream actually playable; P0.5 rights research can proceed in parallel; P0.7 before asserting unattended update availability. Never begin a dependent production feature before its P0 proof is recorded.
+**Dependencies:** P0.1 before device tests; P0.4 before declaring any user-selected test stream playable on Hisense; P0.5 parser/security research can proceed in parallel; P0.7 before asserting unattended update availability. Never begin a dependent production feature before its P0 proof is recorded.
 
 ## P1 — small, verifiable vertical slices, locally installed APKs
 
@@ -56,8 +56,8 @@ Each slice closes only with reproducible PC tests **and** a feature demonstratio
 
 | Group | Proposed ticket(s) | Exit test |
 | --- | --- | --- |
-| P0 | TV/device baseline; DreamService probe; SAF/USB; Media3 HLS+DASH/containers; camera rights register; forecast/map feasibility; installer test; QR threat model | Individual Markdown evidence + pass/fail table |
-| P1 | Native shell; player; local library; playlists; camera catalog; 2D map; weather/widgets; remote/UX/recovery | Local debug APK, unit tests, Hisense screenshots/logs |
+| P0 | TV/device baseline; DreamService probe; SAF/USB; Media3 HLS+DASH/containers; user-source/list import security; forecast/map feasibility; installer test; QR threat model | Individual Markdown evidence + pass/fail table |
+| P1 | Native shell; player; local library; playlists; user-managed camera library; 2D map; weather/widgets; remote/UX/recovery | Local debug APK, unit tests, Hisense screenshots/logs |
 | P2 | Dream integration; secure LAN URL entry; update integrity/installer; performance/privacy | OEM-specific and security tests |
 | P3 | 24h soak; licenses/privacy checks; compatibility matrix; controlled release | Checked acceptance contract + owner release approval |
 

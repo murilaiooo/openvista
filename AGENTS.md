@@ -15,7 +15,7 @@ OpenVista completed **eight product interview rounds (D-01–D-78)**. It is now 
 - For planning/spec changes, consult [planning audit](docs/reviews/2026-10-25-planning-audit.md), [critical path](docs/implementation/critical-path.md), [78-ID traceability](docs/product/requirement-traceability.md) and [P0 research issues](docs/implementation/priority-plan.md). Do not call documentation checks Android tests.
 - Provide reliable fallback when live feeds fail, when the device lacks a decoder, or when the weather source is unavailable.
 - Prioritize low CPU/memory, stable hardware decoding, no video burn-in hotspots, accessible D-pad focus, and minimal permissions.
-- **Do not ship any live-camera URLs, streaming playlists, hosted catalogs, research feed fixtures, or videos in the app.** Users supply their own sources and local media. Keep research fixtures out of all public APK/release assets, verified by package checks.
+- **Do not ship any live-camera URLs, streaming playlists, hosted catalogs, research feed fixtures, or videos in the app.** Users supply their own sources and local media. Keep research fixtures out of all public APK/release assets. Before any distribution, run [the package-content guard](docs/testing/release-content-guard.md) on the actual signed artifact and complete source/build reviews.
 - Do not hardcode API keys, user locations, or authentication material into version control.
 - GitHub Actions is not a substitute for local reproducible tests and physical TV validation.
 - **First APK stays local for tests on Hisense 58U6HF / Fire OS 7**. Other TVs are unverified; first GitHub binary release requires explicit owner approval. Do not install on or change a TV in a planning/documentation audit.
