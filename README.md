@@ -83,6 +83,7 @@ No Gradle project or application code has been generated yet. The architecture w
 - [Local files, playlists and player behavior](docs/product/local-media-and-playlists.md)
 - [Settings, player controls and favorites](docs/product/settings-and-player.md)
 - [First-release blockers and validation plan](docs/product/first-release-blockers.md)
+- [50 live cameras — research list, 2026-10-25](docs/research/live-cameras-50-2026-10-25.md) — candidate viewing pages verified on 2026-10-25; not the approved v1 catalog.
 - [First-release acceptance contract](docs/product/v1-acceptance.md)
 - [Engineering implementation plan and priorities](docs/implementation/priority-plan.md)
 - [2026-10-25 comprehensive planning audit](docs/reviews/2026-10-25-planning-audit.md)
