@@ -1,0 +1,26 @@
+# External research and candidate reuse
+
+**Reviewed 2026-10-24.** Reference projects are for learning, not a blanket authorization to reuse code or video.
+
+## Core references
+1. [Aerial Views (GitHub)](https://github.com/theothernt/AerialViews): actively developed Android/Google/Fire TV screensaver supporting 4K/HDR where devices permit, local USB videos, multiple media feeds, clock overlays, weather, playlists, direct HLS/RTSP. A particularly relevant reference for OS integration and local-media handling. **Check its actual code license and media usage rights before copying anything.** Recent Google TV and Fire OS versions can restrict selection of external screensavers.
+2. [Android TV Live Screensaver](https://github.com/hauxir/androidtv-live-screensaver): inspiration for live sources and DreamService; validate maintenance, licensing and functionality separately.
+3. [Android DreamService official API](https://developer.android.com/reference/android/service/dreams/DreamService): screensaver component lifecycle, interaction and screen behavior.
+4. [Android Storage Access Framework](https://developer.android.com/training/data-storage/shared/documents-files): folder grants and Android 11+ picker restrictions.
+5. [AndroidX Media3 supported formats](https://developer.android.com/media/media3/exoplayer/supported-formats): HLS/live support and device codec limitations.
+6. [AndroidX Media3 supported devices](https://developer.android.com/media/media3/exoplayer/supported-devices): Android API minima and hardware testing caveats.
+7. [Open-Meteo terms](https://open-meteo.com/en/terms): free non-commercial tier has limits and attribution requirements. **Do not assume it is allowed if the app later monetizes.**
+8. [Matt Pocock engineering skills](https://github.com/mattpocock/skills): skills for interviewing, specs, TDD, reviews, architecture, workflow.
+
+## Competitive/reuse assessment
+- **Aerial Views:** extremely relevant baseline. First evaluate whether OpenVista should be an original app using patterns or a license-compliant fork; do not prematurely copy an unrelated full codebase.
+- **Weather provider:** evaluate legal, rate-limit and offline/cache policies before selection.
+- **Webcams:** compile candidates only from official providers offering embedded/live stream access on stated terms. Confirm every candidate's attribution, redistribution and commercial limits.
+- **Live wallpaper library:** discovery task. No catalog source is approved; do not ingest videos or commit them to Git.
+
+## Validation tasks
+- Check actual LICENSE and build details of reuse candidates.
+- Prototype app-mode and DreamService on Fire OS 7 and 1+ Google TV devices.
+- Test folder picker on devices with missing/limited document provider.
+- Measure streams in 1080p and 4K on low-end TV hardware.
+- Read content-provider ToS before shipping endpoints.

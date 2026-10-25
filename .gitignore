@@ -1,0 +1,44 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.iml
+
+# Android / Gradle (for future project)
+.gradle/
+**/build/
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.externalNativeBuild/
+.cxx/
+out/
+
+# Local secrets, state and developer scratch
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.pem
+*.p12
+*.key
+.scratch/
+.tmp/
+.tmp*/
+node_modules/
+
+# Media belongs to users or licensed providers, not this code repo
+*.mp4
+*.mkv
+*.mov
+*.webm
+*.m3u8
+# Keep TypeScript source files trackable; ignore media transport streams only in media folders.
+**/media/*.ts

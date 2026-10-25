@@ -1,1 +1,84 @@
-# openvista
+# OpenVista
+
+**Turn your Android TV into a window to the world.**
+
+OpenVista is a planned, open-source Android TV screensaver and immersive ambient-video app. It will play **live public webcams** or **your own local looping videos**, with optional clock and weather information.
+
+> **Status: discovery / product definition.** This repository currently contains research, project setup, and selected engineering agent skills. There is **no working OpenVista APK yet**. Features below are a roadmap, not a release claim.
+
+## Product foundations
+
+The following is already agreed:
+
+- **TV-first:** designed for Android TV devices generally, not a single TV model. Include Google TV and Fire TV/Fire OS in the compatibility test plan.
+- **Two content modes:** (1) live cameras around the world, and (2) user-selected downloaded videos stored in a folder on the TV or attached storage.
+- **Ambient viewing:** long-running, distraction-free full-screen playback suitable for use as a screensaver.
+- **Information overlays:** clock, current weather, and a 7-day forecast are product goals.
+- **Future library:** explore a discoverable library of curated live wallpapers and optional integrations. Do not assume media is freely redistributable.
+
+Product details (providers, browsing, layouts, personalization, distribution, licensing and free/commercial policy) remain **open for user decisions**. See [Product decisions](docs/product/decisions.md).
+
+## Proposed experience (not implemented)
+
+1. Open OpenVista from the TV launcher; choose **Live cameras** or **My videos**.
+2. Browse safe, curated live-camera collections or choose a local media folder.
+3. Enter ambient full-screen playback; use the remote to pause, switch scenes, reveal minimal information, or return to the library.
+4. Enable optional overlays: location name, local time, viewer time, live weather, and 7-day forecast.
+5. Where supported by the TV OS, select OpenVista as the system screensaver. Devices that block third-party screensavers can still use the manual app mode.
+
+## Compatibility is device-specific
+
+A normal Android TV app can open manually on supported devices. **Automatic system-screensaver integration is not guaranteed**: Android/Google TV and Fire OS versions differ in DreamService policy, OEM UI, and permissions. Avoid privileged permissions, root requirements, or irreversible ADB modifications.
+
+The first hardware target for validation is a **Hisense 58U6HF / Fire OS 7**, but it is a test device, **not the product's compatibility boundary**. Validate on Google TV and other Android TV devices before making broad claims.
+
+## Technical direction to investigate
+
+| Area | Candidate | Status |
+| --- | --- | --- |
+| App | Kotlin, native Android TV | Proposed |
+| Media | AndroidX Media3 / ExoPlayer (MP4, HLS, device-supported codecs) | Proposed |
+| Screensaver | Android DreamService + regular fullscreen Activity | Feasibility and OS compatibility to verify |
+| Local files | Android Storage Access Framework, URI permission persistence | Research needed per device |
+| Weather | Licensed forecast provider, caching, offline fallback | Provider and license undecided |
+| Remote | D-pad-first navigation and accessible focus states | Product requirement |
+| Catalog | Source metadata + verified permission to display streams | Provider contract undecided |
+
+No Gradle project or application code has been generated yet. The architecture will be decided after the product interview and targeted prototypes.
+
+## Roadmap and documentation
+
+- [Vision and requirements](docs/product/vision.md)
+- [Decisions and brainstorming questions](docs/product/decisions.md)
+- [Proposed architecture](docs/architecture/overview.md)
+- [Reference projects and official sources](docs/research/references.md)
+- [Content rights and security](docs/SECURITY_AND_CONTENT.md)
+- [Delivery milestones](docs/roadmap.md)
+- [Glossary](GLOSSARY.md)
+- [Agent guidance](AGENTS.md)
+- [Engineering skills selected](docs/skill-selection.md)
+- [Contributing](CONTRIBUTING.md)
+
+## Development workflow
+
+1. Resolve high-impact decisions with **grill-with-docs** and record ADRs.
+2. Use **research**, **to-spec**, and **to-tickets** to turn approved decisions into implementation-sized GitHub issues.
+3. Prototype device-sensitive playback, folder selection, and DreamService before committing to a large architecture.
+4. Build vertical slices using **tdd** where feasible; test on emulator and physical hardware.
+5. Run **code-review** and regression checks before merging small PRs. Never claim cross-device support without testing it.
+
+### Matt Pocock skills
+
+27 relevant skills from [mattpocock/skills](https://github.com/mattpocock/skills) are vendored for Codex under `.agents/skills/` and Claude Code under `.claude/skills/`, using the upstream `skills` installer. The install lock is kept in `skills-lock.json`.
+
+From the repository root, to update the installed skills:
+
+```sh
+npx skills@latest update -p -y
+```
+
+See [skill selection](docs/skill-selection.md) for why these skills were chosen. Review upstream changes before committing updates.
+
+## License
+
+The repository's code is released under [MIT](LICENSE), unless otherwise indicated. Third-party videos, webcams, forecasts, imagery, and third-party code retain **their own licenses and permissions**; MIT does not grant redistribution rights to them.
