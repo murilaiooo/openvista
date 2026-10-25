@@ -1,6 +1,6 @@
 # Contributing to OpenVista
 
-We are in product discovery. Review [vision](docs/product/vision.md), [open decisions](docs/product/decisions.md), and [glossary](GLOSSARY.md) before proposing code.
+Owner product discovery is complete (78 confirmed decisions). We are validating feasibility and preparing the first **local Hisense-only** engineering APK. Review [canonical decisions](docs/product/decisions.md), [v1 acceptance](docs/product/v1-acceptance.md), [P0 implementation plan](docs/implementation/priority-plan.md), [risk audit](docs/reviews/2026-10-25-planning-audit.md) and [glossary](GLOSSARY.md) before proposing code.
 
 ## Issues
 - Report one problem or enhancement per issue. Include expected vs observed behavior and reproduction when applicable.
@@ -16,7 +16,7 @@ We are in product discovery. Review [vision](docs/product/vision.md), [open deci
 - Tests must be reproducible locally. GitHub Actions is optional, not proof by itself.
 
 ## Development environment
-Gradle and Android source files have not been scaffolded yet. Follow the approved architecture once available. Agent-specific installed skills and rules live under `.agents/skills`, `.claude/skills`, and `AGENTS.md`.
+Gradle and Android source files have not been scaffolded yet. Architecture in `docs/architecture/overview.md` and ADR-0001 remains **proposed** until tested. Follow recorded technical evidence rather than treating proposals as facts. Use only relevant project-local skills in `.agents/skills` / `.claude/skills` and instructions in `AGENTS.md`.
 
 ## Conduct
 Be respectful, specific, and pragmatic in technical discussions. Credit the original authors of reused compatible work.

@@ -25,6 +25,6 @@ Source: [mattpocock/skills](https://github.com/mattpocock/skills). Installed on 
 - `git-guardrails-claude-code`: safe Git mutations in agent workflows.
 - `setup-pre-commit`: establish local pre-commit feedback once code exists.
 
-**Total: 27 selected skills.** Excluded in-progress/TS-only teaching/content-writing/migration skills unrelated to this native Android TV project. Use relevant skills for each task, not all 27 simultaneously.
+**Total: 27 selected skills.** Excluded in-progress/TS-only teaching/content-writing/migration skills unrelated to this native Android TV project. Use relevant skills for each task, not all 27 simultaneously. The [planning audit](reviews/2026-10-25-planning-audit.md) records which skill families were applicable to reviewing the documentation.
 
-Keep copies synced intentionally and review upstream edits before adoption. Do not add unrelated skills merely to maximize the count.
+Use only skills applicable to the current task. For **planning audit**: research (primary sources), domain-modeling (vocabulary), codebase-design (future module seams), wayfinder (dependency frontier), to-spec/to-tickets (acceptance and small tasks), triage (issue clarity), writing-for-agents (instructions), and retro (mechanical audit checks). Implement/TDD/code-review/prototype apply when executable code or relevant changes exist. Keep copies synced intentionally and review upstream edits before adoption; don't claim all 27 executed when some require an app, a PR or a running prototype.

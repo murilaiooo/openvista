@@ -47,8 +47,8 @@ Each slice closes only with reproducible PC tests **and** a feature demonstratio
 
 ## P3 — stable v1 verification, then approval for public release
 
-12. Run a documented **24-hour real-device soak** with playback/idle/network/USB transitions, dropped frames, RAM/CPU/thermal observations and no catastrophic retry loop.
-13. Audit >=25 rights-cleared, family-appropriate streams for attribution, actual playback, region and failure handling. Audit weather/map contracts and security of QR/updater.
+12. Run a documented **24-hour real-device soak** following [Hisense soak protocol](../testing/hisense-24h-soak-protocol.md): freeze numeric limits first, then measure playback/idle/network/USB, dropped frames, RAM/CPU/thermal trends and failures.
+13. Audit >=25 rights-cleared, family-appropriate streams using [per-source proof records](../research/webcam-source-evidence-template.md) for attribution, actual on-TV HLS/DASH playback, region and failure handling. Audit weather/map contracts and QR/updater security.
 14. Reconcile D-01–D-78 against the [acceptance matrix](../product/v1-acceptance.md); document all device-limited unsupported behavior and user-visible fallbacks.
 15. Prepare signed reproducible APK, changelog, local test evidence and exact compatibility wording (Hisense tested only). **Ask owner before the first GitHub binary publication**.
 
@@ -63,10 +63,11 @@ Each slice closes only with reproducible PC tests **and** a feature demonstratio
 
 ## GitHub P0 issue tracker (created)
 
-- [#2 — DreamService and storage feasibility](https://github.com/murilaiooo/openvista/issues/2) (existing; initial TV scope updated).
+- [#2 — DreamService selection / idle / remote feasibility](https://github.com/murilaiooo/openvista/issues/2) (Hisense first, independently of USB).
 - [#3 — Authorized global webcams and rights register](https://github.com/murilaiooo/openvista/issues/3) (existing; >=25-camera stable-v1 gate added).
 - [#4 — Read-only Hisense and Windows toolchain baseline](https://github.com/murilaiooo/openvista/issues/4).
 - [#5 — Media3 HLS/DASH and local-container device test](https://github.com/murilaiooo/openvista/issues/5).
+- [#9 — Standalone SAF/USB scoped-tree and recursive folders probe](https://github.com/murilaiooo/openvista/issues/9) (blocked by #4).
 - [#6 — Weather/map provider terms and offline behaviors](https://github.com/murilaiooo/openvista/issues/6).
 - [#7 — Android Fire OS 7 updater and installer constraints](https://github.com/murilaiooo/openvista/issues/7).
 - [#8 — Same-LAN QR pairing security prototype](https://github.com/murilaiooo/openvista/issues/8).
@@ -82,4 +83,4 @@ P1–P3 tickets should be created only as the P0 proof removes uncertainty. Each
 - Preserve existing installed applications and saved settings on the TV until there is a specific test reason to change them.
 - No GitHub APK release or claimed silent update until technical and owner gates pass.
 
-See [v1 acceptance](../product/v1-acceptance.md), [official platform notes](../research/platform-feasibility-2026-10-25.md), [discovery decisions](../product/decisions.md).
+See [v1 acceptance](../product/v1-acceptance.md), [78-D-ID gate traceability](../product/requirement-traceability.md), [critical path](critical-path.md), [independent planning audit](../reviews/2026-10-25-planning-audit.md), [official platform notes](../research/platform-feasibility-2026-10-25.md), [discovery decisions](../product/decisions.md).

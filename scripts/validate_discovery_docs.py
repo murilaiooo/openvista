@@ -1,55 +1,79 @@
-"""Validate product-discovery decisions and local Markdown links without dependencies.
+"""Validate the OpenVista planning baseline. No external dependencies.
 
-Usage: python scripts/validate_discovery_docs.py
+Usage on the development PC:
+    python scripts/validate_discovery_docs.py
+
+Scope: markdown and structural consistency only; never claim this runs Android tests.
 """
 from pathlib import Path
 import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-decisions = (ROOT / "docs/product/decisions.md").read_text(encoding="utf-8")
-ids = [int(n) for n in re.findall(r"^\| D-(\d{2}) \|", decisions, re.M)]
+DECISIONS = ROOT / "docs/product/decisions.md"
+TRACE = ROOT / "docs/product/requirement-traceability.md"
 errors = []
-expected = list(range(1, 79))
-if sorted(ids) != expected:
-    errors.append(f"Expected decision IDs D-01..D-78 once each; found {ids!r}")
-if "Round 8: confirmed" not in decisions or "Product discovery outcome" not in decisions:
-    errors.append("Round 8 confirmation / product-discovery closure status is missing")
-if "78 product decisions" not in (ROOT / "README.md").read_text(encoding="utf-8"):
-    errors.append("README decision count is stale")
-if "78 confirmed decisions" not in (ROOT / "docs/product/vision.md").read_text(encoding="utf-8"):
-    errors.append("Vision decision count is stale")
 
-files = [
-    ROOT / "README.md",
-    ROOT / "docs/product/decisions.md",
-    ROOT / "docs/product/vision.md",
-    ROOT / "docs/product/experience.md",
-    ROOT / "docs/product/runtime-and-recovery.md",
-    ROOT / "docs/product/local-media-and-playlists.md",
-    ROOT / "docs/product/settings-and-player.md",
-    ROOT / "docs/product/first-release-blockers.md",
-    ROOT / "docs/product/v1-acceptance.md",
-    ROOT / "docs/research/platform-feasibility-2026-10-25.md",
-    ROOT / "docs/implementation/priority-plan.md",
-    ROOT / "docs/architecture/overview.md",
-    ROOT / "docs/roadmap.md",
-    ROOT / "docs/testing/compatibility.md",
+decisions = DECISIONS.read_text(encoding="utf-8")
+decision_ids = [int(n) for n in re.findall(r"^\| D-(\d{2}) \|", decisions, re.M)]
+expected = list(range(1, 79))
+if decision_ids != expected:
+    errors.append("Canonical decisions are not exactly D-01..D-78 in order (no duplicates allowed).")
+
+if not all(x in decisions for x in ["Round 8: confirmed", "Product discovery outcome"]):
+    errors.append("Eight-round completion is not recorded in decisions.")
+
+summary_contracts = [
+    ("README.md", "78 product decisions"),
+    ("docs/product/vision.md", "78 confirmed decisions"),
+    ("docs/product/v1-acceptance.md", "D-01–D-78"),
+    ("docs/implementation/priority-plan.md", "78 owner-approved"),
 ]
+for path, marker in summary_contracts:
+    if marker not in (ROOT / path).read_text(encoding="utf-8"):
+        errors.append(f"{path}: stale or missing baseline marker {marker}")
+
+trace_text = TRACE.read_text(encoding="utf-8")
+trace_rows = re.findall(r"^\| D-(\d{2}) \| (G\d{2}) \|[^\n]*\| NOT TESTED \|$", trace_text, re.M)
+mapped_ids = [int(id_text) for id_text, gate in trace_rows]
+allowed_gates = {f"G{n:02d}" for n in range(1, 11)}
+if sorted(mapped_ids) != expected:
+    errors.append("Traceability map must cover each of D-01..D-78 exactly once.")
+if any(gate not in allowed_gates for _, gate in trace_rows):
+    errors.append("Unknown gate ID in traceability map.")
+if {gate for _, gate in trace_rows} != allowed_gates:
+    errors.append("Every G01..G10 gate must own at least one D-ID.")
+
+# All repo docs + root-facing Markdown; skills are separately owned external copies.
+docs = sorted((ROOT / "docs").rglob("*.md"))
+files = docs + [ROOT / n for n in ("README.md", "AGENTS.md", "CONTRIBUTING.md", "GLOSSARY.md")]
 for file in files:
     body = file.read_text(encoding="utf-8")
-    for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", body):
-        if target.startswith(("http:", "https:", "#", "mailto:")):
-            continue
+    # Inline Markdown links only. Fenced source text and external links are not processed.
+    for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", body):
         target = target.split("#", 1)[0].strip()
-        if not target or " " in target or target.startswith("<"):
+        if not target or target.startswith(("http:", "https:", "mailto:", "data:", "//")):
+            continue
+        if " " in target or target.startswith("<"):
             continue
         if not (file.parent / target).exists():
-            errors.append(f"Broken link in {file.relative_to(ROOT)}: {target}")
+            errors.append(f"Missing relative link: {file.relative_to(ROOT)} -> {target}")
+
+# Structural sanity checks (not claims of runtime verification).
+for path in ("AGENTS.md", "CONTRIBUTING.md"):
+    if "in product discovery" in (ROOT / path).read_text(encoding="utf-8").lower():
+        errors.append(f"{path} falsely states discovery is active.")
+adr = (ROOT / "docs/adr/0001-dual-mode-entry-points.md").read_text(encoding="utf-8")
+if "plus at least one Google TV" in adr:
+    errors.append("ADR-0001 contradicts owner-approved initial Hisense-only test.")
 
 if errors:
-    print("FAIL: " + "\nFAIL: ".join(errors))
+    for e in errors:
+        print("FAIL:", e)
     sys.exit(1)
 
-print(f"PASS: {len(ids)} sequential confirmed decisions, 8 rounds completed")
-print(f"PASS: all relative links valid in {len(files)} project documents")
+print("PASS: all 78 ordered, unique approved decisions; eight rounds complete")
+print("PASS: 78/78 D-ID mappings across 10 acceptance gates (planned, NOT TESTED)")
+print(f"PASS: local relative links valid across {len(files)} Markdown documents")
+print("PASS: active steering and ADR avoid stale interview/device claims")
+print("NOTE: no APK, TV tests, camera permissions or runtime evidence validated")

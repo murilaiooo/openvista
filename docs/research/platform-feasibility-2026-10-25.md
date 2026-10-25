@@ -39,6 +39,27 @@ These are **research findings**, not completed local/TV prototypes or an enginee
 - Investigate weather forecast provider terms, seven-day field support, attribution/caching quotas, map tile usage policy and offline map metadata. No weather or map service was approved automatically by the user.
 - QR local pairing requires a separate security threat model before implementation.
 
+## Planning-audit findings from official primary sources (2026-10-25)
+
+### Webcam discovery is not the same as license-cleared native video
+
+- **SkylineWebcams:** its own [FAQ](https://www.skylinewebcams.com/en/support/faq.html) says only camera hosts may embed its *live* feed; ordinary users can embed periodically updated images. **Do not count Skyline public webcams as native HLS/DASH streams**, without an independent owner license.
+- **Windy Webcams API:** [official free-plan pricing](https://api.windy.com/webcams/pricing) describes linked images and timelapse player. Its [API terms](https://account.windy.com/agreements/windy-api-webcams-terms-of-use) regulate API keys, redistribution and source/operator rights. Discovering camera metadata or snapshot URLs **does not prove access to a live Media3-playable stream**.
+- This raises the source gate to a true **G01 blocker**: [issue #3](https://github.com/murilaiooo/openvista/issues/3) must produce the rights-cleared stream inventory with independently verified HLS/DASH playback and expiry/reliability tests. A user-added URL is a separate permitted custom source, **not** a loophole for populating the shipped catalog.
+- **AerialViews code:** the upstream [LICENSE](https://github.com/theothernt/AerialViews/blob/master/LICENSE) is **GPLv3** whereas OpenVista's root LICENSE is **MIT**. Study architecture and patterns freely; **do not copy/fork upstream source into an MIT-only codebase** without a conscious GPL compliance/licensing decision, proper attribution and license review.
+
+### Android 9 installer API version distinction
+
+- [PackageInstaller.SessionParams.setRequireUserAction](https://developer.android.com/reference/android/content/pm/PackageInstaller.SessionParams) is **added at API 31 (Android 12)**, not part of Fire OS 7's Android 9 API 28 surface. A Fire OS 7-specific proof must use APIs actually supported by that OS; status callbacks such as [STATUS_PENDING_USER_ACTION](https://developer.android.com/reference/android/content/pm/PackageInstaller) still make install consent relevant.
+- Do not copy an Android 12+ `setRequireUserAction(USER_ACTION_NOT_REQUIRED)` implementation into the Android 9 variant. Unless an authorized supported OEM API is genuinely available and validated, expect an installer confirmation instead of a guaranteed hands-free upgrade.
+- Automatic **download** may be implemented separately from platform-controlled **installation**; on-device checks, background download policy, signature continuity and rollback all need evidence.
+
+### Map tiles, weather and provider terms
+
+- [OpenStreetMap Foundation tile policy](https://operations.osmfoundation.org/policies/tiles/) requires attribution, identifiable app user agent and HTTP-aware caching, while **prohibiting bulk offline/prefetch tile downloading** from the community tile servers. The owner-selected **offline saved camera list** avoids requiring offline map tiles, but normal interactive tile loading still needs a chosen legal provider and caching strategy.
+- [Open-Meteo terms](https://open-meteo.com/en/terms) currently offer **noncommercial** free use, with attribution (CC BY 4.0) and daily/hourly/minute quotas. Free/no-account product goals do **not** exempt OpenVista from provider usage limits or altered future terms. Product suitability needs explicit provider selection and usage accounting.
+- [DreamService](https://developer.android.com/reference/android/service/dreams/DreamService) interactive input handling requires `setInteractive(true)`; **that API alone does not mean Fire OS exposes the service as a user-selectable default**. The Hisense P0 proof controls the compatibility statement.
+
 ## Feasibility status
 
 | Workstream | Documentation found | Local/TV validation |

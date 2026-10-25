@@ -16,13 +16,13 @@ This is **not** permission to publish a release automatically; the owner will ch
 
 | Gate | Minimum evidence required | Pass condition |
 | --- | --- | --- |
-| G-01 Permitted cameras | Provider-permission and attribution register, country/category/location and tested HLS/DASH endpoints | **25+ distinct authorized, family-appropriate and working public cameras**, actual playback verified on Hisense; no stolen/geo-bypassed links |
+| G-01 Permitted cameras | Per-camera [source evidence record](../research/webcam-source-evidence-template.md): official owner permission/attribution, country/category/location and tested HLS/DASH live stream on Hisense | **25+ distinct authorized, family-appropriate and working public cameras**, actual playback verified on Hisense; no stolen/geo-bypassed links |
 | G-02 App mode | Test cases with logs/screenshots/video from Hisense / Fire OS 7 | Manual Home, catalog and map, favorites, playback, remote, overlays/clock/weather and settings meet approved behavior |
 | G-03 Screensaver | DreamService state and system settings capability captured on target | Works if OS/OEM allows; otherwise honest unsupported guidance, with app mode fully usable |
 | G-04 Local media | Internal & USB test media; deep/nested folders; MP4/MKV/WebM/MOV matrix | Accessible source paths and supported codecs play; unsupported files skip and explain; playlists/resume/±10 sec/loop function |
 | G-05 Failure recovery | Network toggles, all-sources-down, USB removal, process death | Configured local fallback works; no frozen UI, repeated invalid source storm or premature switch when internet returns |
 | G-06 TV UX | D-pad focus map, PT-BR and EN checks, simple/advanced editor and accessibility review | No unreachable menus; 5-second controls, five-minute camera default, map 2D + list and viewer weather function where data is available |
-| G-07 24-hour soak | At least 24 hours of real-device continuous playback/rotation, sampled CPU/RAM, dropped frames, error rate, thermal/network behavior | No unrecovered crash, runaway memory/CPU, busy loops or unhandled background playback; quantitative tolerances decided from baseline before test |
+| G-07 24-hour soak | At least 24 hours of real-device playback/rotation, sampled CPU/RAM, dropped frames, error rate, thermal/network behavior, using [the Hisense test protocol](../testing/hisense-24h-soak-protocol.md) | No unrecovered crash, runaway memory/CPU, busy loops or unhandled background playback; quantitative tolerances decided from baseline **before** test |
 | G-08 Privacy and licensing | Permission inventory, logs redaction review, offline behavior, upstream source/media/weather/map licenses | Account-/ad-/telemetry-free, reports shared only by explicit action, family-safe licensed sources and clearly attributed data |
 | G-09 Updates | GitHub signed release/download integrity, PackageInstaller behavior on Fire OS 7 | Download verification works; automatic installation **only if OS actually permits**, otherwise clear required user confirmation; no bypass, no unstable silent update claim |
 | G-10 Device scope | Named device model/build/OS/software versions, documented test result | **Only Hisense 58U6HF/Fire OS 7 is tested initially**. Every other TV family marked *not tested*. No universal compatibility claim |
@@ -67,5 +67,7 @@ See Google's [PackageInstaller.SessionParams](https://developer.android.com/refe
 - Support claims for devices other than tested Hisense; forced unattended install when the OS rejects it.
 
 ## Decision trace and acceptance evidence
+
+Each approved decision is assigned a primary G01–G10 owner in [requirement traceability](requirement-traceability.md), with every D-ID currently marked **NOT TESTED**. Multiple gates may be relevant to individual requirements; tests will add concrete evidence links when produced. The [planning audit](../reviews/2026-10-25-planning-audit.md) records blocking risks.
 
 No gates have been passed and no application APK exists at the date of writing. Each gate requires test runs with date, exact device build, test case, expected/actual outcome, evidence location and responsible reviewer. Later testing may trigger a documented scope change rather than silently waiving a requirement.

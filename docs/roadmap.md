@@ -56,4 +56,4 @@
 - Integrated downloadable video wallpapers, RTSP, compatibility claims for other TV models, cloud sync/settings import-export.
 - Any wider scope requires a new explicit decision, not an implicit assumption.
 
-**Execution guide:** [prioritized implementation plan](implementation/priority-plan.md) and [v1 acceptance](product/v1-acceptance.md). No actual tests/builds have yet been executed.
+**Execution guide:** [prioritized implementation plan](implementation/priority-plan.md), [P0 blocking graph](implementation/critical-path.md), [v1 acceptance](product/v1-acceptance.md), [78-ID traceability](product/requirement-traceability.md), and [planning audit](reviews/2026-10-25-planning-audit.md). No actual tests/builds have yet been executed.

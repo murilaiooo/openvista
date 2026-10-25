@@ -20,4 +20,4 @@ Never alter the device's default screensaver, ambient service or power policy wi
 ## Product approval and technical validation
 The owner confirmed **both** automatic screensaver and manually launched app in round 1. This approves the product behavior, not universal OEM support or a specific technical implementation.
 
-Before accepting the shared playback-core architecture, prototype DreamService/manual mode on Fire OS 7 plus at least one Google TV and another Android TV class. Test wake/remote behavior, no black screen and normal rollback. Clearly document devices where only manual mode is supported.
+Before accepting this as the **initial Hisense implementation**, prototype DreamService/manual mode on **Hisense 58U6HF / Fire OS 7 only**, per owner-approved D-70. Test wake/remote, OS-owned idle settings and selection, no black screen and safe rollback. Google TV and other Android TV models are **not verified** and will be tested later before compatibility claims. Preserve the separate manually launched app regardless of DreamService feasibility.
