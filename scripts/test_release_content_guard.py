@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+from contextlib import redirect_stdout
 from pathlib import Path
 import tempfile
 import unittest
@@ -29,7 +30,9 @@ class ArtifactGuardTests(unittest.TestCase):
             "res/drawable/logo.png": b"image-data",
         })
         self.assertEqual(inspect_artifact(self.path), [])
-        self.assertEqual(main([str(self.path)]), 0)
+        with redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main([str(self.path)]), 0)
+        self.assertIn("PASS:", output.getvalue())
 
     def test_rejects_playlist_file(self):
         self.make_zip({"assets/cameras.m3u": b"#EXTM3U"})
@@ -76,7 +79,9 @@ class ArtifactGuardTests(unittest.TestCase):
     def test_missing_release_fails_closed(self):
         with self.assertRaises(ArtifactInspectionError):
             inspect_artifact(self.path)
-        self.assertEqual(main([str(self.path)]), 2)
+        with redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main([str(self.path)]), 2)
+        self.assertIn("FAIL:", output.getvalue())
 
     def test_corrupt_release_fails_closed(self):
         self.path.write_bytes(b"not a zip")

@@ -28,10 +28,10 @@ Product approval covers two entry options, **not a particular pairing protocol**
 ## Weather and geography
 
 - Current weather remains discreet next to the clock by default.
-- On request, display **seven-day detail** with forecast conditions, temperatures, precipitation/rain, wind, humidity and sunrise/sunset **when the provider makes the relevant fields available**.
+- On request, display **seven-day detail** with forecast conditions, temperatures, precipitation/rain, wind and humidity **when a licensed provider makes the relevant fields available**. Sunrise/sunset can instead be estimated locally from explicitly provided coordinates using tested solar calculations; label accuracy/unknown/polar limitations.
 - Weather can follow either the **current camera location** or the **viewer's chosen city**.
 - Set viewer location by **manual city search** or **optional device-supported detection** with the required permission and clear consent. The app should function without granting viewer location access.
-- Choose provider based on official terms, permitted use by a completely free public app, API rate limits, data reliability and attribution. Refresh/caching/units/time zones and missing-data states remain research tasks.
+- Choose provider based on official terms, permitted use by a completely free public app, API rate limits, data reliability and attribution. Refresh/caching/units/time zones and missing-data states remain research tasks. See [ambient solar and display experiments](ambient-experiments.md) for optional geotag-based discovery.
 
 ## Live wallpapers
 
@@ -42,7 +42,7 @@ A searchable/downloadable in-app **wallpaper library is out of initial-release s
 1. Defensive user-source URL/list import tests, optional map metadata validation, and lawful test-stream playback results.
 2. Versioned user-managed source schema, import validation, locally saved metadata, and optional user-configured remote-list refresh policy.
 3. URL-scheme validation, bounded list parsing, duplicate handling, credential redaction, SSRF protections and safe empty-library behavior.
-4. Secure, TV-friendly QR input feasibility and device/network constraints.
+4. Deferred P3 secure QR input feasibility and device/network constraints, after an initial USB/M3U path.
 5. Provider-supported seven-day forecast fields and personal location privacy.
 6. Availability status collection without excessive polling and background work.
 7. Integration test plan for network failures, unknown statuses and all-cameras-down fallback.

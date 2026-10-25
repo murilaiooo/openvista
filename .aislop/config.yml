@@ -1,0 +1,3 @@
+# Optional local scan; never transmit repository metadata.
+telemetry:
+  enabled: false

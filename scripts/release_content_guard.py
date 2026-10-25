@@ -53,6 +53,43 @@ def _contains_stream_url(source) -> bool:
         previous = window[-OVERLAP:]
 
 
+def _inspect_nested_archive(entry, label: str, size: int, depth: int, budget: list[int]) -> list[str]:
+    if size > MAX_NESTED_BYTES:
+        raise ArtifactInspectionError(f"Nested archive exceeds inspection limit: {label}")
+    nested = entry.read(MAX_NESTED_BYTES + 1)
+    if len(nested) > MAX_NESTED_BYTES:
+        raise ArtifactInspectionError(f"Nested archive exceeds inspection limit: {label}")
+    if not zipfile.is_zipfile(io.BytesIO(nested)):
+        raise ArtifactInspectionError(f"Malformed nested archive: {label}")
+    return _inspect_zip(io.BytesIO(nested), label, depth + 1, budget)
+
+
+def _inspect_entry(bundle, item, label: str, depth: int, budget: list[int]) -> list[str]:
+    if item.is_dir():
+        return []
+    entry_label = f"{label}:{item.filename}"
+    suffix = PurePosixPath(item.filename.replace("\\", "/")).suffix.lower()
+    if item.flag_bits & 1:
+        raise ArtifactInspectionError(f"Encrypted entry cannot be inspected: {entry_label}")
+    budget[0] += item.file_size
+    if budget[0] > MAX_UNCOMPRESSED_BYTES:
+        raise ArtifactInspectionError("Uncompressed inspection budget exceeded")
+    findings = []
+    if suffix in MEDIA_SUFFIXES:
+        findings.append(f"Bundled media or playlist file: {entry_label}")
+    if suffix in NESTED_SUFFIXES and depth >= MAX_NESTING:
+        raise ArtifactInspectionError(f"Archive nesting exceeds inspection limit: {entry_label}")
+    try:
+        with bundle.open(item) as entry:
+            if suffix in NESTED_SUFFIXES:
+                findings.extend(_inspect_nested_archive(entry, entry_label, item.file_size, depth, budget))
+            elif _contains_stream_url(entry):
+                findings.append(f"Embedded HLS/DASH URL: {entry_label}")
+    except (OSError, RuntimeError, EOFError, zipfile.BadZipFile) as exc:
+        raise ArtifactInspectionError(f"Cannot inspect {entry_label}: {exc}") from exc
+    return findings
+
+
 def _inspect_zip(archive, label: str, depth: int, budget: list[int]) -> list[str]:
     issues: list[str] = []
     try:
@@ -61,38 +98,7 @@ def _inspect_zip(archive, label: str, depth: int, budget: list[int]) -> list[str
             if len(entries) > MAX_ENTRIES:
                 raise ArtifactInspectionError(f"Too many archive entries in {label}")
             for item in entries:
-                if item.is_dir():
-                    continue
-                entry_label = f"{label}:{item.filename}"
-                suffix = PurePosixPath(item.filename.replace("\\", "/")).suffix.lower()
-                if item.flag_bits & 1:
-                    raise ArtifactInspectionError(f"Encrypted entry cannot be inspected: {entry_label}")
-                budget[0] += item.file_size
-                if budget[0] > MAX_UNCOMPRESSED_BYTES:
-                    raise ArtifactInspectionError("Uncompressed inspection budget exceeded")
-                if suffix in MEDIA_SUFFIXES:
-                    issues.append(f"Bundled media or playlist file: {entry_label}")
-                if suffix in NESTED_SUFFIXES and depth >= MAX_NESTING:
-                    raise ArtifactInspectionError(f"Archive nesting exceeds inspection limit: {entry_label}")
-                try:
-                    with bundle.open(item) as entry:
-                        if depth < MAX_NESTING and suffix in NESTED_SUFFIXES:
-                            if item.file_size > MAX_NESTED_BYTES:
-                                raise ArtifactInspectionError(
-                                    f"Nested archive exceeds inspection limit: {entry_label}"
-                                )
-                            nested = entry.read(MAX_NESTED_BYTES + 1)
-                            if len(nested) > MAX_NESTED_BYTES:
-                                raise ArtifactInspectionError(
-                                    f"Nested archive exceeds inspection limit: {entry_label}"
-                                )
-                            if not zipfile.is_zipfile(io.BytesIO(nested)):
-                                raise ArtifactInspectionError(f"Malformed nested archive: {entry_label}")
-                            issues.extend(_inspect_zip(io.BytesIO(nested), entry_label, depth + 1, budget))
-                        elif _contains_stream_url(entry):
-                            issues.append(f"Embedded HLS/DASH URL: {entry_label}")
-                except (OSError, RuntimeError, EOFError, zipfile.BadZipFile) as exc:
-                    raise ArtifactInspectionError(f"Cannot inspect {entry_label}: {exc}") from exc
+                issues.extend(_inspect_entry(bundle, item, label, depth, budget))
     except (OSError, zipfile.BadZipFile, zipfile.LargeZipFile) as exc:
         raise ArtifactInspectionError(f"Invalid release artifact {label}: {exc}") from exc
     return issues

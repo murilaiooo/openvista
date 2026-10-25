@@ -1,63 +1,50 @@
-# OpenVista dependency frontier and P0 go/no-go checklist
+# OpenVista dependency frontier
 
-**2026-10-25 review.** This is an **engineering plan**, not approval of a new product feature and not a report of completed testing. Preserve D-01–D-78.
+**Revised 2026-10-25.** This is a test-first implementation sequence, not a record of device validation or a new product decision. Keep the 78 approved D-IDs and C-01 unchanged.
 
-## Critical path
+## First local APK critical path
 
 ```mermaid
 flowchart TD
-    A["#4: Hisense/API/toolchain baseline"] --> B["#5: Media3 HLS/DASH + local codec proof"]
-    A --> C["#2: DreamService & D-pad input proof"]
-    A --> D["#9: SAF/USB nested folder proof"]
-    A --> H["#7: Android 9 updater feasibility"]
-    A --> I["#8: LAN QR threat model"]
-    E["#3: User-source input formats"] --> F["Safe list import + zero-source UX"]
-    B --> F
-    F --> J["P1: user-managed source library"]
-    B --> K["P1: manually launched TV player"]
-    D --> K
-    C --> L["P2: optional DreamService"]
-    G["#6: weather/map licenses"] --> M["P1: 2D map / weather / offline list"]
-    H --> N["P2: update path / OS approval"]
-    I --> O["P2: QR phone pairing"]
-    J --> P["P3: 24h soak, rights & v1 acceptance"]
-    K --> P
-    L --> P
-    M --> P
-    N --> P
-    O --> P
+    A["#4: Windows toolchain + safe installation baseline"] --> B["One-screen read-only diagnostics APK"]
+    B --> C["Hisense evidence: model / API / display / decoders / picker"]
+    C --> D["Shared Activity proof: HLS/DASH + M3U import + SAF/USB"]
+    E["#3: input/parser rules"] --> D
+    D --> F["#5: media playback evidence"]
+    D --> G["#9: SAF/USB evidence"]
+    D --> H["#3: import/empty-state evidence"]
+    F --> I["User-managed TV player"]
+    G --> I
+    H --> I
+    J["#6: provider licenses + offline solar study"] --> K["Weather/map + optional solar UX"]
+    I --> L["24h soak + privacy + accessibility + signed-package check"]
+    K --> L
+    M["#2: independent OEM DreamService test"] --> L
+    N["#7: Android 9 update constraints"] --> L
+    O["#8: P3 QR/LAN safety gate"] --> L
+    L --> P["Owner-approved public release"]
 ```
 
-## Independent research frontier (not all need TV access)
+A manual fullscreen Activity may confirm input focus. It **does not prove** that a third-party system DreamService can be selected, started by idle policy or receive its keys. #2 stays an independent device-gated investigation.
 
-- [#3](https://github.com/murilaiooo/openvista/issues/3): define **user-managed stream and playlist imports** and how location/category metadata is handled. The application must ship with no media sources.
-- [#6](https://github.com/murilaiooo/openvista/issues/6): official map/weather license + quota comparison can start without any APK.
-- [#4](https://github.com/murilaiooo/openvista/issues/4): read-only Hisense/Windows toolchain baseline unlocks device-specific experiments.
+Using a single codebase/prototype for #3, #5 and #9 reduces setup and duplicate lifecycle code, but each issue needs **its own observed outcomes**, failure tests and reproducible evidence. Never close three issues because one video happened to play.
 
-## Device-dependent frontier (blocked by verified #4 baseline)
+## Current independent streams of work
 
-- [#2](https://github.com/murilaiooo/openvista/issues/2): DreamService input/idle. Actual support may be unsupported while manual app is still feasible.
-- [#5](https://github.com/murilaiooo/openvista/issues/5): HLS/DASH and local video codec proof; user-managed playback needs validated source imports, permissions for test fixtures and actual playable streams.
-- [#9 — SAF/USB](https://github.com/murilaiooo/openvista/issues/9): standalone measurable proof, because scoped folder picker and USB unplug are independent of DreamService.
-- [#7](https://github.com/murilaiooo/openvista/issues/7): Android **9** package installer path. `SessionParams.setRequireUserAction` is **API 31+**, so do not build the Fire OS 7 implementation around it.
-- [#8](https://github.com/murilaiooo/openvista/issues/8): LAN pairing threat model before opening a listener.
+- **Diagnostic APK first:** isolate its own package, avoid changing the TV's existing apps and gather only non-sensitive OS-reported capabilities. Document how to export JSON through system UI; `persistedUriPermissions` only covers grants to that app. See [first-APK review](first-apk-sequencing-review-2026-10-25.md).
+- **Direct URLs + user-selected M3U/USB:** eliminate a network listener from the prototype. Use SAF `ACTION_OPEN_DOCUMENT` for importing a list file and `ACTION_OPEN_DOCUMENT_TREE` separately for scanning local videos. Fire OS USB picker behavior is not yet proven; keep a keyboard fallback.
+- **Solar computation:** approximate sunrise/sunset and daylight without an external weather call, when explicit camera coordinates exist. This does **not** replace weather forecasts or map tile licenses.
+- **#8 QR/LAN:** scheduled in **P3 before a stable release that claims D-32/D-73**. No network listener or token system in first APK. It is deferred, not completed or silently removed.
+- **Product experiments:** daylight/Golden Hour and display care remain optional P2 investigations. No procedural demo media or shader without new owner approval.
 
-## Explicit stop/go rules
+## Go / no-go rules
 
-1. **No app code / test artifact gate:** currently NO APK; do not call docs/URL lookup a successful P0 prototype.
-2. **Local first APK:** only on Hisense for development; it may have one permitted HLS/DASH and one local video, not 25 webcams. Label incomplete, do not publish binaries.
-3. **Source gate:** release builds contain **zero bundled cameras, streaming playlists or video files**; user-added HLS/DASH and list import must work, including the no-sources empty state.
-4. **DreamService gate:** if OEM blocks third-party selection, do not hack system settings or mark it supported; ship/continue manual Activity with clear limitation and obtain any necessary owner acceptance.
-5. **Updater gate:** verified download must not be described as silent install. Android system confirmation remains mandatory where required.
-6. **v1 quality gate:** define tolerances for 24h soak (frame drops, repeated buffering, memory creep, background work, crash and retry counts) *before* running it, based on initial hardware measurements.
-7. **Release authorization:** seek user approval before first public GitHub APK, even after technical gates pass.
+1. No APK/source currently exists at the start of this plan. Do not treat future proposal documents or PC `ffprobe` research as a completed Android prototype.
+2. No privileged ADB install bypass, TV root, auto-launch at boot, forced screensaver or changes to unrelated installed apps.
+3. The first APK is local only on Hisense 58U6HF / Fire OS 7. Other TV models remain unverified.
+4. Release packages must contain no user-stream URLs, playlists or video files (C-01), checked on the actual signed artifact with [release guard](../testing/release-content-guard.md).
+5. Unsupported OS, codec, USB picker, installer or DreamService capabilities must be labeled unsupported, not passed. Safe manual-app fallback is valid, but waiving an owner-approved stable-v1 feature requires explicit approval.
+6. Set numeric baseline limits before the 24-hour stability run, with device, firmware, codecs, OS API, CPU/RAM, dropped frames and recovery evidence.
+7. No GitHub binary release without explicit owner approval.
 
-## Candidate user-facing seams for future tests
-
-- **Scene selection:** public behavior is open a camera, skip failed camera, rotate and recover without black-loop.
-- **Local media:** public behavior is browse allowed USB folders, play, 10-second seek, resume and safe unplug.
-- **Dream input:** public behavior is eligible automatic activation, OK/Back/arrows and power-lifecycle exit or explicit unsupported.
-- **Weather/map:** public behavior is a working seven-day forecast and 2D focus navigation, with visible no-data/offline states.
-- **Package updater:** public behavior is verified update download followed by supported install or accurate user-confirmation prompt.
-
-Architecture modules, data schemas and implementation SDK versions should be selected *after* relevant spikes, not by pure preference.
+**Related:** [prioritized plan](priority-plan.md), [first-APK sequencing](first-apk-sequencing-review-2026-10-25.md), [v1 acceptance](../product/v1-acceptance.md), [owner decisions](../product/decisions.md).
