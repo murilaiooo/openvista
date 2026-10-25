@@ -18,7 +18,8 @@
 - [ ] Prototype DreamService, app-mode, idle interval and OK/Back/D-pad input feasibility without invasive OS changes.
 - [ ] Validate internal/USB folder picker, recursive scans and URI permission persistence.
 - [ ] Measure Media3 HLS/DASH and local MP4/MKV/WebM/MOV decoding on Hisense at 1080p/4K, including HDR limitations.
-- [ ] Research official permission/attribution for **25 or more actually playable cameras** and source health checks; release gate not met until evidence exists.
+- [x] Import **59 camera candidates / 60 direct HLS/DASH links** to quarantined machine-readable metadata, keeping publication disabled.
+- [ ] Confirm operator permission/attribution, family safety and **on-TV playback of 25+ distinct cameras**; the staged links do not satisfy the release gate yet.
 - [ ] Verify weather/map data licenses and provider rate/caching rules; prototype map tiles offline-to-list fallback.
 - [ ] Investigate Fire OS 7 PackageInstaller: automatic update staging, system approval requirements, signature continuity; no claim of silent install before proof.
 - [ ] Threat-model and prototype short-lived local Wi-Fi QR pairing with explicit on-TV confirmation.

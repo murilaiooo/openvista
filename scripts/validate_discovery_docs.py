@@ -6,6 +6,7 @@ Usage on the development PC:
 Scope: markdown and structural consistency only; never claim this runs Android tests.
 """
 from pathlib import Path
+import json
 import re
 import sys
 
@@ -58,6 +59,23 @@ for file in files:
             continue
         if not (file.parent / target).exists():
             errors.append(f"Missing relative link: {file.relative_to(ROOT)} -> {target}")
+
+# Quarantined camera candidates are reference material, not a licensed catalog.
+candidate_path = ROOT / "catalog/candidates/live-cameras-2026-10-25.json"
+if candidate_path.exists():
+    candidates = json.loads(candidate_path.read_text(encoding="utf-8"))
+    cameras = candidates.get("cameras", [])
+    feeds = [f for cam in cameras for f in cam.get("feeds", [])]
+    if len(cameras) != 59 or len(feeds) != 60:
+        errors.append("Staged camera catalog must contain 59 cameras / 60 feeds.")
+    if candidates.get("approvedForPublicCatalog") != 0 or any(cam.get("publishEnabled") is not False for cam in cameras):
+        errors.append("Camera candidates cannot be published before permission is verified.")
+    if any(cam.get("onDevicePlayback") != "not_tested" for cam in cameras):
+        errors.append("Device verification status changed without evidence.")
+    if len({f.get("url") for f in feeds}) != len(feeds):
+        errors.append("Duplicate staged feed URLs.")
+    if not all(cam.get("rightsReview") and cam.get("sourceRows") for cam in cameras):
+        errors.append("Provenance or rights-review status missing.")
 
 # Structural sanity checks (not claims of runtime verification).
 for path in ("AGENTS.md", "CONTRIBUTING.md"):

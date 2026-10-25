@@ -15,7 +15,7 @@
 ## Competitive/reuse assessment
 - **Aerial Views:** extremely relevant Android TV baseline, but upstream [LICENSE](https://github.com/theothernt/AerialViews/blob/master/LICENSE) is **GPLv3** while OpenVista currently uses **MIT**. Research concepts without copying upstream source; a fork or copied derivative requires a conscious license/compliance decision, not MIT-only redistribution by default.
 - **Weather provider:** evaluate legal, rate-limit and offline/cache policies before selection.
-- **Webcams:** compile candidates only from official providers offering explicitly permitted **native playable HLS/DASH**, not screenshots/web embeds. Use [source evidence template](webcam-source-evidence-template.md), and confirm attribution, stream redistribution, family suitability and URL expiry. Windy snapshot/timelapse free API and Skyline live-feed embedding restrictions cannot be assumed eligible.
+- **Webcams:** use the [staged inventory of 59 candidate cameras / 60 HLS/DASH URLs](live-cameras-import-review-2026-10-25.md) to prioritize operator permission and on-TV codec testing; do not assume stream availability implies native-app redistribution rights. Use [source evidence template](webcam-source-evidence-template.md) to verify attribution, family suitability, license terms and URL expiry. Windy snapshot/timelapse free API and Skyline live-feed restrictions remain examples of why public viewing is insufficient.
 - **Live wallpaper library:** discovery task. No catalog source is approved; do not ingest videos or commit them to Git.
 
 ## Validation tasks

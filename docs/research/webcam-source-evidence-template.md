@@ -1,6 +1,6 @@
 # Camera source evidence template (G01)
 
-**Status:** empty template; **zero authorized HLS/DASH cameras verified** so far. Use this only after reviewing upstream terms; a public web page or screenshot is not authorization.
+**Status:** evidence template; [59 candidates / 60 HLS/DASH URLs were staged on 2026-10-25](live-cameras-import-review-2026-10-25.md), but **zero cameras have completed authorization + OpenVista TV verification**. Use this only after reviewing upstream terms; a public web page or a working manifest is not authorization.
 
 ## One evidence record per candidate
 
