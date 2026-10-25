@@ -17,6 +17,10 @@ Use these terms consistently in product text, code, and issues.
 | Scene rotation | Automatic switching to another available scene after a user-configured interval from 1 to 60 minutes. |
 | Quality cap | The viewer-selected maximum stream quality, applied where the live provider exposes compatible alternative renditions. |
 | Overlay preset | A saved arrangement of on-screen information components that can be further adjusted in a visual editor. |
+| Contextual remote controls | Directional TV remote behavior that changes with the current media mode: camera change for webcam browsing and seeking for locally stored video. |
+| Advanced overlay editor | Interactive TV-focused customization of overlay elements beyond quick presets; exact controls remain open. |
+| Scene transition | Visual change between successive cameras or local videos, user-selectable as instant or smooth, subject to available device resources. |
+| Display-care controls | Independent settings to reposition static informational overlays and hide them after inactivity, reducing but not eliminating image-retention risk. |
 | Overlay | Nonessential on-screen data above video, such as time, place, weather, or forecast. |
 | Playback mode | User-selected content type: live cameras or local videos. |
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |

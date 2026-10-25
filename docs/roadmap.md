@@ -8,7 +8,8 @@ All milestones are **proposed**, not scheduled. Product interview must happen be
 - [x] Document architecture hypotheses, reference sources, content-rights checks, glossary, workflow and open questions.
 - [x] Record round 1 product decisions (8 confirmed choices).
 - [x] Record round 2 user-experience decisions (10 confirmed choices).
-- [ ] Complete round 3 and remaining interview rounds; resolve follow-up ADRs.
+- [x] Record round 3 visual and TV-interaction decisions (10 confirmed choices).
+- [ ] Complete round 4 and remaining interviews; resolve follow-up ADRs.
 - [ ] Choose technical baseline after comparing original Kotlin project vs license-compliant reuse/fork.
 
 ## Phase 1: Feasibility spikes

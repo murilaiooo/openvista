@@ -20,3 +20,11 @@
 6. Power / idle / DreamService wake and screen-off behavior.
 7. 24-hour soak metrics: dropped frames, memory, CPU, temperature (if available), data transfer.
 8. Accessibility: focus visibility, navigation with D-pad, high-contrast/large text.
+9. Image-backed three-card Home and full-bleed/near-invisible playback interface; focus must remain visible on interaction.
+10. Camera change via directional input vs local video seek; validate no remote conflicts and return behavior.
+11. 2D map clustered-marker + sidebar navigation with remote; no inaccessible clusters on low-memory hardware.
+12. On-demand seven-day weather versus discreet clock/current condition defaults; simple/advanced editor with safe focus bounds.
+13. Independently adjust widget reposition interval and hide-after-inactivity; verify interactions, noting no anti-burn-in guarantee.
+14. Skip first-run guide without granting optional locations/folder access; revisit later from settings.
+15. Instant and smooth transition options: monitor dropped frames, decoder usage and degradation on constrained TVs.
+16. Locale defaults from device and manual PT-BR/English, clock 12/24h and °C/°F overrides.

@@ -1,0 +1,56 @@
+# OpenVista interaction and visual experience
+
+**Status:** Product requirements confirmed in rounds 1–3 (2026-10-24). This is a UX brief, **not** final layout implementation or tested UI.
+
+## Visual identity
+
+The live scene or local scenic video occupies the entire TV display. During passive watching, OpenVista should appear almost invisible: no persistent navigation rail, large panel, or scrolling controls. Default information is a discreet clock and current weather. The full seven-day forecast is revealed on demand; widgets remain fully customizable.
+
+## Manually launched Home
+
+The manual entry point shows **three large image-backed cards**: **Cameras**, **My Videos**, **Favorites**. Artwork must not conceal labels or focus outlines. User can navigate with a standard TV D-pad. Final artwork, placement, typography and colors are not yet decided.
+
+## Cameras
+
+- Enter through the curated catalog or a **2D interactive map with clustered markers and a lateral list**. Preserve keyboard-free D-pad navigation; allow focus to move between map markers/list.
+- The user can add a permitted custom URL (interaction for URL input still TBD).
+- Fullscreen camera playback supports contextual directional scene changes and optional controls that appear during input.
+- Automatically rotate the active camera after the configured 1–60 minute interval.
+- An unavailable camera is **skipped immediately**. If all candidates are unavailable, enter a finite fallback state instead of endlessly cycling (fallback UX not yet approved).
+
+## My Videos
+
+- Open a selected internal-storage or USB folder as permitted by Android's scoped-storage picker.
+- Play local media in sequence, shuffle or a **local-video playlist**. Camera playlists are maintained separately.
+- Fill/crop without stretching by default.
+- Unlike camera mode, the directional controls allow seeking backward/forward through the current video. Exact key map, playback controls, and seek interval require a later decision.
+
+## Weather and overlays
+
+- Default **compact clock + current conditions**.
+- Seven-day forecast appears **only when requested** by default.
+- Weather source context is either current camera location or user-chosen location.
+- Provide quick presets **and** advanced editor. Detailed customization gestures/properties are not yet specified.
+- Two distinct display-care settings: **periodically move static overlay widgets** and **automatically hide them after inactivity**. Each should be individually adjustable; this reduces but does not remove burn-in risk.
+
+## First-run onboarding
+
+Show a **short, skippable** walkthrough for camera choice, optional local folder and weather setup. Never require a user account, location permission, or payment to enter the manual Home. The user must be able to revisit setup from settings.
+
+## Scene transitions and device constraints
+
+Allow selection between direct cuts and smooth transitions. Prefer reduced-cost/direct change where overlapping decoding would stress hardware. The implementation must not assert transition smoothness until measured on low-powered TVs.
+
+## Localization
+
+Start from TV language/region. Support **Portuguese (Brazil)** and **English** with manually adjustable language, 12/24-hour clock and °C/°F temperature. Exact fallback language and formatting defaults must be tested.
+
+## Product acceptance ideas (pending tests)
+
+- All Home cards and controls usable without touch/mouse.
+- Cameras and local video respond **differently but predictably** to remote arrows.
+- Focus remains visible within map list and advanced editor.
+- Information overlays never mask core camera content unnecessarily.
+- On-screen fade settings degrade cleanly on constrained hardware.
+- User can skip onboarding and still use Home.
+- Local USB disconnect and network loss never freeze the UI.

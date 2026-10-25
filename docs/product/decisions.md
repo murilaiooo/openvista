@@ -1,80 +1,94 @@
 # OpenVista product decisions
 
-**Status:** Discovery. Round 1 and Round 2 confirmed on 2026-10-24; Round 3 open.
+**Status:** Discovery. Rounds 1, 2 and 3 confirmed on 2026-10-24. Round 4 open.
 
-Only **Confirmed** items are requirements. **Open** questions and recommendations are not approval. A requested feature is not evidence of technical feasibility or universal device compatibility.
+Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
-## Confirmed baseline
+## Product baseline
 
-OpenVista is a free, ad-free, account-free Android TV ambient app and screensaver, intended for the broader Android TV ecosystem, including Google TV and Fire TV where compatible. It shows either permitted real-time webcams or locally stored looping scenic videos, with optional, customizable clock and weather overlays, including a seven-day forecast. A future wallpaper library is an exploration, not yet a committed first-release feature.
+OpenVista is a free, ad-free, account-free ambient Android TV application and, where the OS allows, an automatic system screensaver. It shows public, permitted live cameras or looping user-owned videos. It includes configurable clock and weather overlays (current conditions and seven-day forecast), with weather for the camera location or the user's chosen location. First distribution is by GitHub APK; no APK exists yet.
 
-## Round 1: confirmed decisions
+## Round 1: confirmed (D-01 to D-08)
 
-| ID | Decision | Owner's selection | Boundaries |
-| --- | --- | --- | --- |
-| D-01 | Entry points | Both automatic screensaver and manually opened app | Automatic mode only where the OS/OEM allows it; do not change system-wide settings without consent. |
-| D-02 | Live camera input | Both a browsable catalog and manual URL entry | Only streams permitted for this use; validate protocol, ownership and accessibility. |
-| D-03 | Local media | Select a folder with sequence, shuffle and playlists | Details refined in D-13 and D-14. |
-| D-04 | Weather location | Switch between camera location and viewer location | Viewer location optional; request consent when necessary. |
-| D-05 | Weather/clock overlay | Fully customizable | Presets plus editor confirmed in D-15. |
-| D-06 | Audio | Muted by default with user option to enable | Do not assume every live camera carries audio. |
-| D-07 | Business model | 100% free, no ads, no account | Third-party services must be compatible with this model. |
-| D-08 | First distribution | APK through GitHub initially | Other stores deferred; no release APK exists yet. |
+| ID | Requirement | Confirmed choice / boundary |
+| --- | --- | --- |
+| D-01 | Entry points | Both automatic screensaver and manually launched app. Automatic mode subject to device/OS permission. |
+| D-02 | Live sources | Both curated/browsable cameras and user-entered permitted stream URLs. |
+| D-03 | Local media | Select folder(s), play in sequence, shuffle and playlists. Details refined in D-13/D-14. |
+| D-04 | Weather location | Option to switch between camera location and viewer location; no mandatory personal location permission. |
+| D-05 | Overlays | Fully customizable. Presets/editor refined in D-15/D-24. |
+| D-06 | Audio | Muted initially; allow the user to enable sound. |
+| D-07 | Commercial model | 100% free, no advertisements or user account. Provider licenses must allow the app's use. |
+| D-08 | Initial delivery | APK via GitHub. Store distribution is not committed. |
 
-## Round 2: confirmed decisions
+## Round 2: confirmed (D-09 to D-18)
 
-| ID | Decision | Owner's selection | Boundary / implementation implication |
-| --- | --- | --- | --- |
-| D-09 | Home screen | **Three main entries: Cameras, My Videos, Favorites** | Manual app opens at Home; whether screensaver resumes a particular scene remains open. |
-| D-10 | Discover cameras | **Both an organized catalog and an interactive world map** | Include TV-remote-accessible marker navigation; map engine, grouping, map data licensing and performance still need evaluation. |
-| D-11 | Automatic scene rotation | **Configurable interval from 1 to 60 minutes** | User-selected interval; exact stepping, enable/disable behavior and different defaults per mode remain open. |
-| D-12 | Failed webcam | **Immediately skip to the next available camera** | No prolonged on-screen retry state. Avoid endless cycles if *all* cameras fail; detect source failures and provide fallback. |
-| D-13 | Local video storage | **Internal storage and USB flash drives / external USB HDDs** | No network/NAS requirement yet. Subject to Android system picker support and scoped-storage restrictions. |
-| D-14 | Playlists | **Multiple playlists, separating cameras from videos** | No mixing cameras and local video in the same playlist for now. Named playlists, persistence and order remain to be detailed. |
-| D-15 | Overlay configuration | **Presets AND a full visual editor** | The editor must work with a TV remote; precise editable properties and rendering behavior remain open. |
-| D-16 | Video fitting | **Fill the TV screen, cropping when necessary** | Cropping is the selected default behavior. Avoid distortion/stretch and clarify if alternative fit mode is offered later. |
-| D-17 | Stream resolution | **Automatic quality with a configurable cap** | The maximum depends on original stream variants and TV codec support; do not promise dynamic selection where provider has only one rendition. |
-| D-18 | Localization | **Brazilian Portuguese and English** | Default selection, forecast units, clock formats, region fallbacks and translation quality remain open. |
+| ID | Requirement | Confirmed choice / boundary |
+| --- | --- | --- |
+| D-09 | Home | Three large destinations: Cameras, My Videos and Favorites. |
+| D-10 | Camera discovery | Both organized catalog and interactive map. |
+| D-11 | Rotation | Automatic scene change at a configurable interval of 1–60 minutes. |
+| D-12 | Camera failure | Skip immediately to the next camera; prevent an endless cycle when every camera is unavailable. |
+| D-13 | Local storage | Internal TV storage and USB flash/external HDD; device/system picker support to validate. |
+| D-14 | Playlists | Multiple playlists, with cameras and local videos in separate playlists. |
+| D-15 | Overlay customization | Both presets and a full visual editor. |
+| D-16 | Video fit | Fill the screen, crop excess rather than distort. |
+| D-17 | Quality | Automatic playback quality, configurable maximum where supported by source variants and decoder. |
+| D-18 | Localization | Brazilian Portuguese and English initially. |
 
-### Derived constraints (not extra product decisions)
+## Round 3: confirmed (D-19 to D-28)
 
-- The Home layout must prominently expose three confirmed destinations, while a map may be reachable from Cameras and favorites may contain separate media types.
-- Camera and local-video playlists are different domain concepts or types, even if they share a common sequencing interface.
-- A camera-failure resolver should avoid repeated looping through offline entries, and must surface an unobtrusive fallback if the whole collection is unavailable.
-- Internal/USB media should be accessed through user-granted Storage Access Framework mechanisms when supported; never assume arbitrary filesystem paths are available.
-- Interactive world maps can be costly on TV hardware; prototype accessible D-pad focus, marker clustering and a list alternative before choosing a rendering library.
-- Live ABR and resolution caps are conditional on the stream format and server offerings; local videos must respect decoder capabilities.
-- No login, analytics advertising SDK or paid backend is required for the agreed baseline.
+| ID | Requirement | Confirmed choice / boundary |
+| --- | --- | --- |
+| D-19 | Visual style | Scenic footage fills the screen; interface is nearly invisible during ambient playback. Avoid permanent chrome. |
+| D-20 | Home appearance | Three **large image-backed cards** for Cameras, My Videos and Favorites. |
+| D-21 | Remote controls | **Contextual by media type**: camera mode uses directional navigation for changing cameras; local video mode allows seeking backward/forward. Exact D-pad/OK/Back/key conflicts remain to specify. |
+| D-22 | World map | **2D map with clustered markers and a lateral list**. Must be navigable by a TV remote; engine, dataset and rendering unchosen. |
+| D-23 | Default clock/weather | **Discreet clock and current conditions**; detailed seven-day forecast opened on demand. All overridable using D-15/D-24. |
+| D-24 | Widget editor | **Both simple and advanced editing**. What gestures, fields and positioning controls are available remains open. |
+| D-25 | Static-content protection | **Both periodic overlay repositioning and inactivity hiding**, independently configurable. These reduce risk but cannot guarantee absence of burn-in. |
+| D-26 | First-run experience | **Short optional tutorial** to choose cameras, video folder and weather context; users can skip it. |
+| D-27 | Transitions | **Configurable instant or smooth scene changes**, choosing practical behavior based on hardware performance. Never promise seamless crossfades on every device. |
+| D-28 | Defaults | **Detect TV language/region**; allow manual overrides for language, time display and temperature unit. |
 
-## Round 3: look and interaction (OPEN)
+## Round 3 behavior implications
 
-Recommendations in this section are **not approved**.
+- **Immersion:** app/ambient playback is full-bleed; interactions can reveal contextual controls without keeping menus permanently visible.
+- **Distinct controls:** camera change is different from local video seek. Define exact mapping and discoverability in a later interaction spec; do not assume arrows will always mean the same action.
+- **Editor:** both quick settings/presets and a full editor must be usable from a remote. On-screen movement, focus, safe margins and live preview must be validated on real hardware.
+- **Display care:** reposition and idle-hide operate as independent, user-adjustable strategies; reserve overlays for useful information, avoid prolonged bright static elements. Never claim this eliminates burn-in.
+- **Performance:** use direct cuts as a fallback for scenes where fades require extra decoders/surfaces; respect system power/sleep behavior.
+- **Localization:** initial text PT-BR/EN, default from device region; explicit manual language, temperature unit and clock-format overrides.
+- **Onboarding:** skip never blocks entry into manual Home; selecting optional sources/weather can happen later.
 
-1. **Overall visual style:** cinematic dark/immersive, information-rich dashboard, or light/minimal? **Recommend:** cinematic dark, with overlays that do not obscure video.
-2. **Main navigation:** left-side rail with three confirmed destinations, horizontal navigation tabs, or full-screen tile hub? **Recommend:** large three-destination tile Home with a lightweight side menu in secondary screens.
-3. **TV remote controls during playback:** OK reveals controls; Left/Right change scene; Back hides controls/exits; or a less gesture-dependent menu? **Recommend:** OK for controls, Left/Right for scene changes, Back to exit; avoid conflicting with seek on local files.
-4. **Interactive map presentation:** 2D map with clustered markers and list alternative, 3D globe, or map-only? **Recommend:** efficient 2D map with clustered markers plus remote-friendly synchronized list.
-5. **Initial clock/weather appearance:** always visible compact widgets, automatically fading overlays, or no overlays until OK? **Recommend:** clean compact clock and current weather visible, forecast available on request; all overridable in editor.
-6. **Visual editor UX:** on-TV drag-by-D-pad with safe placement grid, free cursor, or preset-only customization? **Recommend:** grid/zone-based D-pad movement, plus font size/color/opacity and live preview.
-7. **Anti-burn-in handling:** move static overlays periodically, hide after inactivity, or both? **Recommend:** both configurable, accounting for LCD as well as OLED/QD-OLED TVs.
-8. **Initial onboarding:** start playback immediately, short guided setup, or full multi-step wizard? **Recommend:** optional short guided setup for sources, storage and weather, with Skip button.
-9. **Fullscreen scene transition:** instant cut, short crossfade, or user selectable? **Recommend:** simple quick fade only when smooth on lower-powered TVs, configurable/disable.
-10. **Language and units defaults:** derive from TV locale (PT-BR/EN) with manual overrides, or force a welcome language choice? **Recommend:** use TV language initially, with independent settings for 12/24h and °C/°F.
+## Round 4: sources, catalog, weather and wallpapers (OPEN)
 
-## Later design branches
+The owner has not answered these. Recommendations are not approvals.
 
-- Content curation and licensing, stream URL validation, regions/categories and safe-content requirements.
-- Playlists, favorites and failure fallback when nothing is playable.
-- Weather providers, forecasts, timezones, permissions and stale-data presentation.
-- Source rotation behavior, scene schedule, user controls, sleep and app return state.
-- Adjustable streaming cap and data usage; HDR/codec fallback, long-run memory and decoder testing.
-- Local folder workflows and USB limitations, supported file types and video scanning.
-- Screensaver selection restrictions by OEM and Android version; no privileged workarounds by default.
-- Third-party wallpaper library, licensing, attribution, rights and local download cache policies.
-- Visual polish, accessibility and more than 2 languages after the initial release.
+1. **Catalog categories:** prioritize nature/cities/beaches only, or broad themed categories including wildlife, landmarks, ski resorts, marinas and weather? **Recommend broad curated categories** with reliable, lawful footage.
+2. **Catalog maintenance:** ship a small hardcoded list, or a remotely updateable public feed requiring no account? **Recommend public static metadata feed with bundled offline fallback**, reviewed/hosted without paid backend.
+3. **Source eligibility:** only officially permitted integrations, or user-added URLs with separate validation? **Recommend both**, but never embed unauthorized streams or scrape protected video.
+4. **Custom URL entry:** TV keyboard only, QR-assisted pairing from a phone on the same network, or both? **Recommend both**, with no account/cloud relay and explicit network/security safeguards.
+5. **Camera information:** show country/city, scene title, stream status, resolution and attribution on an optional info panel, or just the scene title? **Recommend info panel on demand**, minimal default chrome.
+6. **Discovery filters:** region/theme + live status and favorites, or region/theme only? **Recommend region/theme + available-only + favorites**, with only verifiable status claims.
+7. **Forecast details:** 7-day temperature/conditions only, or extended daily info (rain chance, highs/lows, wind, sunrise/sunset) when data supports it? **Recommend extended detail on demand** without crowding video.
+8. **Viewer location setup:** manual city search only, automatic geolocation opt-in only, or both? **Recommend manual city first plus opt-in coarse/device location where actually supported**.
+9. **Wallpaper library release scope:** include a curated integrated download library in the first APK, or defer to a future release? **Recommend defer**, fully support user-selected local videos first.
+10. **When all live cameras fail:** show a clear retry screen, switch to user's existing local video playlist, or provide choice? **Recommend user's opt-in fallback to local videos; otherwise an informative screen**, no endless spin.
+
+## Later-round topics (not approved yet)
+
+- Default rotation interval, repeat vs sequential, per-playlist rules, favorite persistence, sleep/wake/resume.
+- Exact D-pad button map for camera/player, accessibility and one-handed remote usability.
+- Media codec format/HDR capability, local scanning and USB disconnect recovery.
+- Provider choice, licenses, source terms, camera quality thresholds, weather refresh/privacy and API quotas.
+- Offline cache and curated media licensing/attribution; no implicit right to mirror content.
+- Screensaver auto-selection restrictions and power behavior per OS/OEM.
+- Testing matrix and measurable performance/reliability budgets.
 
 ## Decision history
 
-- **2026-10-24:** Owner confirmed D-01 to D-08 in round 1.
-- **2026-10-24:** Owner confirmed D-09 to D-18 in round 2. Choices override earlier **recommendations**, especially the interactive map, *immediate* camera failover, separate playlists, fullscreen crop and GitHub-first distribution.
-- **2026-10-24:** Round 3 opened. All Round 3 recommendations remain open.
+- **2026-10-24:** D-01–D-08 confirmed by owner (round 1).
+- **2026-10-24:** D-09–D-18 confirmed by owner (round 2), including map, immediate camera skip and USB.
+- **2026-10-24:** D-19–D-28 confirmed by owner (round 3), overriding previous recommendations in favor of almost invisible UI, contextual remote behavior, 2D map with sidebar and both anti-static-overlay strategies.
+- **2026-10-24:** Round 4 opened; source/provider/weather/library options await owner decisions.
