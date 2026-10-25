@@ -4,9 +4,9 @@
 
 ## Live camera discovery and catalog
 
-- Curate a **broad themed directory** covering beaches, cities, mountains, wildlife, landmarks/monuments, ski resorts, ports and other useful categories.
+- Curate a **broad themed directory** covering beaches, cities, mountains, wildlife, landmarks/monuments, ski resorts, ports and other useful categories. **Before stable v1** verify at least **25 distinct authorized, family-appropriate and genuinely working cameras**; each must have rights, attribution, stream verification and safety review evidence.
 - Search/filter by **country, city, category, favorites and available-only**.
-- Provide an interactive **2D map with clustered markers and a side list** compatible with TV D-pad navigation, independently of the browse catalog.
+- Provide an interactive **2D map with clustered markers and a side list** compatible with TV D-pad navigation. If online tiles cannot load, show a **local list of saved/cached camera metadata and a clear online-map-unavailable notice**; list availability doesn't mean streams play offline.
 - Catalog **metadata updates automatically over the internet**, but ships with a **local fallback catalog** (built-in or last-known verified metadata). A metadata fallback does **not** make video feeds reachable while offline.
 - Source rights: include licensed/authorized camera integrations only. Community members may submit suggestions, but a **review process** must approve stream URL, rights, attribution, safe content and playback before publishing. Specific provider list and review workflow remain research work.
 - Provide an **optional details panel** showing scene name, country, camera-location local time, actual/known resolution, verified availability status and source attribution.
@@ -14,7 +14,7 @@
 
 ## Adding your own camera
 
-Support **typing with the TV on-screen keyboard** and **QR-assisted input** from a second device.
+Support **typing with the TV on-screen keyboard** and **QR-assisted input** from a phone **on the same local Wi-Fi/LAN, with explicit pairing approval on TV**. HLS and MPEG-DASH are initially supported custom live protocols; other protocols such as RTSP are deferred.
 
 Product approval covers two entry options, **not a particular pairing protocol**. Any local pairing design must evaluate LAN discovery, authentication/pairing confirmation, binding restrictions, QR token expiry, CSRF/hostile links, unauthorized local URL probing and user control before implementation. No account is required.
 

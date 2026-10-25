@@ -4,12 +4,14 @@
 
 | Device family | App mode | DreamService auto idle | Local storage picker | Live HLS | Weather | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Hisense 58U6HF, Fire OS 7 | Unverified | Unverified | Unverified | Unverified | Unverified | First planned test device |
+| Hisense 58U6HF, Fire OS 7 | Unverified | Unverified | Unverified | Unverified | Unverified | **Only initial test target** |
 | Google TV 12+ | Unverified | OEM policy varies | Unverified | Unverified | Unverified | Test representative model |
 | Older Android TV | Unverified | Unverified | Unverified | Unverified | Unverified | Test representative model |
 | Other Fire OS versions | Unverified | OEM policy varies | Unverified | Unverified | Unverified | Test representative model |
 
-**Recording rule:** no 'supported' flag without reproducible results on that device/OS build. Test manual app mode separately from system screensaver integration.
+**Recording rule:** no 'supported' flag without reproducible results on that device/OS build. **Only Hisense 58U6HF / Fire OS 7 is scheduled for initial tests; all other devices are untested.** Test manual app mode separately from system screensaver integration.
+
+**Stable-v1 quality gate:** before public publication, verify >=25 distinct authorized, family-appropriate actually working webcams on Hisense, full playback/compatibility/licensing/privacy checklist, and at least **24 hours** of documented device playback/soak. The first development APK is **local only**.
 
 ## Acceptance test scenarios
 1. Cold boot / launch and input focus; Back exits cleanly.
@@ -64,3 +66,11 @@
 50. User settings, favorites and playlists persist **automatically on device** across app relaunch; initial release has no import/export, remote sync or user account. Clearing app data removes app-owned state as expected.
 51. On network restoration during local fallback, the current video finishes before switching to a **verified playable** live camera; a user who selects remain local is not switched away.
 52. Network flaps or unavailable cameras never cause premature video interruption or endless retry loops.
+53. HLS and MPEG-DASH permitted test streams work within actual codec support; unsupported RTSP is not advertised as v1 functionality.
+54. At least 25 distinct authorized, family-appropriate, correctly attributed cameras individually tested as working for stable v1; track source rights and dates.
+55. QR entry uses same LAN/Wi-Fi with explicit on-TV confirmation, expiring token, resistance to unapproved entry and correct cancellation.
+56. On loss of map tiles/network, saved/cached camera list appears with a notice that online map is unavailable; unavailable video streams are not implied to work.
+57. App-update pipeline validates trusted release and APK signer/version, supports intended automatic download; records when Android PackageInstaller **requires explicit user action** and cannot silently install.
+58. Local diagnostic report can be inspected/copied/shared by user action only; scrub paths, URLs, tokens and sensitive data; no passive telemetry uploads.
+59. At least 24 hours uninterrupted real Hisense soak with recorded CPU, RAM, dropped frames, network, error count and recovery.
+60. First APK is not published to GitHub Releases; all non-Hisense device families are labeled *untested* until real evidence exists.

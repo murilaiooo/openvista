@@ -10,14 +10,14 @@ ROOT = Path(__file__).resolve().parents[1]
 decisions = (ROOT / "docs/product/decisions.md").read_text(encoding="utf-8")
 ids = [int(n) for n in re.findall(r"^\| D-(\d{2}) \|", decisions, re.M)]
 errors = []
-expected = list(range(1, 69))
+expected = list(range(1, 79))
 if sorted(ids) != expected:
-    errors.append(f"Expected decision IDs D-01..D-68 once each; found {ids!r}")
-if "Round 8" not in decisions or "Round 7: confirmed" not in decisions:
-    errors.append("Round 7 confirmation / Round 8 pending status is missing")
-if "68 product decisions" not in (ROOT / "README.md").read_text(encoding="utf-8"):
+    errors.append(f"Expected decision IDs D-01..D-78 once each; found {ids!r}")
+if "Round 8: confirmed" not in decisions or "Product discovery outcome" not in decisions:
+    errors.append("Round 8 confirmation / product-discovery closure status is missing")
+if "78 product decisions" not in (ROOT / "README.md").read_text(encoding="utf-8"):
     errors.append("README decision count is stale")
-if "68 decisions" not in (ROOT / "docs/product/vision.md").read_text(encoding="utf-8"):
+if "78 confirmed decisions" not in (ROOT / "docs/product/vision.md").read_text(encoding="utf-8"):
     errors.append("Vision decision count is stale")
 
 files = [
@@ -29,6 +29,9 @@ files = [
     ROOT / "docs/product/local-media-and-playlists.md",
     ROOT / "docs/product/settings-and-player.md",
     ROOT / "docs/product/first-release-blockers.md",
+    ROOT / "docs/product/v1-acceptance.md",
+    ROOT / "docs/research/platform-feasibility-2026-10-25.md",
+    ROOT / "docs/implementation/priority-plan.md",
     ROOT / "docs/architecture/overview.md",
     ROOT / "docs/roadmap.md",
     ROOT / "docs/testing/compatibility.md",
@@ -48,5 +51,5 @@ if errors:
     print("FAIL: " + "\nFAIL: ".join(errors))
     sys.exit(1)
 
-print(f"PASS: {len(ids)} sequential confirmed decisions, Round 8 open")
+print(f"PASS: {len(ids)} sequential confirmed decisions, 8 rounds completed")
 print(f"PASS: all relative links valid in {len(files)} project documents")

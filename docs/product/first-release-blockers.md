@@ -1,48 +1,32 @@
-# OpenVista: first-release blockers and approval gates
+# OpenVista: first-release blockers and evidence checklist
 
-**Status:** Discovery triage as of 2026-10-25. This is a planning checklist, **not** an approved cut of existing requirements, implementation record or release promise.
+**Status 2026-10-25:** all **78 owner decisions** approved over eight rounds. This is a research checklist, not an app implementation or release.
 
-## Owner-approved constraints that cannot be silently dropped
+## Approved release boundaries
 
-- Both manually launched application and automatic system screensaver **where supported**; no boot auto-launch, root or invasive OEM changes.
-- First public distribution via GitHub APK, fully free, no advertising/account.
-- Camera catalog and 2D map, authorized sources and user-added URLs (TV keyboard/QR input), reviewed community suggestions, metadata refresh with local fallback.
-- Local media and USB selection, recursively scanned MP4/MKV/WebM/MOV where device codecs allow; camera/video playlists, local resume, ten-second seek, no local subtitle feature.
-- Simple/advanced customizable weather/clock, 7-day details, PT-BR/English and anti-static controls.
-- D-pad-first experience with OK menu, five-second player controls, categorized Basic/Advanced settings, local-only automatic persistence.
-- Offline playback/fallback/return policy, device-aware fluid playback, power/idle behavior, and safety measures.
+- **First APK:** local testing only on **Hisense 58U6HF / Fire OS 7**. Do not publish the first test binary to GitHub.
+- **Stable v1.0 (later GitHub, only with owner approval):** 25+ distinct permitted, tested and family-appropriate webcams; documented playback, compatibility, 24-hour continuous stability, privacy and licensing tests.
+- **Video:** licensed HLS and MPEG-DASH sources and permitted local files; no first-release RTSP.
+- **QR entry:** phone and TV on the **same Wi-Fi/LAN**, explicit pairing confirmation and expiring authorization.
+- **Map offline:** local saved-camera list with notice; no guarantee of cached playable feeds.
+- **Update preference:** automatic download and installation **where OS allows**. Do not overpromise unattended installation on Fire OS 7; fallback to platform approval dialogue when necessary.
+- **Diagnostics:** local retention, intentional user copy/share of sanitized report, no automatic upload or settings/favorites backup.
 
-## Decisions still needed from the owner
+## Evidence / remaining blockers
 
-Round 8 in [the decision log](decisions.md) asks about:
-- Whether to release clearly labeled development **pre-releases** before all approved features are complete.
-- Initial device test/compatibility expectations, minimum verified webcam count and intended protocols.
-- QR-assisted pairing threat boundary, offline map expectations and APK update experience.
-- Release verification evidence, camera catalog family-appropriateness and optional local diagnostics/privacy.
-
-These options are not approved until the owner answers. Device compatibility must be based on actual test results, not broad guarantees.
-
-## Objective research / prototype gates (engineering, not user polling)
-
-| Priority | Unknown / proof needed | Required evidence before selecting implementation |
+| Priority | Gate | Required verification |
 | --- | --- | --- |
-| P0 | Screensaver support across OEM/OS | Reproducible manual Activity vs DreamService tests, timeout and input behavior, safe rollback |
-| P0 | Legal and reliable camera sources | Primary provider terms, permitted embeds/streams, attribution, source availability and catalog update rights |
-| P0 | Source and player decoding on TVs | Local MP4/MKV/WebM/MOV samples, supported codecs/HDR paths, live stream variations, CPU/RAM/frame drops |
-| P0 | Scoped storage and USB | SAF document-tree grants, nested-file enumeration, permissions over reboot, USB removal behavior |
-| P0 | Weather provider licensing and API | Seven-day fields and limits, location/geo handling, caching/attribution, no paid-secret dependency |
-| P0 | TV remote and map usability | Focus map for three-card Home, 2D map clusters/side list, quick OK switching, five-second controls, accessibility |
-| P1 | QR URL entry safety and UX | Network pairing proof, authorization, expiration, isolation from private URL exfiltration |
-| P1 | Low-end long-running performance | 24-hour soak, failover to local, reconnect without interruption, pause-on-background, power management |
-| P1 | Versioned catalog and verified availability | Valid schema, signed/trusted metadata updates, safe cached fallback, bounded health checks |
-| P1 | Offline/local persistence integrity | Last file checkpoint, playlists/favorites, process death, no export/sync, user-friendly loss-of-data warning |
+| P0 | Hisense OS baseline | Record actual Fire OS/Android API, codecs, model, current state, installation/rollback safety |
+| P0 | DreamService feasibility | OEM activation menu, idle timings, input dispatch, no app boot auto-start |
+| P0 | HLS/DASH / Media3 | Lawful permitted test sources, actual codec, bitrate, frame-drop and error measurements |
+| P0 | Storage/USB | Permissioned picker, recursive scanning, USB unplug/replug and persistable grants |
+| P0 | 25 lawful cameras | Provider terms/permission, attribution, family-suitability and tested playback evidence per source |
+| P0 | Weather & 2D map services | Seven-day licensed data, rates, attribution, map tile rights, offline local-list UX |
+| P0 | App update permissions | PackageInstaller, unknown-app source privileges, installer-of-record, user-approval feasibility |
+| P0 | QR security | Local pairing consent, token expiry, origin/CSRF, malicious URL protections |
+| P1 | App UX and resilience | D-pad focus, control menu, playlists, diagnostics, offline-to-local return, no busy loops |
+| P3 | Public acceptance | Documented 24h physical-TV soak, compatibility, legal/privacy and owner release sign-off |
 
-## Workflow to implement after scope approval
+Research must be done before production implementation for its dependent feature. No signed binary, compatibility claim, source license or silent installation is proven yet.
 
-1. Finish Round 8 product decisions, then write a compact **v1 acceptance specification** distinguishing required user behavior from OEM limitations.
-2. Use the existing Matt Pocock research/specification skills to validate external licensing/device claims before coding against them.
-3. Create narrowly scoped GitHub issues and ADRs only for costly-to-reverse architecture choices with real tradeoffs.
-4. Build short device-sensitive spikes and a runnable Kotlin/Media3 vertical slice before attempting the full screensaver/catalog/editor UX.
-5. Test locally and on real TV devices; record measurable pass/fail outcomes. Public release only with explicit supported-device caveats.
-
-**No OpenVista APK or working app has been built yet.** Future wallpaper downloads remain excluded from the first release.
+Use [v1 acceptance](v1-acceptance.md), [engineering plan](../implementation/priority-plan.md) and [official platform notes](../research/platform-feasibility-2026-10-25.md).

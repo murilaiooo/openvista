@@ -7,18 +7,18 @@
 - Recursive subfolder enumeration must stay inside the granted document tree, avoid infinite cycles and not assume direct filesystem paths. Do not expose file names/URIs in diagnostics by default.
 - Saved local-video resume positions must remain local to the app and be resilient to removed, replaced or inaccessible files; never upload watch history automatically.
 - Save settings, playlists, favorites and other preferences **locally and automatically only**. Initial scope has no cloud sync and no import/export. Clearing app data, uninstalling or factory reset may erase preferences; do not market local persistence as off-device backup.
-- Optional playback diagnostics must mask local paths, private camera URLs, pairing tokens and location-sensitive details; show only device-reported metrics rather than invented codec/buffering values.
+- Optional playback diagnostics must mask local paths, private camera URLs, pairing tokens and location-sensitive details; show only device-reported metrics rather than invented codec/buffering values. Logs **remain local by default**; copy/share sanitized reports **only after a deliberate user action**. This is not a settings/playlist export feature.
 - No user media should be copied to or committed in the GitHub repo.
 
 ## Camera streams and wallpaper assets
 - A publicly viewable webcam does **not** mean its stream is freely embeddable, cached, mirrored, or redistributed.
-- For each shipped provider: record title/owner, official permission or API terms, commercial policy, attribution, link, and fallback behavior.
+- For each shipped provider: record title/owner, official permission or API terms, commercial policy, attribution, link, family-appropriate content review and fallback behavior. **Stable v1 requires >=25 distinct authorized, actually working and safe cameras**, verified on target hardware.
 - Do not scrape tokenized video streams or bypass authentication, paywalls, geo restrictions or access controls.
 - Accept custom user-provided media sources only where allowed by the applicable terms.
 - Keep the catalog separate from the code so invalid sources can be disabled without distributing a broken APK. Online metadata updates must validate integrity and schema; cache a verified copy and ship bundled fallback metadata.
 - Community camera suggestions require human moderation/review, permission and attribution evidence, compatibility checks and a removal/takedown path; do not publish suggestions automatically.
 - Display available-only filters and live/quality metadata only when supported by actual observations. Treat unknown as unknown rather than falsely labeling sources online.
-- A QR-assisted URL entry flow must not leak local endpoints or private tokens. Review local-network exposure, binding scope, pairing confirmation, session expiry and untrusted URLs before choosing an implementation.
+- QR-assisted URL entry is restricted to phone and TV on the same local network with **explicit TV pairing confirmation**; must not leak local endpoints or private tokens. Review LAN exposure, binding scope, pairing confirmation, short token expiry, replay/CSRF and untrusted URLs before implementation.
 
 ## Weather
 - Provider must allow chosen distribution model; cache within terms, show stale-data state, and honor attribution.

@@ -35,11 +35,16 @@ The following is already agreed:
 - **Localization:** Brazilian Portuguese and English at launch; auto-detect TV region with manual language, clock-format and temperature overrides.
 - **Audio:** muted by default with an option to enable sound.
 - **Free by design:** no advertisements and no user account required.
-- **First release:** a downloadable APK via GitHub when implementation and compatibility tests pass.
+- **First APK:** **local testing only on Hisense 58U6HF / Fire OS 7**. GitHub APK publication comes later, after approval, v1 validation and **at least 25 authorized, working and family-appropriate webcams**. All other TVs remain untested initially.
+- **Live protocols:** **HLS and MPEG-DASH** at launch; other protocols such as RTSP are deferred.
+- **QR input:** phone and TV on the same local Wi-Fi/LAN, with explicit pairing confirmation.
+- **Offline map:** show a local saved/cached camera list and explain that online map tiles are unavailable.
+- **Application updates:** desired automatic update download **and** installation, subject to verified Android installer support; if the system requires user approval, display its installation confirmation rather than bypassing protections.
+- **Diagnostics privacy:** keep errors locally and allow optional user-initiated copy/share of a sanitized report, with no automatic upload.
 - **Fallback and connectivity:** if all webcams fail or the network drops, switch to the user-configured local playlist when available; check reconnection **without interrupting its current video**. When an available camera returns, **finish the local video and return to live cameras**, unless the user chooses to stay local. Otherwise show a clear retry notice.
 - **Future wallpaper library:** deferred beyond the first APK. Local folders and live cameras come first. Do not assume media is freely redistributable.
 
-**68 product decisions have been confirmed across seven interview rounds.** Source/provider rights, weather API, secure QR pairing, actual decoder compatibility, cross-device DreamService behavior and first-release acceptance gates remain **under research**. See [Product decisions](docs/product/decisions.md), [UX brief](docs/product/experience.md), [player and settings](docs/product/settings-and-player.md) and [runtime policy](docs/product/runtime-and-recovery.md).
+**78 product decisions are confirmed across eight completed interview rounds.** Product discovery is complete; source/provider rights, weather/map contracts, decoder and DreamService feasibility, secure QR pairing and silent update feasibility require real technical evidence before coding dependent features. See [decisions](docs/product/decisions.md), [v1 acceptance contract](docs/product/v1-acceptance.md) and [implementation plan](docs/implementation/priority-plan.md).
 
 ## Proposed experience (not implemented)
 
@@ -78,6 +83,9 @@ No Gradle project or application code has been generated yet. The architecture w
 - [Local files, playlists and player behavior](docs/product/local-media-and-playlists.md)
 - [Settings, player controls and favorites](docs/product/settings-and-player.md)
 - [First-release blockers and validation plan](docs/product/first-release-blockers.md)
+- [First-release acceptance contract](docs/product/v1-acceptance.md)
+- [Engineering implementation plan and priorities](docs/implementation/priority-plan.md)
+- [Official-platform feasibility research](docs/research/platform-feasibility-2026-10-25.md)
 - [Decisions and brainstorming questions](docs/product/decisions.md)
 - [Proposed architecture](docs/architecture/overview.md)
 - [Reference projects and official sources](docs/research/references.md)

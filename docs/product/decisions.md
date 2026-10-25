@@ -1,12 +1,12 @@
 # OpenVista product decisions
 
-**Status:** Discovery. Rounds 1–7 confirmed (68 decisions) on 2026-10-25. Round 8 (first-release boundaries) open.
+**Status:** Eight product decision rounds completed (78 owner-confirmed decisions) on 2026-10-25. Product discovery baseline frozen for engineering validation; no APK yet. Reopen decisions only when technical evidence or explicit owner change requires it.
 
 Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
 ## Product baseline
 
-OpenVista is a free, ad-free, account-free ambient Android TV application and, where the OS allows, an automatic system screensaver. It shows public, permitted live cameras or looping user-owned videos. It includes configurable clock and weather overlays (current conditions and seven-day forecast), with weather for the camera location or the user's chosen location. First distribution is by GitHub APK; no APK exists yet.
+OpenVista is a free, ad-free, account-free ambient Android TV application and, where the OS allows, an automatic system screensaver. It shows public, permitted live cameras or looping user-owned videos. It includes configurable clock and weather overlays (current conditions and seven-day forecast), with weather for the camera location or the user's chosen location. First **test APK is local-only**, and GitHub is a later public distribution target (D-69 refines D-08). No APK exists yet.
 
 ## Round 1: confirmed (D-01 to D-08)
 
@@ -92,7 +92,7 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 | D-39 | Automatic idle activation | Offer **1, 3, 5, 10, 15, or 30 minutes**, **where the device/OS allows** setting those intervals and selecting the OpenVista screensaver. Unsupported options must not appear functional or change private system settings silently. |
 | D-40 | Energy / screen-on controls | Offer user-facing **keep-awake / continuous playback options** where technically allowed, **respecting device power policies and platform limits**. Never promise to bypass standby, screen-off or OEM restrictions. |
 | D-41 | Scheduled operation | Normally **eligible to run continuously**, with an **optional user-configured schedule**; timezone, daily windows and actions outside the schedule are still open. |
-| D-42 | Start/resume scene in automatic mode | **Continue the last used camera or video**, if it remains accessible. When it is unavailable, follow existing skip/fallback policy; exact timestamp behavior for videos is open. |
+| D-42 | Start/resume scene in automatic mode | **Continue the last used camera or video**, if it remains accessible. When unavailable use skip/fallback policy; D-58 confirms resuming a local video's last saved position. |
 | D-43 | Dream-mode remote | **OK reveals contextual controls; Back exits; directional keys navigate** (cameras change, local videos seek per D-21), **where OS/OEM delivers these keys to the screensaver**. Never hijack reserved Home/system inputs; verify per device. |
 | D-44 | Network outage | When configured, **play the local fallback playlist** and **check for reconnection without interrupting the currently playing local video**. No retry storms, no premature foreground switch; behavior for restoring live feeds later is open. |
 | D-45 | Performance priority | **Fluency/stable playback first**; adapt stream quality and optional transitions/effects to actual hardware, honoring configured caps. Do not force 4K where it stalls. |
@@ -105,7 +105,7 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 - Distinguish user-requested timeout selections from OS-owned timeout settings; gracefully explain when 1/3/5/10/15/30-minute choices are not available, without root, privileged APIs or unsupported device modifications.
 - Separate app-fullscreen awake requests from system DreamService and device standby policy. Schedules and energy-saving features must never silently override the TV.
 - Persist last selected camera/video and its local-video playback position (approved in D-58); handle missing USB, offline cameras, permissions revocation and files whose content changed since the checkpoint.
-- On loss of network, keep the configured local fallback playing while performing **bounded, non-disruptive** connection checks. Do not silently switch away from local playback when connectivity reappears until the restoration rule is agreed.
+- On loss of network, keep the configured local fallback playing while performing **bounded, non-disruptive** connection checks. D-68 resolves restoration: finish the active local video before returning to a verified working live camera, unless user elects to remain local.
 - Treat a wake/resume event separately from boot and from intentional activity launch. Hardware/OS may consume D-pad or Back before the app sees them.
 - Validate smooth playback across representative devices under 4K, decoder limits, thermal conditions, transitions and background/screen-off lifecycle.
 
@@ -128,7 +128,7 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 
 - File enumeration is **recursive by default** within the folder tree actually granted by the TV picker; avoid cycles, unbounded work and traversal outside permitted URIs. Handle detached USB volumes, large trees, temporary permission loss and rescans.
 - Treat filename/container and codec support separately. Skipping an unplayable MKV/MOV or HDR source is compliant if compatible decoding is impossible; never claim transcoding as a guaranteed fallback.
-- Playlist operations must not conflate playlist **ordering** with ordering of **items inside a playlist**; item-edit interactions are open for follow-up specification.
+- Playlist operations must not conflate playlist **ordering** with ordering of **items inside a playlist**; both are approved (D-50 and D-64), and the exact UI can be designed during implementation.
 - Playback loop and bad-file skipping need a finite exhaustion outcome. Resume checkpoints must be validated against the current URI and duration, including completed or deleted files.
 - Preserve the media-type-specific remote controls: camera D-pad changes scene, local-video D-pad seeks ±10 seconds. OK and Back remain subject to operating-system input handling.
 
@@ -155,22 +155,33 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 - Local-only automatic storage means crash-consistent persistence of metadata/checkpoints is needed; this does **not** imply an uninstall-proof backup or syncing through an account.
 - On network restoration, finish **exactly the currently playing local item**, then seek a verified available camera unless the user elects to stay local. If no camera can play, stay in a safe local/retry state without skip storms.
 
-## Round 8: first-release boundaries and engineering blockers (OPEN)
+## Round 8: confirmed (D-69 to D-78) — local prototype and v1 delivery
 
-Questions are recommendations, **not approved scope**. These are intended to close the final high-impact product ambiguities before technical implementation plans.
+| ID | Topic | Owner's confirmed choice / boundary |
+| --- | --- | --- |
+| D-69 | First APK distribution | **First APK stays local for testing; publish via GitHub only later.** This refines D-08: GitHub is intended for eventual public distribution, not the first build. No automatic upload of test binaries to Releases. |
+| D-70 | Initial device validation | **First test only Hisense 58U6HF / Fire OS 7**. Explicitly label all other models/versions **untested**, not supported, until real-device evidence exists. This is an initial test scope, not a permanent compatibility restriction. |
+| D-71 | Camera catalog launch threshold | **At least 25 distinct verified, currently working and authorized public cameras** before releasing v1. Count only sources with recorded permission/terms, attribution, tested playback on target device, and reasonable reliability. Do not invent or aggregate inaccessible sources to meet quota. |
+| D-72 | Streaming protocols | **HLS and MPEG-DASH first** for included/custom live sources, within supported Media3/device codecs; consider RTSP and other protocols after tests and a later scope decision. |
+| D-73 | QR assisted input | **TV and phone on same local Wi-Fi/LAN, with explicit pairing confirmation**. No account or required cloud relay; prototype authenticated short-lived local pairing, deny unwanted access and do not leak private URLs. |
+| D-74 | Offline map | If map/network content cannot load, show a **local list of saved/cached cameras** with a clear notice that online map tiles are unavailable; metadata availability does not imply stream playback offline. |
+| D-75 | Application updating | **Automatically download and install application updates** as the desired feature. Treat update *discovery*, authenticated/verified *download*, and Android-controlled *installation* separately. Truly unattended install must be **proven legal/available on the target OS/install ownership/API**; when blocked, use the supported package-installer confirmation flow, explain it honestly, and never attempt root/ADB/privileged bypass. No production update distribution until the eventual GitHub release channel is approved. |
+| D-76 | Stable v1 release gate | **Documented media playback, compatibility, 24-hour stability, privacy, and provider/content-license tests** required before labeling v1 stable. At minimum collect evidence for the Hisense/Fire OS 7 target; other devices remain unverified. |
+| D-77 | First-party content suitability | Curated camera sources must be **authorized and suitable for family viewing**. Review each source before release, support removals/takedowns and do not assume publicly reachable implies redistributable. |
+| D-78 | Error-report privacy | Keep diagnostic logs **locally** and let the user **copy or share a report deliberately on demand**; no automatic external telemetry. Redact personal URLs, local file paths and secrets by default. D-67 still governs settings/favorites/playlists: no automatic off-device backup/import/export. |
 
-1. **First milestone:** release an explicitly labeled development preview as soon as a reliable manual app/player exists, or only publish an APK once the approved end-to-end features are available? **Recommend:** iterative GitHub pre-release builds for testers, stable v1 only after all agreed release requirements pass.
-2. **Initial device compatibility contract:** initially test Android 9/Fire OS 7 plus a modern Google TV, or promise all Android TV releases before any release? **Recommend:** publish device-by-device tested support; start with available Fire OS 7 and an Android TV/Google TV test device; do not label untested devices supported.
-3. **Camera catalog launch threshold:** start with 10, 25, or 50+ *verified authorized and working* public webcams? **Recommend:** quality first, target 25 if rights and reliable sources can actually be confirmed; release must not invent sources to meet a number.
-4. **Manual stream protocols:** accept only common HTTP-based HLS/DASH at launch or also RTSP where supported? **Recommend:** HLS/DASH first, evaluate RTSP after device testing; never accept arbitrary URLs as executable content.
-5. **QR pairing context:** require phone and TV on the same local network with explicit pairing confirmation, or use a hosted bridge? **Recommend:** local-network pairing with short-lived token, no accounts/third-party cloud; validate safety before implementation.
-6. **Offline map behavior:** show a simple cached/bundled list when offline, or require an offline full-world map? **Recommend:** camera list and basic cached metadata offline; network map tiles are not guaranteed offline.
-7. **Application update notification:** check GitHub Releases when users open Settings and provide a link, or background update checks? **Recommend:** unobtrusive manual check in About, no silent APK installs.
-8. **Version-1 quality gate:** fixed checklist with tested manual mode + feasible Dream mode, storage, playback, 24-hour soak, and rights/license checks, or ship based on visual inspection alone? **Recommend:** enforce checklist and label unsupported OEM features.
-9. **Curated-content safety:** restrict first-party catalog to generally family-appropriate public scenes or include any publicly accessible camera? **Recommend:** reviewed, family-appropriate licensed content; do not conflate publicly viewable with permissible embedding.
-10. **Crash reporting / privacy:** fully offline device-local diagnostics, optional user-exported reports, or automatic external telemetry? **Recommend:** local diagnostic logs that users can inspect/share intentionally, no automatic analytics/uploading.
+### Engineering interpretation (not additional approval)
 
-## Later-round topics (not approved yet)
+- D-75 is a **desired outcome subject to Android package install rules**, not proof that background silent installation works. Supported fallback may involve mandatory user approval; document any OS restrictions on the UI. Verify signing continuity, release integrity, rollback and installer-of-record rules without privileged hacks.
+- A local test APK can precede satisfying D-71/D-76 if labeled an engineering prototype and **not** v1; only the future stable GitHub publication requires the full 25-camera gate.
+- Prototype on the Hisense first; do not claim supported status for untested Google/Android TV devices.
+- Do not confuse **on-demand diagnostic report sharing** (approved) with **automatic settings export/backup** (explicitly excluded by D-67).
+
+## Product discovery outcome
+
+The owner answered **all eight rounds**. The next step is engineering research/prototypes plus a v1 acceptance matrix and prioritized issues. New product questions should be raised only for actual blockers, not continue repetitive wide-round interviews.
+
+## Later engineering questions (not approved yet)
 
 - Default rotation interval, repeat vs sequential, per-playlist rules, favorite persistence, sleep/wake/resume.
 - Exact D-pad button map for camera/player, accessibility and one-handed remote usability.
@@ -189,4 +200,4 @@ Questions are recommendations, **not approved scope**. These are intended to clo
 - **2026-10-25:** D-39–D-48 confirmed by owner (round 5): supported idle intervals, constrained keep-awake options, optional schedules, last-scene resume, OK/Back/directional Dream controls, non-disruptive offline fallback, fluency priority, minimal background work, USB removal notice and no boot auto-launch.
 - **2026-10-25:** D-49–D-58 confirmed by owner (round 6): camera playlist order/shuffle, full playlist CRUD including reorder/duplicate, automatic recursive video scanning, MP4/MKV/WebM/MOV as device-supported, advance-and-loop, fixed ±10-second seeking, stable decoder/HDR fallback, no subtitles, skip defective files and resume last local-video position.
 - **2026-10-25:** D-59–D-68 confirmed by owner (round 7): basic/advanced categorized Settings, quick OK mode switch, shuffle default, five-minute default rotation, one Favorites hub with separate sections, batch add/reorder playlist items, five-second control timeout, optional technical diagnostics, TV-only automatic persistence and post-video reconnection return with stay-local option.
-- **2026-10-25:** Round 8 opened to define first-release boundaries, device test contract, allowed protocols/providers, secure QR design and quality gates. Recommendations remain nonbinding.
+- **2026-10-25:** D-69–D-78 confirmed by owner (round 8): local-only first test APK, initial Hisense-only validation, at least 25 authorized/working cameras for stable v1, HLS/DASH, LAN QR pairing with user confirmation, offline local camera list, desired automatic update download/install subject to OS installer restrictions, documented playback/compatibility/24-hour/privacy/licenses gate, family-appropriate sources and user-shared local error reports. Eight-round product interview concluded; engineering validation and v1 issue planning begin.

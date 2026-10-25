@@ -37,6 +37,11 @@ Use these terms consistently in product text, code, and issues.
 | Playlist item | An individual camera or local video stored as an ordered entry in its matching playlist type. |
 | Favorites hub | One screen with separate groups for favorited cameras and local videos. |
 | Local fallback return | After internet recovers, a configured local fallback finishes its active video before live cameras resume, unless the user chooses to stay local. |
+| Local engineering APK | Development build installed locally for technical tests; not a public GitHub release or stable v1. |
+| Public v1 acceptance gate | Evidence checklist required before a signed stable app release, including lawful working cameras, 24h stability, privacy and license checks. |
+| APK updater | Component that checks, downloads and requests install of authentic application updates; unattended installation is conditional on Android installer permissions and ownership. |
+| Local QR pairing | Short-lived, explicitly approved transfer from phone to TV on the same LAN/Wi-Fi for a permitted stream URL. |
+| Sanitized report | On-device diagnostic summary with sensitive identifiers removed, copied/shared only by user request. |
 | Overlay | Nonessential on-screen data above video, such as time, place, weather, or forecast. |
 | Playback mode | User-selected content type: live cameras or local videos. |
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |

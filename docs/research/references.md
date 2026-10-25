@@ -20,7 +20,8 @@
 
 ## Validation tasks
 - Check actual LICENSE and build details of reuse candidates.
-- Prototype app-mode and DreamService on Fire OS 7 and 1+ Google TV devices.
+- Prototype app-mode and DreamService **initially only on Hisense 58U6HF / Fire OS 7**, recording all other devices as unverified. Expand test matrix in later, explicitly planned compatibility work.
 - Test folder picker on devices with missing/limited document provider.
 - Measure streams in 1080p and 4K on low-end TV hardware.
-- Read content-provider ToS before shipping endpoints.
+- Read content-provider ToS before shipping endpoints. Target **25+ permitted, verified working family-appropriate webcams** before stable v1.
+- Read [official platform feasibility notes](platform-feasibility-2026-10-25.md), including Android's user-action restrictions for package updates and HLS/DASH support.
