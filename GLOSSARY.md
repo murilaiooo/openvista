@@ -10,9 +10,13 @@ Use these terms consistently in product text, code, and issues.
 | My videos | Media files the user owns or is permitted to play from a folder selected on their TV or attached storage. |
 | Scene | The currently visible camera feed or video, plus optional location and weather metadata. |
 | Collection | A set of scenes organized for browsing (for example, cameras by place or theme). |
-| Playlist | A user-defined ordered or shuffled sequence of playable video items; whether webcams can mix with local videos is not yet decided. |
+| Playlist | A user-defined, named sequence of scenes; camera playlists and local-video playlists are separate media types. |
 | Custom source | A permitted live-camera stream URL added by the user rather than selected from the curated catalog. |
 | Weather context | The location whose forecast is displayed: the viewed camera location or the viewer's chosen location. |
+| Camera map | An interactive world map for selecting available live cameras by geographic location. |
+| Scene rotation | Automatic switching to another available scene after a user-configured interval from 1 to 60 minutes. |
+| Quality cap | The viewer-selected maximum stream quality, applied where the live provider exposes compatible alternative renditions. |
+| Overlay preset | A saved arrangement of on-screen information components that can be further adjusted in a visual editor. |
 | Overlay | Nonessential on-screen data above video, such as time, place, weather, or forecast. |
 | Playback mode | User-selected content type: live cameras or local videos. |
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |
