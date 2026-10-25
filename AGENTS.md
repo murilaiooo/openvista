@@ -19,6 +19,9 @@ OpenVista completed **eight product interview rounds (D-01–D-78)**. It is now 
 - Do not hardcode API keys, user locations, or authentication material into version control.
 - GitHub Actions is not a substitute for local reproducible tests and physical TV validation.
 - **First APK stays local for tests on Hisense 58U6HF / Fire OS 7**. Other TVs are unverified; first GitHub binary release requires explicit owner approval. Do not install on or change a TV in a planning/documentation audit.
+- Start implementation with an isolated **local-only diagnostic self-check APK**, then a thin shared Media3 Activity for direct URL, selected M3U import, video folder picker and D-pad smoke tests. Keep separate #3/#5/#9 acceptance records. QR/LAN is P3, not a first-APK blocker; D-32/D-73 still apply to stable v1. See [first-APK plan](docs/implementation/first-apk-sequencing-review-2026-10-25.md).
+- Treat Daylight/Golden Hour and Display care as opt-in research concepts, not approved shipped features. Never include a procedural demo shader or video without explicit owner approval.
+- Review public copy with [No AI Slop / code quality guidelines](docs/quality/writing-and-code-review.md); use project-local `no-ai-slop` for human-readable prose and optional telemetry-disabled `aislop` for Python, **not Kotlin**.
 - Public v1 must work with **zero bundled streams**, user-managed source URL/list import, and meaningful empty states; verify no research stream URLs or playlist assets end up in the APK. Retain the documented 24-hour stability, privacy, and real-device playback gates.
 - Target Fire OS 7 / Android 9 **cannot use API-31-only `SessionParams.setRequireUserAction`**; never promise unattended APK self-installation. Use supported system install confirmation when required.
 

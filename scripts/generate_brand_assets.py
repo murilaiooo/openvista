@@ -1,7 +1,7 @@
 """Create the OpenVista README cover artwork using Pillow (no external media)."""
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-import math, random
+import random
 root=Path(__file__).resolve().parents[1]
 dst=root/"assets/branding/openvista-cover.png"
 dst.parent.mkdir(parents=True,exist_ok=True)

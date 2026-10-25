@@ -4,6 +4,8 @@
 
 ## Local engineering APK (first artifact)
 
+The **first experimental build may be an isolated, read-only device self-check** without Media3. It must be clearly labeled a diagnostic APK, not a playback prototype. The subsequent app-mode playback proof below still has its own separate acceptance test. See [first-APK sequencing](../implementation/first-apk-sequencing-review-2026-10-25.md).
+
 - Build and install on the **Hisense 58U6HF running Fire OS 7** for owner-led tests. Never upload first test APK to GitHub Releases without a subsequent explicit release instruction.
 - Prototype may be deliberately incomplete, but every missing requirement must be tracked, visibly labeled and must not be described as stable v1.
 - **P0 acceptance of first app-mode playback slice:** opens by TV launcher, D-pad focus works, plays at least one *legally permitted test* HLS/DASH feed and one supported local file via a supported access path, cleanly exits and restores basic state, no boot auto-launch, no privileged system changes.
@@ -34,6 +36,8 @@ This is **not** permission to publish a release automatically; the owner will ch
 - Prior saved local-video formats MP4/MKV/WebM/MOV are container *candidates*, only if the TV can decode them.
 
 ## Local QR input
+
+**Engineering schedule:** #8 moves from first-prototype P0 to P3 before a stable v1 that claims owner-approved D-32/D-73. USB/user-selected M3U files and keyboard entry are prioritized earlier. This deferral does not waive the stable-v1 QR requirement or authorize any LAN listener before security review.
 
 - Show a QR code for a **short-lived locally scoped pairing session** when TV and phone are on the same LAN/Wi-Fi; require an explicit TV confirmation before accepting a submitted URL.
 - Research/authentication and threat-model before coding: device discovery, token entropy, expiry, trusted local bind, replay/CSRF, origin checks and denial-of-service.

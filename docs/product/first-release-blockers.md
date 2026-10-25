@@ -16,6 +16,7 @@
 
 | Priority | Gate | Required verification |
 | --- | --- | --- |
+| P0 | Diagnostic self-check APK | Read-only local device report for OS/API, advertised codecs, display, picker availability and manual sanitized JSON export, with documented rollback |
 | P0 | Hisense OS baseline | Record actual Fire OS/Android API, codecs, model, current state, installation/rollback safety |
 | P0 | DreamService feasibility | OEM activation menu, idle timings, input dispatch, no app boot auto-start |
 | P0 | HLS/DASH / Media3 | Lawful permitted test sources, actual codec, bitrate, frame-drop and error measurements |
@@ -23,9 +24,11 @@
 | P0 | User-source imports | Safe source-list parsing, supported stream formats, zero-source UX, no media/test URLs bundled in the APK |
 | P0 | Weather & 2D map services | Seven-day licensed data, rates, attribution, map tile rights, offline local-list UX |
 | P0 | App update permissions | PackageInstaller, unknown-app source privileges, installer-of-record, user-approval feasibility |
-| P0 | QR security | Local pairing consent, token expiry, origin/CSRF, malicious URL protections |
+| P3 | QR security (deferred from P0, still required for stable v1) | Local pairing consent, token expiry, origin/CSRF, malicious URL protections; no listener in first prototype |
 | P1 | App UX and resilience | D-pad focus, control menu, playlists, diagnostics, offline-to-local return, no busy loops |
 | P3 | Public acceptance | Documented 24h physical-TV soak, compatibility, legal/privacy and owner release sign-off |
+
+Direct TV keyboard and user-selected M3U/USB import precede QR; see [first-APK sequencing](../implementation/first-apk-sequencing-review-2026-10-25.md). A shared player/picker prototype does not replace independent #3/#5/#9 tests. Weather still needs a provider even if sun events are computed locally.
 
 Research must be done before production implementation for its dependent feature. The previously discussed first-party 25-camera directory is superseded by [the user-managed content clarification](user-managed-content.md); release builds should contain zero feeds and videos. No signed binary, compatibility claim, source license or silent installation is proven yet.
 
