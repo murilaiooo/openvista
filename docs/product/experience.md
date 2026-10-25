@@ -12,10 +12,10 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 
 ## Cameras
 
-- Enter through the curated catalog or a **2D interactive map with clustered markers and a lateral list**. Preserve keyboard-free D-pad navigation; allow focus to move between map markers/list.
+- Enter through the user-managed camera library or a **2D interactive map with clustered markers and a lateral list** showing only sources with user-provided location data. Preserve keyboard-free D-pad navigation; allow focus to move between map markers/list.
 - The user can add permitted custom URLs using **either the TV keyboard or a QR-assisted second-device flow** (secure pairing design still TBD).
 - New camera playlists start **shuffled** (user can change to sequence), with an initial **5-minute rotation** adjustable from 1–60 minutes.
-- Catalog includes broad themed categories, geographic filters, favorites and verified availability; camera metadata is updated online with a local fallback.
+- The user-managed library offers themed categories, geographic filters, favorites and observed availability when metadata exists; remote-list metadata refresh is opt-in, with locally saved source metadata available offline.
 - An optional on-demand camera information panel gives name, country, camera-local time, verified availability, resolution where known and attribution.
 - Fullscreen camera playback supports contextual directional scene changes and optional controls that appear during input. In supported DreamService mode, **OK shows controls and Back exits**; directional navigation is subject to OEM key handling.
 - Automatically rotate the active camera after the configured 1–60 minute interval.

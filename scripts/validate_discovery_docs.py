@@ -10,6 +10,8 @@ import json
 import re
 import sys
 
+from release_content_guard import STREAM_URL
+
 ROOT = Path(__file__).resolve().parents[1]
 DECISIONS = ROOT / "docs/product/decisions.md"
 TRACE = ROOT / "docs/product/requirement-traceability.md"
@@ -111,7 +113,7 @@ for runtime in runtime_roots:
                 text_content = file.read_text(encoding="utf-8")
             except UnicodeDecodeError:
                 continue
-            if re.search(r"https?://[^\\s\\\"']+\\.(?:m3u8|mpd)", text_content):
+            if STREAM_URL.search(text_content.encode("utf-8")):
                 errors.append(f"Hard-coded media endpoint in app source: {file.relative_to(ROOT)}")
 
 # Structural sanity checks (not claims of runtime verification).

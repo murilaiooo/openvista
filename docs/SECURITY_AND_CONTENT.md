@@ -16,7 +16,7 @@
 - Do not scrape tokenized video streams or bypass authentication, paywalls, geo restrictions or access controls.
 - Accept custom user-provided media sources only where allowed by the applicable terms.
 - Keep the user's source library separate from app code. Refresh a user-imported remote list only with explicit configuration, with validated schema and bounded network activity; keep locally saved source metadata available when disconnected. Never bundle external live-stream fixtures.
-- Community camera suggestions require human moderation/review, permission and attribution evidence, compatibility checks and a removal/takedown path; do not publish suggestions automatically.
+- OpenVista does not operate a community source-submission or publication pipeline. Any future first-party catalog or shared submission service requires a separate product decision and applicable authorization, attribution and takedown processes.
 - Display available-only filters and live/quality metadata only when supported by actual observations. Treat unknown as unknown rather than falsely labeling sources online.
 - QR-assisted URL entry is restricted to phone and TV on the same local network with **explicit TV pairing confirmation**; must not leak local endpoints or private tokens. Review LAN exposure, binding scope, pairing confirmation, short token expiry, replay/CSRF and untrusted URLs before implementation.
 

@@ -48,10 +48,10 @@ Use these terms consistently in product text, code, and issues.
 | App mode | Regular launcher-opened TV activity, available independently of system screensaver permission. |
 | D-pad | Directional remote navigation with arrows, Select/OK, Back, and Home. |
 | Source health | Whether a configured stream is valid, reachable, and decodable; must distinguish available, unavailable, and not-yet-verified. |
-| Catalog fallback | A bundled or last-known valid catalog metadata copy used when online catalog updates fail; it cannot make an offline camera stream playable. |
-| Camera submission | A community-proposed stream requiring authorization, attribution, compatibility and safety review before the catalog can publish it. |
+| Offline source list | Locally saved user-source metadata available without a network connection; it does not make remote camera streams playable offline. |
+| Source-list import | A user-directed operation that validates and stores supplied camera/stream entries locally; OpenVista does not publish a community directory. |
 | QR-assisted source entry | Optional workflow for entering a custom URL via another device, with pairing/security method still to be decided. |
 | Local video fallback | An optional user-selected video playlist played when all candidate webcams are unavailable; otherwise show a retry notice. |
 | Provider | Third party supplying live video, forecast data, or media metadata under its own terms. |
-| Catalog | Curated collection metadata, not a grant of rights to rehost media. |
+| Source library | The user's locally managed camera sources and imported lists, with optional category and location metadata; the app provides no built-in camera catalog. |
 | Decision status | Confirmed, Proposed, Open, Rejected, or Deferred. |

@@ -45,7 +45,7 @@ These are **research findings**, not completed local/TV prototypes or an enginee
 
 - **SkylineWebcams:** its own [FAQ](https://www.skylinewebcams.com/en/support/faq.html) says only camera hosts may embed its *live* feed; ordinary users can embed periodically updated images. **Do not count Skyline public webcams as native HLS/DASH streams**, without an independent owner license.
 - **Windy Webcams API:** [official free-plan pricing](https://api.windy.com/webcams/pricing) describes linked images and timelapse player. Its [API terms](https://account.windy.com/agreements/windy-api-webcams-terms-of-use) regulate API keys, redistribution and source/operator rights. Discovering camera metadata or snapshot URLs **does not prove access to a live Media3-playable stream**.
-- This raises the source gate to a true **G01 blocker**: [issue #3](https://github.com/murilaiooo/openvista/issues/3) must produce the rights-cleared stream inventory with independently verified HLS/DASH playback and expiry/reliability tests. A user-added URL is a separate permitted custom source, **not** a loophole for populating the shipped catalog.
+- This was a **historical first-party catalog blocker**, now superseded by C-01. [Issue #3](https://github.com/murilaiooo/openvista/issues/3) instead requires defensively parsed user-supplied URLs/lists, zero bundled content and correct offline/empty states. Any privately used test stream still needs appropriate access permissions and real device-playback validation.
 - **AerialViews code:** the upstream [LICENSE](https://github.com/theothernt/AerialViews/blob/master/LICENSE) is **GPLv3** whereas OpenVista's root LICENSE is **MIT**. Study architecture and patterns freely; **do not copy/fork upstream source into an MIT-only codebase** without a conscious GPL compliance/licensing decision, proper attribution and license review.
 
 ### Android 9 installer API version distinction
@@ -68,7 +68,7 @@ These are **research findings**, not completed local/TV prototypes or an enginee
 | HLS/DASH Media3 support | Official Android Media3 docs | Pending |
 | SAF folder-tree and USB | Official Android storage docs | Pending |
 | APK automatic installation | Official Android PackageInstaller docs | Pending (silent install not promised) |
-| 25 webcam rights/reliability | Policy gate identified | Pending provider-specific verification |
+| User-source import and zero-bundle release isolation | Security/content boundary identified | Pending parser, package and TV verification |
 | Weather/map licenses | Research scope identified | Pending provider selection |
 
 Read [v1 acceptance contract](../product/v1-acceptance.md) and [implementation plan](../implementation/priority-plan.md) for next tests.

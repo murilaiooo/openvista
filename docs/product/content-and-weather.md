@@ -1,8 +1,8 @@
-# Live camera catalog, custom sources and weather
+# User-managed live sources and weather
 
 **Status:** Owner-confirmed product scope from round 4, 2026-10-24. Engineering details are still to be researched and specified.
 
-## Live camera discovery and catalog
+## User-managed live source discovery
 
 - Organize **user-added cameras and imported source lists** into optional themes (beaches, cities, mountains, wildlife, landmarks, ski resorts, ports and more) when the user supplies a category or metadata. **Do not prepopulate or distribute a first-party camera feed catalog.** With no sources, display a clear add-source empty state.
 - Search/filter by **country, city, category, favorites and available-only**.
@@ -23,7 +23,7 @@ Product approval covers two entry options, **not a particular pairing protocol**
 - User-configured scene rotation every 1–60 minutes.
 - When a camera becomes unavailable, skip promptly to the next available scene rather than trapping users in a retry loop.
 - When all candidate cameras are unavailable, **only if explicitly configured** use a selected existing local-video playlist as the fallback. Otherwise show an informative retry screen. Keep camera playlists and local-video playlists separate as requested.
-- Error handling must distinguish a network outage from a single unavailable stream and a catalog that is old.
+- Error handling must distinguish a network outage from a single unavailable stream and a user-imported remote list that has become stale.
 
 ## Weather and geography
 
@@ -35,13 +35,13 @@ Product approval covers two entry options, **not a particular pairing protocol**
 
 ## Live wallpapers
 
-A searchable/downloadable in-app **wallpaper library is out of initial-release scope** and reserved for a future release. The first release focuses on permitted world cameras and the user's local videos from internal storage/USB. This does not prohibit source research, but do not implement an in-app video download catalog ahead of approval.
+A searchable/downloadable in-app **wallpaper library is out of initial-release scope** and reserved for a future release. The first release focuses on user-supplied live streams and the user's local videos from internal storage/USB. This does not prohibit source research, but do not implement an in-app video download catalog ahead of approval.
 
 ## Remaining engineering evidence to gather
 
-1. Source/provider license matrix with upstream primary-source links, map metadata and stream test results.
-2. Versioned catalog schema, authenticity/checks, safe fallback and update frequency.
-3. Safe reviewed community submission/takedown workflow without paid services.
+1. Defensive user-source URL/list import tests, optional map metadata validation, and lawful test-stream playback results.
+2. Versioned user-managed source schema, import validation, locally saved metadata, and optional user-configured remote-list refresh policy.
+3. URL-scheme validation, bounded list parsing, duplicate handling, credential redaction, SSRF protections and safe empty-library behavior.
 4. Secure, TV-friendly QR input feasibility and device/network constraints.
 5. Provider-supported seven-day forecast fields and personal location privacy.
 6. Availability status collection without excessive polling and background work.

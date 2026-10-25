@@ -17,6 +17,7 @@ Small, focused contributions with a clear test plan are especially valuable.
 - Prefer supported Android APIs, practical TV D-pad navigation, and well-defined fallbacks.
 - Use real evidence for device compatibility. A successful desktop playback test does not prove a stream works on Fire OS.
 - Do not commit private stream URLs, account tokens, secrets, personal files, copyrighted footage, or test-fixture playlists into app runtime assets.
+- Before proposing a distributable APK/AAB, run [the local release-content guard](docs/testing/release-content-guard.md) and its regression tests against the actual artifact, then document the output. This does not replace source/code review or owner release approval.
 
 ## Issues and bug reports
 

@@ -36,7 +36,7 @@
 - **53/60 stream addresses** are road/traffic/highway cameras. The default catalog will look like a traffic-monitoring system unless we prioritize the scenic/urban picks and search for actual beaches, mountains, monuments, parks, ports and wildlife as approved in D-29.
 - Three links are beaches, one is a broadcaster's rotating scenic feed, two are one radio studio and one is a parliamentary interior. This corresponds to **59 camera identities** after the Ö3 duplicate.
 - Many road cameras in the file are 320×240 or similar. Even a formally permitted and functioning stream may be **visually unsuitable for a 4K ambient TV screensaver**. Do not equate `ffprobe` success with content quality.
-- Prioritize native live quality over arbitrary catalog size. Stable v1 still requires **25 licensed, family-appropriate, actually playable sources**, not necessarily 25 HD ones; nevertheless record a separate picture-quality threshold and category-diversity goals without silently modifying D-71.
+- Prioritize native live quality over arbitrary research-list size. **C-01 supersedes the historical 25-source release target**: stable v1 requires reliable user-managed imports and zero bundled feeds. Keep separate picture-quality and category-diversity research metrics for test selection.
 
 ## Safe inclusion pipeline
 
