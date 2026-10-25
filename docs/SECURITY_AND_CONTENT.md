@@ -11,11 +11,15 @@
 - For each shipped provider: record title/owner, official permission or API terms, commercial policy, attribution, link, and fallback behavior.
 - Do not scrape tokenized video streams or bypass authentication, paywalls, geo restrictions or access controls.
 - Accept custom user-provided media sources only where allowed by the applicable terms.
-- Keep the catalog separate from the code so invalid sources can be disabled without distributing a broken APK.
+- Keep the catalog separate from the code so invalid sources can be disabled without distributing a broken APK. Online metadata updates must validate integrity and schema; cache a verified copy and ship bundled fallback metadata.
+- Community camera suggestions require human moderation/review, permission and attribution evidence, compatibility checks and a removal/takedown path; do not publish suggestions automatically.
+- Display available-only filters and live/quality metadata only when supported by actual observations. Treat unknown as unknown rather than falsely labeling sources online.
+- A QR-assisted URL entry flow must not leak local endpoints or private tokens. Review local-network exposure, binding scope, pairing confirmation, session expiry and untrusted URLs before choosing an implementation.
 
 ## Weather
 - Provider must allow chosen distribution model; cache within terms, show stale-data state, and honor attribution.
-- Exact location is optional and must require permission/clear consent. A camera's publicly known coordinates do not disclose the viewer's location.
+- Exact location is optional and must require permission/clear consent. Provide manual city search; device-assisted location is opt-in and only available where the TV supports it. A camera's publicly known coordinates do not disclose the viewer's location.
+- Show temperature, precipitation, wind, humidity and solar events only when the forecast provider offers applicable values and the data's freshness is known.
 - API secrets stay out of the app repository and release artifacts when server-side use is required.
 
 ## Performance and system safety

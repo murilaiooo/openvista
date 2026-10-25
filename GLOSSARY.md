@@ -26,7 +26,11 @@ Use these terms consistently in product text, code, and issues.
 | Dream mode | Optional Android system screensaver service, where permitted by the OEM/OS. |
 | App mode | Regular launcher-opened TV activity, available independently of system screensaver permission. |
 | D-pad | Directional remote navigation with arrows, Select/OK, Back, and Home. |
-| Source health | Whether a configured stream is valid, reachable, and decodable; may change over time. |
+| Source health | Whether a configured stream is valid, reachable, and decodable; must distinguish available, unavailable, and not-yet-verified. |
+| Catalog fallback | A bundled or last-known valid catalog metadata copy used when online catalog updates fail; it cannot make an offline camera stream playable. |
+| Camera submission | A community-proposed stream requiring authorization, attribution, compatibility and safety review before the catalog can publish it. |
+| QR-assisted source entry | Optional workflow for entering a custom URL via another device, with pairing/security method still to be decided. |
+| Local video fallback | An optional user-selected video playlist played when all candidate webcams are unavailable; otherwise show a retry notice. |
 | Provider | Third party supplying live video, forecast data, or media metadata under its own terms. |
 | Catalog | Curated collection metadata, not a grant of rights to rehost media. |
 | Decision status | Confirmed, Proposed, Open, Rejected, or Deferred. |

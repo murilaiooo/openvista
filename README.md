@@ -15,21 +15,24 @@ The following is already agreed:
 - **Two entry points:** a manually opened TV application plus automatic screensaver mode where the OS allows it.
 - **Live sources:** both a browsable webcam catalog and user-provided permitted stream URLs.
 - **Home:** Cameras, My Videos and Favorites as three large image-backed cards.
-- **Camera discovery:** a curated catalog, **2D world map with clustered markers and side list**, and permitted manual URLs.
+- **Camera discovery:** broad curated categories (beaches, cities, mountains, wildlife, landmarks, ski resorts and ports), **2D world map with clustered markers and side list**, and permitted manual URLs.
+- **Live catalog:** online metadata updates with local fallback, reviewed community suggestions, country/city/category/favorites/availability filters, plus an optional panel for name, country, local time, resolution, source and verified status.
+- **Custom URLs:** add a camera with the TV keyboard or a planned secure QR-assisted phone flow.
 - **Automatic rotation:** user-configurable intervals between 1 and 60 minutes; unavailable cameras are immediately skipped.
 - **My videos:** internal-storage or USB folders, ordered playback, shuffle and multiple local-video playlists; camera playlists remain separate.
 - **Video playback:** fill/crop the screen by default, plus automatic live quality selection with a configurable cap where the source supports it.
 - **Immersive design:** full-screen scenery with an almost invisible interface; contextual camera controls differ from local-video seek controls.
-- **Information overlays:** compact clock and current weather by default, 7-day details on demand. Switch between camera and viewer location; include presets and a simple/advanced visual editor.
+- **Information overlays:** compact clock and current weather by default, detailed 7-day forecasts (temperature, precipitation, wind, humidity, sunrise/sunset when supplied) on demand. Choose manual city search or optional device location; switch between camera and viewer weather contexts, with presets and a simple/advanced visual editor.
 - **Display care:** separately configurable widget repositioning and hiding after inactivity (risk reduction, not burn-in prevention guarantee).
 - **Setup and transitions:** short skippable setup, plus a user choice of instant or smooth scene switches according to device performance.
 - **Localization:** Brazilian Portuguese and English at launch; auto-detect TV region with manual language, clock-format and temperature overrides.
 - **Audio:** muted by default with an option to enable sound.
 - **Free by design:** no advertisements and no user account required.
 - **First release:** a downloadable APK via GitHub when implementation and compatibility tests pass.
-- **Future library:** explore a discoverable library of curated live wallpapers and optional integrations. Do not assume media is freely redistributable.
+- **Fallback:** if all webcams are unavailable, optionally switch to a user-configured local video playlist; otherwise show a clear retry notice.
+- **Future wallpaper library:** deferred beyond the first APK. Local folders and live cameras come first. Do not assume media is freely redistributable.
 
-**28 product decisions have been confirmed across three interview rounds.** Camera providers, legal rights, weather integration, exact remote key mappings, fallback when all streams fail and physical-device support are **still open**. See [Product decisions](docs/product/decisions.md) and [UX brief](docs/product/experience.md).
+**38 product decisions have been confirmed across four interview rounds.** Specific provider contracts, actual camera availability, weather API, secure QR pairing design, exact remote key mappings, TV idle/power policies and physical-device compatibility are **still open**. See [Product decisions](docs/product/decisions.md) and [UX brief](docs/product/experience.md).
 
 ## Proposed experience (not implemented)
 
@@ -63,6 +66,7 @@ No Gradle project or application code has been generated yet. The architecture w
 
 - [Vision and requirements](docs/product/vision.md)
 - [TV UX and interaction brief](docs/product/experience.md)
+- [Camera catalog and weather requirements](docs/product/content-and-weather.md)
 - [Decisions and brainstorming questions](docs/product/decisions.md)
 - [Proposed architecture](docs/architecture/overview.md)
 - [Reference projects and official sources](docs/research/references.md)

@@ -13,10 +13,12 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 ## Cameras
 
 - Enter through the curated catalog or a **2D interactive map with clustered markers and a lateral list**. Preserve keyboard-free D-pad navigation; allow focus to move between map markers/list.
-- The user can add a permitted custom URL (interaction for URL input still TBD).
+- The user can add permitted custom URLs using **either the TV keyboard or a QR-assisted second-device flow** (secure pairing design still TBD).
+- Catalog includes broad themed categories, geographic filters, favorites and verified availability; camera metadata is updated online with a local fallback.
+- An optional on-demand camera information panel gives name, country, camera-local time, verified availability, resolution where known and attribution.
 - Fullscreen camera playback supports contextual directional scene changes and optional controls that appear during input.
 - Automatically rotate the active camera after the configured 1–60 minute interval.
-- An unavailable camera is **skipped immediately**. If all candidates are unavailable, enter a finite fallback state instead of endlessly cycling (fallback UX not yet approved).
+- An unavailable camera is **skipped immediately**. If all candidates fail, use the user's preconfigured **local-video playlist fallback** if accessible; otherwise show a clear notice and Retry, never loop forever.
 
 ## My Videos
 
@@ -28,8 +30,8 @@ The manual entry point shows **three large image-backed cards**: **Cameras**, **
 ## Weather and overlays
 
 - Default **compact clock + current conditions**.
-- Seven-day forecast appears **only when requested** by default.
-- Weather source context is either current camera location or user-chosen location.
+- Seven-day forecast appears **only when requested** by default. Extended details include temperatures, rain, wind, humidity and sunrise/sunset when available.
+- Weather source context is either current camera location or a user-chosen city, set through manual city search or optional consent-based device detection where supported.
 - Provide quick presets **and** advanced editor. Detailed customization gestures/properties are not yet specified.
 - Two distinct display-care settings: **periodically move static overlay widgets** and **automatically hide them after inactivity**. Each should be individually adjustable; this reduces but does not remove burn-in risk.
 

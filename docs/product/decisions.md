@@ -1,6 +1,6 @@
 # OpenVista product decisions
 
-**Status:** Discovery. Rounds 1, 2 and 3 confirmed on 2026-10-24. Round 4 open.
+**Status:** Discovery. Rounds 1–4 confirmed on 2026-10-24 (38 decisions). Round 5 open.
 
 Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
@@ -61,20 +61,44 @@ OpenVista is a free, ad-free, account-free ambient Android TV application and, w
 - **Localization:** initial text PT-BR/EN, default from device region; explicit manual language, temperature unit and clock-format overrides.
 - **Onboarding:** skip never blocks entry into manual Home; selecting optional sources/weather can happen later.
 
-## Round 4: sources, catalog, weather and wallpapers (OPEN)
+## Round 4: confirmed (D-29 to D-38)
 
-The owner has not answered these. Recommendations are not approvals.
+| ID | Requirement | Confirmed choice / boundary |
+| --- | --- | --- |
+| D-29 | Camera categories | **Broad curated catalog**: beaches, cities, mountains, wildlife, landmarks, ski resorts, ports and additional themes. Exact taxonomy and source availability are to be researched; only include authorized sources. |
+| D-30 | Catalog updates | **Automatically update catalog online**, with a bundled/local fallback list. Fallback metadata cannot make offline webcams play; the app must explain loss of connectivity. |
+| D-31 | Catalog contributions | **Authorized camera providers and community suggestions subject to review**. Community submissions are not automatically trusted or published; review attribution, rights, safety and stream compatibility. |
+| D-32 | Custom stream entry | **Both TV keyboard and QR code** for convenient entry. QR-assisted transfer must be designed for safe pairing with no account; access control, network exposure and token expiry remain engineering decisions. |
+| D-33 | Optional camera details | **Name, country, local time, stream resolution, status, and source** available through an optional info panel; do not show unverified quality/online status as fact. |
+| D-34 | Catalog filters | **Country, city, category, favorites, and only available cameras**. Online/available indicator must be evidence-based; unknown status should be distinct from offline. |
+| D-35 | Seven-day forecast | **Temperatures, rain, wind, humidity, sunrise and sunset**, wherever the weather provider supplies reliable values. Preserve compact default overlay and expanded on-demand details. |
+| D-36 | Viewer location setup | **Manual city search plus optional device-assisted detection** on supported hardware. Do not require location permission to use camera-local forecasts. |
+| D-37 | Wallpaper library | **Deferred until a future release**. Initial focus is live cameras and user-provided local videos; no integrated wallpaper downloading in the first release. |
+| D-38 | All cameras unavailable | **Optional user-configured fallback to an existing local playlist**. If no fallback is configured/accessible, show a clear notice with a retry action. No infinite skipping loop. |
 
-1. **Catalog categories:** prioritize nature/cities/beaches only, or broad themed categories including wildlife, landmarks, ski resorts, marinas and weather? **Recommend broad curated categories** with reliable, lawful footage.
-2. **Catalog maintenance:** ship a small hardcoded list, or a remotely updateable public feed requiring no account? **Recommend public static metadata feed with bundled offline fallback**, reviewed/hosted without paid backend.
-3. **Source eligibility:** only officially permitted integrations, or user-added URLs with separate validation? **Recommend both**, but never embed unauthorized streams or scrape protected video.
-4. **Custom URL entry:** TV keyboard only, QR-assisted pairing from a phone on the same network, or both? **Recommend both**, with no account/cloud relay and explicit network/security safeguards.
-5. **Camera information:** show country/city, scene title, stream status, resolution and attribution on an optional info panel, or just the scene title? **Recommend info panel on demand**, minimal default chrome.
-6. **Discovery filters:** region/theme + live status and favorites, or region/theme only? **Recommend region/theme + available-only + favorites**, with only verifiable status claims.
-7. **Forecast details:** 7-day temperature/conditions only, or extended daily info (rain chance, highs/lows, wind, sunrise/sunset) when data supports it? **Recommend extended detail on demand** without crowding video.
-8. **Viewer location setup:** manual city search only, automatic geolocation opt-in only, or both? **Recommend manual city first plus opt-in coarse/device location where actually supported**.
-9. **Wallpaper library release scope:** include a curated integrated download library in the first APK, or defer to a future release? **Recommend defer**, fully support user-selected local videos first.
-10. **When all live cameras fail:** show a clear retry screen, switch to user's existing local video playlist, or provide choice? **Recommend user's opt-in fallback to local videos; otherwise an informative screen**, no endless spin.
+### Derived constraints (not additional approvals)
+
+- Maintain a versioned, validated catalog format and safe last-known/bundled metadata fallback. A public metadata feed does not imply a paid backend or guarantee connectivity.
+- Do not publish community camera URLs until reviewing authorization, owner/attribution details, public safety and working playback. Provide a community submission/review process to research later.
+- QR pairing must not expose private URLs over insecure public endpoints; the exact discovery/pairing method is still open and must be threat-modeled before implementation.
+- Availability filtering depends on current, observed checks with explicit unknown/error states; successful directory entry alone does not imply a playing camera.
+- Respect user choice: only switch to local-video playback as an all-camera-failed fallback when the user configured it, and never break the separation between saved camera/video playlists.
+- Forecast details depend on weather-provider data and terms; avoid inventing unsupported values and don't silently collect precise location.
+
+## Round 5: background screensaver behavior, power and performance (OPEN)
+
+Recommendations here are *not* confirmed requirements:
+
+1. **Idle activation interval:** let the user choose from supported system intervals (for example 3/5/10/15 minutes), or fixed app timer? **Recommend:** guide the user to supported OS settings, with a clear note when the OEM disallows custom screensavers.
+2. **Screen-off/power:** respect TV energy-saving and sleep/standby, or try to keep display awake at all times? **Recommend:** respect TV sleep and user energy preferences; no always-on promise across platforms.
+3. **Hours/schedule:** always eligible when idle, or optional quiet-hour schedule / exclude overnight? **Recommend:** automatic mode eligible normally, plus optional schedule and time windows.
+4. **When playback starts automatically:** replay last viewed camera, favorites/playlist, or choose? **Recommend:** user setting with last scene or camera playlist; local video playlist optional.
+5. **When user presses Back/Select in Dream mode:** exit instantly to previous TV screen, show overlay, or custom behavior? **Recommend:** buttons reveal controls or exit predictably without hijacking system Home.
+6. **Connection loss:** immediate failover among cameras; when network is down, local playlist fallback if configured, otherwise a clear reconnect UI? **Recommend:** finite connection checks, offline local fallback and no retry storm.
+7. **App resources:** prioritize low-end Android TV CPU/RAM with automatic resolution/transitions adjustment, or maximize 4K even if stuttering? **Recommend:** smooth playback and hardware decoder stability first.
+8. **Background downloads/network:** fetch catalog/weather and monitor streams only when needed, or refresh continuously? **Recommend:** infrequent cached updates, pause unnecessary work when screen is off or app inactive.
+9. **USB removed during playback:** pause/retry same file indefinitely, return to library, or switch to next playable source and explain? **Recommend:** clearly show missing drive and allow selecting another source, no freeze.
+10. **TV restart/relaunch behavior:** automatically start OpenVista on every boot, or let Android TV handle launch/screen-saver state? **Recommend:** do not auto-launch on boot by default; restore saved state on normal launch and Dream entry.
 
 ## Later-round topics (not approved yet)
 
@@ -91,4 +115,5 @@ The owner has not answered these. Recommendations are not approvals.
 - **2026-10-24:** D-01–D-08 confirmed by owner (round 1).
 - **2026-10-24:** D-09–D-18 confirmed by owner (round 2), including map, immediate camera skip and USB.
 - **2026-10-24:** D-19–D-28 confirmed by owner (round 3), overriding previous recommendations in favor of almost invisible UI, contextual remote behavior, 2D map with sidebar and both anti-static-overlay strategies.
-- **2026-10-24:** Round 4 opened; source/provider/weather/library options await owner decisions.
+- **2026-10-24:** D-29–D-38 confirmed by owner (round 4): broad categories, online catalog with local fallback, reviewed community suggestions, keyboard/QR camera entry, optional info panel, filters, detailed seven-day weather, manual/optional auto location, deferred wallpaper library, and configurable local fallback.
+- **2026-10-24:** Round 5 opened to decide idle activation, power, scheduling, background use and performance.

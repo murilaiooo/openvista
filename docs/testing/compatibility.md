@@ -28,3 +28,11 @@
 14. Skip first-run guide without granting optional locations/folder access; revisit later from settings.
 15. Instant and smooth transition options: monitor dropped frames, decoder usage and degradation on constrained TVs.
 16. Locale defaults from device and manual PT-BR/English, clock 12/24h and °C/°F overrides.
+17. Remote catalog metadata refresh, version validation, offline bundled/last-known metadata and degraded stream behavior without network.
+18. Broad categories, country/city/favorites/available-only filters with available/unavailable/unknown states, map/list consistency.
+19. Reviewed community-submitted camera metadata: licensing, source attribution, safety and untrusted URL checks.
+20. Custom URL entry via TV keyboard and secure QR-assisted pairing (confirm approval, expiry and local-network isolation); no account requirement.
+21. Optional scene metadata panel: source, scene name, country, local time, actual resolution and verified status.
+22. Seven-day weather detail: rain, wind, humidity, sunrise/sunset plus unavailable-value labels; manual city input and opt-in device location denial path.
+23. All cameras unavailable: configured playable local playlist fallback, missing-USB fallback, and explicit retry when unconfigured; no infinite skip loop.
+24. Verify first APK has **no integrated wallpaper download library**, which is deferred to later releases.
