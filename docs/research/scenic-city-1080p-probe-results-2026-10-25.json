@@ -1,0 +1,218 @@
+{
+  "type": "one_time_local_ffprobe_research_not_public_catalog",
+  "date": "2026-10-25",
+  "attempted": 20,
+  "fullHdOrAbove": 12,
+  "results": [
+    {
+      "label": "Cracóvia — praça principal",
+      "url": "https://hoktastream2.webcamera.pl/krakow_cam_702b61/krakow_cam_702b61.stream/playlist.m3u8",
+      "name": "Kraków kamera - widok na Rynek Główny - Nowe ujęcie",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Varsóvia — praça do castelo",
+      "url": "https://hoktastream2.webcamera.pl/warszawa_cam_5f3b1a/warszawa_cam_5f3b1a.stream/chunks.m3u8",
+      "name": "Castle Square (Plac Zamkowy)",
+      "reportedResolution": null,
+      "source": "camguide",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Wrocław — praça da cidade",
+      "url": "https://hoktastream1.webcamera.pl/wroclaw_przed_cam_16c68e/wroclaw_przed_cam_16c68e.stream/playlist.m3u8",
+      "name": "Wrocław ❤ rynek on-line by WebCamera.pl kamera na żywo",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Zakopane — rua central",
+      "url": "https://hoktastream5.webcamera.pl/krupowki2_cam_62169a/krupowki2_cam_62169a.stream/playlist.m3u8",
+      "name": "Krupówki - widok na najpopularniejszy deptak pod Tatrami Zakopane",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Opole — praça",
+      "url": "https://hoktastream4.webcamera.pl/opole_cam_8b53d4/opole_cam_8b53d4.stream/playlist.m3u8",
+      "name": "Miasto Opole rynek - oglądaj na żywo WebCamera.pl",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "verified_below_fullhd",
+      "actualWidth": 1280,
+      "actualHeight": 720,
+      "codec": "h264"
+    },
+    {
+      "label": "Malbork — castelo",
+      "url": "https://hoktastream2.webcamera.pl/malbork_cam_0ffc99/malbork_cam_0ffc99.stream/playlist.m3u8",
+      "name": "Zamek Krzyżacki w Malborku - widok Online",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Florença — centro histórico",
+      "url": "https://5e0add8153fcd.streamlock.net:1936/vedetta/via-della-scala.stream/chunklist_w1359048502.m3u8",
+      "name": "Florence Cathedral",
+      "reportedResolution": null,
+      "source": "camguide",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Torre de TV — Tallinn",
+      "url": "https://sv.levira.com/teletorn/smil:teletorn.smil/chunklist_w282021538_b2096000_DVR.m3u8",
+      "name": "TV Tower",
+      "reportedResolution": null,
+      "source": "camguide",
+      "status": "verified_below_fullhd",
+      "actualWidth": 1280,
+      "actualHeight": 720,
+      "codec": "h264"
+    },
+    {
+      "label": "Mississauga — praça da cidade",
+      "url": "https://webvideo.mississauga.ca/StageWebcam/LiveStageWebcam.stream-audiodestin/playlist.m3u8",
+      "name": "Celebration Square Webcam - Canada 🎦",
+      "reportedResolution": null,
+      "source": "worldviewstream",
+      "status": "verified_below_fullhd",
+      "actualWidth": 0,
+      "actualHeight": 0,
+      "codec": "h264"
+    },
+    {
+      "label": "Whistler — vila",
+      "url": "https://streamer6.brownrice.com/whistlervillagefitz/whistlervillagefitz.stream/main_playlist.m3u8",
+      "name": "Whistler Webcams - SpotiCam",
+      "reportedResolution": null,
+      "source": "brownrice",
+      "status": "failed",
+      "reason": "580] Peer certificate failed verification\nhttps://streamer6.brownrice.com/whistlervillagefitz/whistlervillagefitz.stream/main_playlist.m3u8: I/O error"
+    },
+    {
+      "label": "Rzepiska — Tatras",
+      "url": "https://hoktastream1.webcamera.pl/airnet_cam_d60f3c/airnet_cam_d60f3c.stream/playlist.m3u8",
+      "name": "Rzepiska Tatry panorama na żywo kamery HD w Polsce",
+      "reportedResolution": "1920x1080",
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Bukowina — hotel",
+      "url": "https://hoktastream1.webcamera.pl/bukovina_cam_7aa04f/bukovina_cam_7aa04f.stream/playlist.m3u8",
+      "name": "Bukowina Tatrzańska kamera z hotelu Bukovina WebCamera.pl zobacz live",
+      "reportedResolution": "1920x1080",
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Karpacz — panorama",
+      "url": "https://hoktastream2.webcamera.pl/karpacz_cam_ab594f/karpacz_cam_ab594f.stream/playlist.m3u8",
+      "name": "Widok z kamery na panoramę miasta w Karpaczu",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Wintergreen — montanhas",
+      "url": "https://stream.resortcams.com/live/wintergreen2.stream/playlist.m3u8",
+      "name": "Wintergreen Blue Ridge Express Cam",
+      "reportedResolution": "1920x1080",
+      "source": "resortcams",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Bryce Resort — montanhas",
+      "url": "https://stream.resortcams.com/live/bryceresort.stream/playlist.m3u8",
+      "name": "Bryce Resort",
+      "reportedResolution": "1920x1080",
+      "source": "resortcams",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Massanutten Resort — cume",
+      "url": "https://stream.resortcams.com/live/massresort3.stream/playlist.m3u8",
+      "name": "Massanutten Resort Summit Cam",
+      "reportedResolution": "1920x1080",
+      "source": "resortcams",
+      "status": "failed",
+      "reason": "https://stream.resortcams.com/live/massresort3.stream/playlist.m3u8: Server returned 404 Not Found"
+    },
+    {
+      "label": "Arachova — cidade grega",
+      "url": "https://livecameras.gr:30443/live/arach1/playlist.m3u8",
+      "name": "GR - Boeotia - Arachova - Arachova",
+      "reportedResolution": "1920x1080",
+      "source": "manual",
+      "status": "verified_1080plus",
+      "actualWidth": 1920,
+      "actualHeight": 1080,
+      "codec": "h264"
+    },
+    {
+      "label": "Kraków — praça de Podgórze",
+      "url": "https://hoktastream1.webcamera.pl/krakow_cam_c44608/krakow_cam_c44608.stream/playlist.m3u8",
+      "name": "Kraków widok na żywo na rynek Podgórski w Krakowie",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "failed",
+      "reason": "https://hoktastream1.webcamera.pl/krakow_cam_c44608/krakow_cam_c44608.stream/playlist.m3u8: Server returned 404 Not Found"
+    },
+    {
+      "label": "Bishkek — panorama",
+      "url": "https://cam.kt.kg/cam33/stream.m3u8",
+      "name": "Panorama of Bishkek Webcam - Kyrgyzstan 🎦",
+      "reportedResolution": null,
+      "source": "worldviewstream",
+      "status": "failed",
+      "reason": "f047f4de00] Failed to resolve hostname cam.kt.kg: The name does not resolve for the supplied parameters\nhttps://cam.kt.kg/cam33/stream.m3u8: I/O error"
+    },
+    {
+      "label": "Krakow — praça Rynek principal, outra câmera",
+      "url": "https://hoktastream1.webcamera.pl/krakow_cam_9a3b91/krakow_cam_9a3b91.stream/playlist.m3u8",
+      "name": "Webcam Main Square, Kraków - Online Live Cam WebCamera.pl",
+      "reportedResolution": null,
+      "source": "webcamera_pl",
+      "status": "failed",
+      "reason": "https://hoktastream1.webcamera.pl/krakow_cam_9a3b91/krakow_cam_9a3b91.stream/playlist.m3u8: Server returned 404 Not Found"
+    }
+  ]
+}
