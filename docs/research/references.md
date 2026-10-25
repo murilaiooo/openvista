@@ -1,6 +1,8 @@
 # External research and candidate reuse
 
-**Reviewed 2026-10-24.** Reference projects are for learning, not a blanket authorization to reuse code or video.
+**Updated 2026-10-25.** Reference projects are for learning, not a blanket authorization to reuse code or video.
+
+**Start with the [curated upstream code research and implementation guide](curated-upstream-code-2026-10-25.md)** for a ranked shortlist, verified source paths, license distinctions, acceptance tests and step-by-step adoption order. The entries below preserve the earlier feasibility reference index.
 
 ## Core references
 1. [Aerial Views (GitHub)](https://github.com/theothernt/AerialViews): actively developed Android/Google/Fire TV screensaver supporting 4K/HDR where devices permit, local USB videos, multiple media feeds, clock overlays, weather, playlists, direct HLS/RTSP. A particularly relevant reference for OS integration and local-media handling. **Check its actual code license and media usage rights before copying anything.** Recent Google TV and Fire OS versions can restrict selection of external screensavers.
