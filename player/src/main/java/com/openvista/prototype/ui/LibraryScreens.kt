@@ -225,6 +225,7 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         val latitude = ui.field(fields, s(R.string.latitude), item?.latitude?.toString().orEmpty(), 16)
         val longitude = ui.field(fields, s(R.string.longitude), item?.longitude?.toString().orEmpty(), 16)
         val zone = ui.field(fields, s(R.string.time_zone), item?.timeZone.orEmpty())
+        if (camera) fields.addView(ui.description(s(R.string.camera_metadata_hint)))
         val credit = ui.field(fields, s(R.string.attribution), item?.attribution.orEmpty(), 500)
         val error = ui.description(""); fields.addView(error)
         val dialog = AlertDialog.Builder(host).setTitle(if (item == null) R.string.add_stream else R.string.edit)

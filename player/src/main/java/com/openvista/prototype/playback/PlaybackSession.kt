@@ -83,7 +83,11 @@ class PlaybackSession(
         }
     }
     private val rotationTask = Runnable {
-        if (!released && currentItem?.family == MediaFamily.CAMERAS && player.isPlaying) next()
+        if (!released && player.isPlaying && recoveryItem == null && queue.size > 1 &&
+            (currentItem?.family == MediaFamily.CAMERAS || currentItem?.family == MediaFamily.VIDEOS)) {
+            if (isFallback && currentItem?.family == MediaFamily.VIDEOS && tryRecoveryAtBoundary()) return@Runnable
+            next()
+        }
     }
     private val startupTimeout = Runnable {
         timeoutArmed = false
@@ -545,9 +549,12 @@ class PlaybackSession(
 
     private fun scheduleRotation() {
         handler.removeCallbacks(rotationTask)
-        if (released || currentItem?.family != MediaFamily.CAMERAS || recoveryItem != null || !player.isPlaying) return
+        val family = currentItem?.family
+        if (released || family == null || recoveryItem != null || !player.isPlaying || queue.size < 2) return
         val now = SystemClock.elapsedRealtime()
-        if (rotationDueAt == 0L) rotationDueAt = now + store.settings().rotationMinutes.coerceIn(1, 60) * 60_000L
+        val settings = store.settings()
+        val minutes = if (family == MediaFamily.CAMERAS) settings.rotationMinutes else settings.videoRotationMinutes
+        if (rotationDueAt == 0L) rotationDueAt = now + minutes.coerceIn(1, 60) * 60_000L
         // Adaptive rendition changes must not restart the scene's entire rotation interval.
         handler.postDelayed(rotationTask, (rotationDueAt - now).coerceAtLeast(0))
     }

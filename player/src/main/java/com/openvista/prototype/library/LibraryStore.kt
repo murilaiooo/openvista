@@ -571,7 +571,7 @@ class LibraryStore(context: Context) : AutoCloseable {
         coordinate(s.viewerLongitude, -180.0, 180.0)
         return s.copy(
             language = s.language.takeIf { it in setOf("system", "en", "pt-BR") } ?: "system",
-            rotationMinutes = s.rotationMinutes.coerceIn(1, 60), maxVideoHeight = s.maxVideoHeight.coerceIn(0, 8_640),
+            rotationMinutes = s.rotationMinutes.coerceIn(1, 60), videoRotationMinutes = s.videoRotationMinutes.coerceIn(1, 60), maxVideoHeight = s.maxVideoHeight.coerceIn(0, 8_640),
             resizeMode = s.resizeMode.takeIf { it in setOf("crop", "fit") } ?: "crop",
             clockFormat = s.clockFormat.takeIf { it in setOf("system", "12", "24") } ?: "system",
             temperatureUnit = when (s.temperatureUnit) {
@@ -579,6 +579,7 @@ class LibraryStore(context: Context) : AutoCloseable {
                 "f", "fahrenheit" -> "fahrenheit"
                 else -> "system"
             },
+            moveOverlay = true, // Display-care movement stays active; only the pattern is configurable.
             overlayCorner = s.overlayCorner.coerceIn(0, 3), overlaySize = s.overlaySize.coerceIn(12, 64),
             overlayOpacity = s.overlayOpacity.coerceIn(10, 100), overlayX = s.overlayX.coerceIn(-4_096, 4_096),
             overlayY = s.overlayY.coerceIn(-4_096, 4_096), overlayHideSeconds = s.overlayHideSeconds.coerceIn(5, 3_600),
@@ -643,13 +644,15 @@ class LibraryStore(context: Context) : AutoCloseable {
 
     private fun writeSettings(s: AppSettings): JSONObject = JSONObject()
         .put("language", s.language).put("muted", s.muted).put("rotationMinutes", s.rotationMinutes)
+        .put("videoRotationMinutes", s.videoRotationMinutes)
         .put("maxVideoHeight", s.maxVideoHeight).put("resizeMode", s.resizeMode).put("smoothTransitions", s.smoothTransitions)
         .put("keepAwake", s.keepAwake).put("fallbackPlaylistId", s.fallbackPlaylistId ?: JSONObject.NULL)
         .put("stayLocal", s.stayLocal).put("showClock", s.showClock).put("showDate", s.showDate)
         .put("showWeather", s.showWeather).put("showLocation", s.showLocation).put("clockFormat", s.clockFormat)
         .put("temperatureUnit", s.temperatureUnit).put("overlayCorner", s.overlayCorner).put("overlaySize", s.overlaySize)
         .put("overlayOpacity", s.overlayOpacity).put("overlayColor", s.overlayColor).put("overlayX", s.overlayX)
-        .put("overlayY", s.overlayY).put("moveOverlay", s.moveOverlay).put("hideOverlay", s.hideOverlay)
+        .put("overlayY", s.overlayY).put("moveOverlay", s.moveOverlay).put("randomOverlayPosition", s.randomOverlayPosition)
+        .put("hideOverlay", s.hideOverlay)
         .put("overlayHideSeconds", s.overlayHideSeconds).put("weatherContext", s.weatherContext)
         .put("viewerCity", s.viewerCity).put("viewerLatitude", s.viewerLatitude ?: JSONObject.NULL)
         .put("viewerLongitude", s.viewerLongitude ?: JSONObject.NULL).put("viewerTimeZone", s.viewerTimeZone)
@@ -658,14 +661,19 @@ class LibraryStore(context: Context) : AutoCloseable {
         .put("diagnosticsEnabled", s.diagnosticsEnabled).put("automaticUpdates", s.automaticUpdates)
 
     private fun readSettings(j: JSONObject) = AppSettings(
-        language = j.getString("language"), muted = j.getBoolean("muted"), rotationMinutes = j.getInt("rotationMinutes"),
+        language = j.getString("language"), muted = j.getBoolean("muted"),
+        rotationMinutes = if (j.has("videoRotationMinutes")) j.optInt("rotationMinutes", 1) else 1,
+        videoRotationMinutes = j.optInt("videoRotationMinutes", 5),
         maxVideoHeight = j.getInt("maxVideoHeight"), resizeMode = j.getString("resizeMode"), smoothTransitions = j.getBoolean("smoothTransitions"),
         keepAwake = j.getBoolean("keepAwake"), fallbackPlaylistId = j.nullableString("fallbackPlaylistId"), stayLocal = j.getBoolean("stayLocal"),
         showClock = j.getBoolean("showClock"), showDate = j.getBoolean("showDate"), showWeather = j.getBoolean("showWeather"),
-        showLocation = j.getBoolean("showLocation"), clockFormat = j.getString("clockFormat"), temperatureUnit = j.getString("temperatureUnit"),
+        showLocation = if (j.has("randomOverlayPosition")) j.getBoolean("showLocation") else true,
+        clockFormat = j.getString("clockFormat"), temperatureUnit = j.getString("temperatureUnit"),
         overlayCorner = j.getInt("overlayCorner"), overlaySize = j.getInt("overlaySize"), overlayOpacity = j.getInt("overlayOpacity"),
         overlayColor = j.getInt("overlayColor"), overlayX = j.getInt("overlayX"), overlayY = j.getInt("overlayY"),
-        moveOverlay = j.getBoolean("moveOverlay"), hideOverlay = j.getBoolean("hideOverlay"), overlayHideSeconds = j.getInt("overlayHideSeconds"),
+        moveOverlay = if (j.has("randomOverlayPosition")) j.getBoolean("moveOverlay") else true,
+        randomOverlayPosition = j.optBoolean("randomOverlayPosition", true),
+        hideOverlay = j.getBoolean("hideOverlay"), overlayHideSeconds = j.getInt("overlayHideSeconds"),
         weatherContext = j.getString("weatherContext"), viewerCity = j.getString("viewerCity"), viewerLatitude = j.nullableDouble("viewerLatitude"),
         viewerLongitude = j.nullableDouble("viewerLongitude"), viewerTimeZone = j.getString("viewerTimeZone"), scheduleEnabled = j.getBoolean("scheduleEnabled"),
         scheduleStartMinute = j.getInt("scheduleStartMinute"), scheduleEndMinute = j.getInt("scheduleEndMinute"), onboardingComplete = j.getBoolean("onboardingComplete"),

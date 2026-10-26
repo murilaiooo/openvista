@@ -11,8 +11,8 @@
 | Is there a public APK or stable release? | **No.** Only locally built debug/test APKs; no signed public release or owner authorization to publish. |
 | Does OpenVista bundle live-camera links, M3U lists or videos? | **No.** Users import their own. Research-only media/playlist fixtures are excluded from runtime artifacts. |
 | Does weather work? | **Yes, for NWS-covered U.S. coordinates.** Tucson hourly conditions and seven-day forecast were exercised physically. Worldwide geocoding is not implemented. |
-| Are all original v1 requirements finished? | **No.** Hisense DreamService entry was observed, but its full remote/lifecycle/endurance acceptance, USB edge cases, 24-hour soak, maps, pairing security, updater and final release gates remain. |
-| Are there open GitHub issues/PRs? | **No, as of this review.** The owner closed the prior backlog administratively, not as proof every feature passed acceptance. Closed records and branches remain available. |
+| Are all original v1 requirements finished? | **No.** Hisense automatic DreamService entry was verified, but full dream controls/lifecycle, physical USB, 24-hour soak, maps, pairing security, updater and final release gates remain. |
+| Are there open GitHub issues/PRs? | **Yes.** The QA development candidate and later focused changes are tracked separately; administrative closure of older records did not certify v1. |
 
 ## Evidence actually collected
 
@@ -33,12 +33,16 @@ These are **partial results**, not comprehensive acceptance for entire feature f
 
 A separate review snapshot of the Codex remaining-development work passed local Kotlin/Android tests (23 cases), Gradle build, Lint and debug APK content scanning after one SAF cancellation correction and an updated grant-retention test. Its additional deduplication test also passed. On the physical Hisense, schema 1 -> 2 consolidated 44 stored sources into 43 (four videos into three), retaining all 40 cameras, favorites, playlist links and checkpoint references. PT-BR Home and four D-pad directions received partial checks. Controlled HLS/H.264 1080p and DASH/HEVC 4K fixtures later rendered on the Hisense; a falsely unavailable status after finite camera completion was corrected and retested. The independently verified SAF/storage subset was merged as [PR #25](https://github.com/murilaiooo/openvista/pull/25); **the remainder of the QA candidate is still unmerged and uncertified**. See [the independent QA evidence](testing/independent-codex-qa-2026-10-26.md), [the playback probe](testing/hisense-fhd-4k-playback-2026-10-26.md) and [owner-assisted hardware checks](testing/owner-assisted-acceptance-2026-10-26.md). USB, sustained 4K/HDR, full focus traversal, 24-hour soak, pairing, updates and DreamService remain gated.
 
+### Smart ambient preview under review (2026-10-26)
+
+The focused development branch adds separate camera and local-video rotation intervals (defaults one and five minutes) and independent Smart TV-style camera/time and weather panels. Each panel moves to another corner each minute by default; random placement is configurable. Hardware image proof and persistence checks are recorded in [smart ambient QA](testing/smart-ambient-rotation-2026-10-26.md). The owner's existing 40 camera entries have no saved city, time-zone or coordinate metadata. Accurate camera-local time and temperature require supplying those fields; Tucson viewer weather is labeled separately. These features are development QA, **not stable-v1 certification**.
+
 ## Known issues and unverified paths
 
 1. **Local video deduplication:** the canonical tree/direct SAF identity correction was merged as PR #25 after local verification and a physical schema migration of the existing library. The real USB/provider revocation matrix is still pending.
 2. **Physical USB:** file/folder selection and persistence work for tested internal media. Unplug/replug, revoked grants, real USB drive behavior and all supported containers/codecs have not passed the required matrix.
-3. **High-resolution and long-duration playback:** controlled HLS/H.264 1080p and DASH/HEVC 4K clips visibly rendered on the Hisense. Sustained playback, HDR, dropped-frame statistics, thermal/CPU/RAM trends and the 24-hour soak are not signed off.
-4. **DreamService:** on 2026-10-26 the owner approved selecting OpenVista. Automatic real DreamService idle entry rendered camera video and clock/weather on the Hisense; original three-minute system timers were restored. Dream-mode remote controls, sleep/wake recovery, endurance and other devices remain unverified. See [Hisense DreamService activation evidence](testing/hisense-dreamservice-activation-2026-10-26.md).
+3. **High-resolution and long-duration playback:** single controlled HLS/H.264 1080p and DASH/HEVC 4K clips visibly rendered on the target TV. Sustained playback, HDR, decoder dropped-frame statistics, thermal/CPU/RAM trends and 24-hour uninterrupted rotation/soak are not signed off.
+4. **DreamService:** the owner authorized enabling OpenVista on the Hisense; physical, non-test automatic entry and video/clock/weather were verified, with the three-minute system timeout preserved. Remote control inside the dream, wake/recovery and 24-hour stability still require acceptance. See [Hisense DreamService evidence](testing/hisense-dreamservice-activation-2026-10-26.md).
 5. **Map/geocoding:** an app-local schematic and saved-coordinate list exist. Licensed map tiles and city-name geocoding are not integrated.
 6. **Weather scope:** NWS forecasts cover supported U.S. coordinates only. Some provider-supplied condition text remains English in PT-BR. Stale/offline behavior was not subjected to extended on-device failure injection.
 7. **LAN pairing:** code exists, but the security gate remains off. It must not expose a listener before confidentiality and local authorization review.
