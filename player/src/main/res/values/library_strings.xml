@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_restored">Your saved library is ready.</string>
+    <string name="library_restored_unavailable">Library restored. %1$d saved folders or videos are unavailable. Reconnect storage or select them again to restore access.</string>
+    <string name="library_scan_limited">Some folders could not be fully scanned because of safety limits or read access. Select a smaller accessible folder to find more videos.</string>
+    <string name="library_select_folder">Select a video folder through the system picker.</string>
+    <string name="library_select_video">Select a local video through the system picker.</string>
+    <string name="library_persist_denied">This provider did not allow saved read access. Choose the folder or video again through the system picker.</string>
+    <string name="library_folder_name">Video folder</string>
+    <string name="library_video_name">Video</string>
+    <string name="library_folder_scanned">Folder saved. Found %1$d video candidates; playback depends on device support.</string>
+    <string name="library_folder_unavailable">The folder cannot be read. Saved videos and playlists remain in your library. Reconnect storage or select the folder again.</string>
+    <string name="library_unsupported_video">Choose an MP4, MKV, WebM or MOV video. Codec support depends on the device.</string>
+    <string name="library_video_unavailable">The selected video cannot be read. Reconnect storage or select it again.</string>
+    <string name="library_video_saved">Video saved to your library.</string>
+    <string name="library_session_only">Read access is available for this session only. Select this folder or video again after reopening the app.</string>
+    <string name="library_item_removed">Source removed from your library. Media files were not changed.</string>
+    <string name="library_folder_forgotten">Folder access forgotten. Saved playlist entries remain unavailable; media files were not changed.</string>
+    <string name="library_storage_failed">Library changes could not be saved safely. Existing saved data was retained. Free storage space and try again.</string>
+    <string name="library_access_denied">Read access is unavailable. Select the folder or video again to grant permission.</string>
+    <string name="library_access_failed">The document provider could not complete this operation. Reconnect storage and try again.</string>
+</resources>

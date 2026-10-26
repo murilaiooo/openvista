@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_restored">Sua biblioteca salva está pronta.</string>
+    <string name="library_restored_unavailable">Biblioteca restaurada. %1$d pastas ou vídeos salvos estão indisponíveis. Reconecte o armazenamento ou selecione os itens novamente para restaurar o acesso.</string>
+    <string name="library_scan_limited">Algumas pastas não puderam ser verificadas por completo devido aos limites de segurança ou ao acesso de leitura. Selecione uma pasta menor e acessível para encontrar mais vídeos.</string>
+    <string name="library_select_folder">Selecione uma pasta de vídeos pelo seletor do sistema.</string>
+    <string name="library_select_video">Selecione um vídeo local pelo seletor do sistema.</string>
+    <string name="library_persist_denied">Este provedor não permitiu salvar o acesso de leitura. Escolha a pasta ou o vídeo novamente pelo seletor do sistema.</string>
+    <string name="library_folder_name">Pasta de vídeos</string>
+    <string name="library_video_name">Vídeo</string>
+    <string name="library_folder_scanned">Pasta salva. Foram encontrados %1$d possíveis vídeos; a reprodução depende do suporte do dispositivo.</string>
+    <string name="library_folder_unavailable">Não foi possível ler a pasta. Seus vídeos e listas salvos continuam na biblioteca. Reconecte o armazenamento ou selecione a pasta novamente.</string>
+    <string name="library_unsupported_video">Escolha um vídeo MP4, MKV, WebM ou MOV. O suporte aos codecs depende do dispositivo.</string>
+    <string name="library_video_unavailable">Não foi possível ler o vídeo selecionado. Reconecte o armazenamento ou selecione o vídeo novamente.</string>
+    <string name="library_video_saved">Vídeo salvo na biblioteca.</string>
+    <string name="library_session_only">O acesso de leitura está disponível somente nesta sessão. Selecione esta pasta ou vídeo novamente após reabrir o aplicativo.</string>
+    <string name="library_item_removed">Fonte removida da biblioteca. Os arquivos de mídia não foram alterados.</string>
+    <string name="library_folder_forgotten">Acesso à pasta removido. Os itens salvos nas listas continuam indisponíveis; os arquivos de mídia não foram alterados.</string>
+    <string name="library_storage_failed">Não foi possível salvar as alterações da biblioteca com segurança. Os dados salvos foram preservados. Libere espaço e tente novamente.</string>
+    <string name="library_access_denied">O acesso de leitura está indisponível. Selecione a pasta ou o vídeo novamente para conceder permissão.</string>
+    <string name="library_access_failed">O provedor de documentos não conseguiu concluir a operação. Reconecte o armazenamento e tente novamente.</string>
+</resources>
