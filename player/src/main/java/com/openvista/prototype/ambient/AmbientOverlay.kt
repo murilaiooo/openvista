@@ -50,6 +50,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private var resolved: WeatherLocation? = null
     private var activeWeather: WeatherLocation? = null
     private var latestForecast: Forecast? = null
+    private var weatherStale = false
     private var weatherAt = Long.MIN_VALUE
     private var activeFromGeocoder = false
     private var isViewerLocation = false
@@ -69,10 +70,11 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
 
     init {
         isFocusable = false
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
         clipChildren = false
         clipToPadding = false
         setPadding(dp(42), dp(38), dp(42), dp(38))
+        group.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         group.addView(city)
         separation.text = "   ·   "
         line.addView(clock)
@@ -119,6 +121,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         item = source
         resolved = null
         latestForecast = null
+        weatherStale = false
         activeWeather = null
         weatherAt = Long.MIN_VALUE
         group.visibility = View.INVISIBLE
@@ -135,6 +138,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             activeFromGeocoder = location != null && (source?.latitude == null || source.longitude == null)
             activeWeather = null
             latestForecast = null
+            weatherStale = false
             weatherAt = Long.MIN_VALUE
             refresh()
         }
@@ -187,7 +191,9 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             activeFromGeocoder -> "GeoNames  ·  open-meteo.com"
             else -> ""
         }
+        if (weatherStale) credit.text = credit.text.toString() + "  ·  cached"
         credit.visibility = if (credit.text.isNotBlank()) View.VISIBLE else View.GONE
+        group.contentDescription = listOf(city.text.toString(), clock.text.toString(), temperature.text.toString()).filter(String::isNotBlank).joinToString(", ")
         group.visibility = View.VISIBLE
         group.alpha = s.overlayOpacity.coerceIn(35, 100) / 100f
         val scale = s.overlaySize.coerceIn(14, 36) / 20f
@@ -214,6 +220,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             weatherRepository.load(location) { state ->
                 if (running && activeWeather == location) {
                     latestForecast = (state as? WeatherState.Ready)?.forecast
+                    weatherStale = (state as? WeatherState.Ready)?.stale == true
                     refresh()
                 }
             }

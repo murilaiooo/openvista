@@ -12,7 +12,7 @@ internal object CityLabelParser {
     private val garbage = Regex("""(?i)^(qa\b|test\b|demo\b|camera\s*\d+|video\b|live\b|unknown\b|untitled\b)""")
     private val suffix = Regex("""(?i)\b(?:cam|webcam|live|stream|4k|8k|hd|uhd)\b""")
     fun queries(item: LibraryItem): List<String> {
-        val explicit = item.city.trim().takeIf { it.length in 2..64 }
+        val explicit = item.city.trim().takeIf { it.length in 2..64 && !unsafe.containsMatchIn(it) && it.none(Char::isISOControl) }
         if (explicit != null) {
             val qualifier = item.country.trim().takeIf { it.length in 2..48 }
             return listOfNotNull(if (qualifier != null) "$explicit, $qualifier" else explicit, explicit).distinct()

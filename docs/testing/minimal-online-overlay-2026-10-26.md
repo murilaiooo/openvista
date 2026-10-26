@@ -28,5 +28,6 @@ This feature is an **owner-requested private development preview**. It is not a 
 
 - Source labels seen on the owner's physical test device include Jurata, Karpacz, Costa da Caparica, Florence, Faro and Gdynia Orłowo, alongside some unresolvable QA test streams. The public geocoding API successfully returned plausible IANA zones for Jurata, Karpacz, Costa da Caparica, Florence and Faro during small-scale manual checks.
 - Unit tests verify title sanitization, no URL/filename lookup, scene suffix stripping, display-name extraction and explicit-location precedence.
-- Full Gradle/Android Lint and on-device behavior: **must be recorded separately before merge to production main**.
+- Offline Windows Gradle Kotlin/JVM/Robolectric tests, debug APK assembly and Android Lint: **PASS**, 34 Android tests with zero failures. Python suite 23/23, documentation/78-decision links and APK no-bundled-media guard also passed. Android UI and provider callback behavior on the physical TV remain **unverified**.
+- A small HTTPS check for Jurata returned `Europe/Warsaw`, matching country code `PL`, and Open-Meteo returned a timestamped current temperature in Celsius for its resolved coordinates. This checks the provider endpoints from Windows, not Fire OS rendering.
 - No 24-hour endurance or broad Fire OS certification is claimed.

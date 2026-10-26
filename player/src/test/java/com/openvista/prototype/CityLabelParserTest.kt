@@ -22,6 +22,7 @@ class CityLabelParserTest {
         assertTrue(CityLabelParser.queries(item("https://private.example/path/key")).isEmpty())
         assertTrue(CityLabelParser.queries(item("holiday.mp4")).isEmpty())
         assertTrue(CityLabelParser.queries(item("Camera 1")).isEmpty())
+        assertTrue(CityLabelParser.queries(item("QA HLS 720", "https://private.example/city")).isEmpty())
     }
 
     @Test fun explicitMetadataTakesPriorityAndNeverDisplaysWholeCameraName() {
