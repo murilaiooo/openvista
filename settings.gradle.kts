@@ -4,4 +4,4 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "OpenVista"
-include(":diagnostics")
+include(":diagnostics", ":source-core")
