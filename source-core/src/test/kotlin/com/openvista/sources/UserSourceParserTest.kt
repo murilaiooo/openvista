@@ -16,6 +16,11 @@ class UserSourceParserTest {
         assertEquals("Beach", source?.title)
     }
 
+    @Test fun localTestHlsUrlsAreValidWhenExplicitlyProvided() {
+        assertNotNull(parser.manualUrl("http://127.0.0.1:18444/ov-hls-test.m3u8", StreamKind.HLS))
+        assertNotNull(parser.manualUrl("http://localhost:18444/ov-hls-test.m3u8", StreamKind.HLS))
+    }
+
     @Test fun manualSourceRejectsUnsafeSchemesAndEmbeddedCredentials() {
         for (url in listOf(
             "file:///storage/test.m3u8", "content://authority/path",
