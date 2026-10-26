@@ -51,6 +51,16 @@ The first physical focus-gated Import test succeeded. A subsequent synthetic HLS
 
 A short, 720p/24fps H.264 HLS pattern was generated with local FFmpeg under `I:\codex\openvista-fixtures`. A temporary Python HTTP server bound to Windows loopback was confirmed HTTP 200, and an ephemeral ADB reverse tunnel was created for testing without changing router or firewall settings. The playback run **did not start** because the screensaver blocked the foreground focus gate. The HTTP server and reverse tunnel were then stopped/removed. No third-party streams were requested.
 
+## Picker lifecycle refinement (2026-10-25)
+
+The two system picker routes now use AndroidX `ActivityResultContracts.StartActivityForResult`, with callbacks registered unconditionally when the Activity is instantiated. This replaces the deprecated `startActivityForResult` / `onActivityResult` hooks and preserves the same explicit, owner-selected document/folder actions.
+
+The app only uses the transient read grant needed for the current in-memory session. It does **not** retain folder grants or source lists across device restarts yet, so the owner must select a folder again after restarting. Grant persistence and revocation remain unverified work under issue #9. No broad storage permission was added.
+
+The implementation compiled and passed local Android Lint and regression suites after this migration. An Android 9 (API 28) Robolectric harness with **4/4 local Activity tests** verifies that importing a list and selecting a folder require user interaction, request **read-only** document access, keep an empty library disabled for playback, and do not launch a picker for an invalid direct URL. Robolectric is a simulated Android environment; physical Fire OS picker completion and return behavior are still unverified on this upgraded code.
+
+Commands to reproduce: `./gradlew :player:testDebugUnitTest :source-core:test :player:assembleDebug :player:lintDebug --no-daemon`. Test instrumentation remains local; no GitHub Actions were used.
+
 ## Testing and rollback
 
 ```powershell

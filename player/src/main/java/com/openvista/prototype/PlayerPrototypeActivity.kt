@@ -2,6 +2,7 @@ package com.openvista.prototype
 
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -18,7 +19,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.MimeTypes
@@ -50,6 +50,18 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private lateinit var video: PlayerView
     private lateinit var playImportedButton: Button
     private lateinit var playVideoButton: Button
+
+    // Register unconditionally so the result is delivered after Activity recreation.
+    private val listPicker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        onPickerResult(REQUEST_LIST, result.resultCode, result.data)
+    }
+    private val folderPicker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        onPickerResult(REQUEST_FOLDER, result.resultCode, result.data)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -209,11 +221,11 @@ class PlayerPrototypeActivity : ComponentActivity() {
 
     private fun openM3uPicker() {
         try {
-            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            listPicker.launch(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }, REQUEST_LIST)
+            })
         } catch (_: RuntimeException) {
             setStatus("File picker unavailable. Use Add a stream instead.")
         }
@@ -221,17 +233,15 @@ class PlayerPrototypeActivity : ComponentActivity() {
 
     private fun openVideoFolderPicker() {
         try {
-            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            folderPicker.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }, REQUEST_FOLDER)
+            })
         } catch (_: RuntimeException) {
             setStatus("Folder picker unavailable. Use Add a stream instead.")
         }
     }
 
-    @Deprecated("Android 9-compatible document picker callback")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private fun onPickerResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode != RESULT_OK) {
             setStatus("Selection cancelled. Your library was not changed.")
             return
