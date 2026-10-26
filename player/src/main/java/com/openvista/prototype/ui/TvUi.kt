@@ -74,6 +74,8 @@ class TvUi(val context: Context) {
             isSingleLine = true
             filters = arrayOf(InputFilter.LengthFilter(max))
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+            isSaveEnabled = false
+            tag = "field_$label"
             setPadding(dp(12), dp(6), dp(12), dp(6))
             backgroundTintList = ColorStateList.valueOf(0xFF80D6F0.toInt())
             parent.addView(this, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)))

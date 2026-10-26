@@ -19,7 +19,6 @@ import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketTimeoutException
-import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Collections
 import java.util.Locale
@@ -107,17 +106,15 @@ class PairingCoordinator(context: Context) : AutoCloseable {
 
     /** Return once, only in direct response to the TV confirmation button. Caller owns persistence. */
     fun approve(id: String): PairingRequest? {
-        val accepted = synchronized(lock) {
+        return synchronized(lock) {
             val request = pending
             if (request?.id != id || SystemClock.elapsedRealtime() >= expires || session == null) null
-            else request.also { pending = null }
-        } ?: return null
-        close()
-        return accepted
+            else request.also { close() }
+        }
     }
 
     fun deny(id: String) {
-        if (synchronized(lock) { pending?.id == id }) close()
+        synchronized(lock) { if (pending?.id == id) close() }
     }
 
     override fun close() {
@@ -126,10 +123,10 @@ class PairingCoordinator(context: Context) : AutoCloseable {
             pending = null
             expires = 0
             status = null
+            expiry?.let { main.removeCallbacks(it) }
+            expiry = null
             session.also { session = null }
         }
-        expiry?.let { main.removeCallbacks(it) }
-        expiry = null
         current?.close()
     }
 
@@ -144,7 +141,7 @@ private class LocalPairingSession(
     private val onStopped: (Boolean) -> Unit,
 ) : AutoCloseable {
     private val worker = Executors.newSingleThreadExecutor()
-    private val token = randomToken(32)
+    private val cipher = PairingCipher()
     private val scriptNonce = randomToken(18)
     private val deadline = SystemClock.elapsedRealtime() + PairingSecurity.SESSION_MS
     private val parser = UserSourceParser()
@@ -173,11 +170,15 @@ private class LocalPairingSession(
                 }
                 check(!closed)
                 authority = "${address.address.hostAddress}:${listening.localPort}"
-                onOffer(PairingOffer("http://$authority/#$token", deadline))
+                onOffer(PairingOffer("http://$authority/#${cipher.fragment()}", deadline))
                 var requests = 0
                 while (!closed && SystemClock.elapsedRealtime() < deadline && requests < 24) {
+                    check(boundInterfacePresent())
                     val socket = try { listening.accept() } catch (_: SocketTimeoutException) { continue }
-                    client = socket
+                    synchronized(transportLock) {
+                        if (closed) { socket.close(); return@execute }
+                        client = socket
+                    }
                     requests++
                     socket.use {
                         it.soTimeout = 1500
@@ -196,11 +197,13 @@ private class LocalPairingSession(
             closed = true
             runCatching { client?.close() }
             runCatching { server?.close() }
+            cipher.close()
         }
         worker.shutdownNow()
     }
 
     private fun serve(socket: Socket) {
+        check(boundInterfacePresent())
         val requestDeadline = minOf(deadline, SystemClock.elapsedRealtime() + 2000)
         val input = socket.getInputStream().buffered()
         var headerBytes = 0
@@ -209,6 +212,7 @@ private class LocalPairingSession(
             while (true) {
                 check(!closed && SystemClock.elapsedRealtime() < requestDeadline)
                 val value = input.read()
+                check(!closed && SystemClock.elapsedRealtime() < requestDeadline)
                 check(value >= 0 && ++headerBytes <= 8192 && bytes.size() <= 1024)
                 if (value == 10) {
                     val raw = bytes.toByteArray()
@@ -241,24 +245,24 @@ private class LocalPairingSession(
                 check(headers["origin"] == "http://$authority")
                 check(headers["sec-fetch-site"] == null || headers["sec-fetch-site"] == "same-origin")
                 check(headers["content-type"] == "application/json")
-                val supplied = headers["authorization"].orEmpty()
-                check(MessageDigest.isEqual("Bearer $token".toByteArray(Charsets.US_ASCII), supplied.toByteArray(Charsets.US_ASCII)))
+                check("authorization" !in headers && "cookie" !in headers)
                 val lengthText = headers["content-length"].orEmpty()
                 check(lengthText.matches(Regex("[1-9][0-9]{0,3}")))
                 val length = lengthText.toInt()
-                check(length in 1..6144)
+                check(length in 1..PairingCipher.MAX_ENVELOPE_BYTES)
                 val body = ByteArray(length)
                 var read = 0
                 while (read < length) {
                     check(!closed && SystemClock.elapsedRealtime() < requestDeadline)
                     val count = input.read(body, read, length - read)
-                    check(count > 0)
+                    check(count > 0 && !closed && SystemClock.elapsedRealtime() < requestDeadline)
                     read += count
                 }
                 val decoder = Charsets.UTF_8.newDecoder()
                     .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
                     .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
-                val json = JSONObject(decoder.decode(java.nio.ByteBuffer.wrap(body)).toString())
+                val envelope = JSONObject(decoder.decode(java.nio.ByteBuffer.wrap(body)).toString())
+                val json = cipher.open(envelope, authority)
                 check(json.length() == 3 && json.has("url") && json.has("title") && json.has("kind"))
                 val title = json.getString("title")
                 check(title.length <= 120 && title.none { it.isISOControl() })
@@ -268,7 +272,7 @@ private class LocalPairingSession(
                 check(!closed && SystemClock.elapsedRealtime() < deadline)
                 consumed = true
                 onSource(source)
-                respond(socket, 202, "application/json", "{}", false)
+                respond(socket, 202, "application/json", cipher.acknowledgement(authority), false)
                 // Close the listener immediately after one accepted submission; TV approval remains pending.
                 server?.close()
             }
@@ -307,6 +311,14 @@ private class LocalPairingSession(
             val mask = 1 shl (7 - bit % 8)
             (ours[bit / 8].toInt() and mask) == (theirs[bit / 8].toInt() and mask)
         }
+    }
+
+    private fun boundInterfacePresent(): Boolean {
+        val current = NetworkInterface.getByInetAddress(address.address) ?: return false
+        return current.isUp && !current.isLoopback && !current.isVirtual &&
+            current.interfaceAddresses.any {
+                it.address == address.address && it.networkPrefixLength == address.networkPrefixLength
+            }
     }
 }
 

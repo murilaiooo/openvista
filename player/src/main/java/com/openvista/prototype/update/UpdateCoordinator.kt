@@ -140,13 +140,17 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
                 }
             } finally { conn.disconnect(); connection = null }
             validate(partial, release, id)
-            checkActive(id)
-            val staged = File(directory, "${UUID.randomUUID()}.apk")
-            check(partial.renameTo(staged))
-            val artifact = DownloadedUpdate(release, staged)
-            rememberDownload(artifact)
-            downloaded = artifact
-            emit(id, UpdateState.Ready(artifact))
+            synchronized(stateLock) {
+                checkActive(id)
+                val staged = File(directory, "${UUID.randomUUID()}.apk")
+                check(partial.renameTo(staged))
+                try {
+                    val artifact = DownloadedUpdate(release, staged)
+                    rememberDownload(artifact)
+                    downloaded = artifact
+                    emit(id, UpdateState.Ready(artifact))
+                } catch (error: Exception) { staged.delete(); throw error }
+            }
         } finally { partial.delete() }
     }
 
@@ -162,8 +166,17 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
         params.setAppPackageName(app.packageName)
         params.setSize(update.file.length())
-        val created = installer.createSession(params)
-        sessionId = created
+        val nonce = UUID.randomUUID().toString()
+        val created = synchronized(stateLock) {
+            checkActive(id)
+            installer.createSession(params).also { created ->
+                try {
+                    // Persist before opening/copying so process death cannot orphan a staged session.
+                    UpdateInstallReceiver.register(app, created, nonce) { state -> installerResult(id, state) }
+                    sessionId = created
+                } catch (error: Exception) { runCatching { installer.abandonSession(created) }; throw error }
+            }
+        }
         var committed = false
         try {
             installer.openSession(created).use { session ->
@@ -179,7 +192,6 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
                         session.fsync(output)
                     }
                 }
-                val nonce = UUID.randomUUID().toString()
                 val intent = Intent(app, UpdateInstallReceiver::class.java)
                     .setAction(UpdateInstallReceiver.ACTION)
                     .setData(Uri.parse("openvista-update://session/$created/$nonce"))
@@ -189,7 +201,6 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
                 val result = PendingIntent.getBroadcast(app, created, intent, flags)
                 synchronized(stateLock) {
                     checkActive(id)
-                    UpdateInstallReceiver.register(app, created, nonce) { state -> emit(id, state) }
                     session.commit(result.intentSender)
                     committed = true
                     emit(id, UpdateState.Installing)
@@ -198,8 +209,10 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
         } finally {
             if (!committed) {
                 runCatching { installer.abandonSession(created) }
-                sessionId = null
-                UpdateInstallReceiver.forget(app)
+                synchronized(stateLock) {
+                    if (sessionId == created) sessionId = null
+                    if (UpdateInstallReceiver.activeSession(app) == created) UpdateInstallReceiver.forget(app)
+                }
             }
         }
     }
@@ -210,25 +223,43 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
     /** Reattach to an installer result after UI/process recreation; this performs no network work. */
     fun resumeInstallation(callback: (UpdateState) -> Unit): Boolean {
         check(!closed)
-        val state = UpdateInstallReceiver.savedState(app)
-        if (state != null) {
+        val state = synchronized(stateLock) {
             pause()
+            UpdateInstallReceiver.abandonUntrackedStaging(app)
+            UpdateInstallReceiver.savedState(app)
+        }
+        if (state != null) {
             synchronized(stateLock) {
                 this.callback = callback
                 val id = generation.get()
                 sessionId = UpdateInstallReceiver.activeSession(app)
-                UpdateInstallReceiver.attach { result -> emit(id, result) }
+                UpdateInstallReceiver.attach { result -> installerResult(id, result) }
+                if (state == UpdateState.Installed) downloaded = null
                 emit(id, UpdateInstallReceiver.savedState(app) ?: state)
             }
             return true
         }
         val retained = downloaded ?: retainedDownload() ?: return false
         launch(callback) { id ->
-            validate(retained.file, retained.release, id)
-            downloaded = retained
-            offered = retained.release
-            emit(id, if (app.packageManager.canRequestPackageInstalls()) UpdateState.Ready(retained)
-                else UpdateState.NeedsPermission)
+            try {
+                validate(retained.file, retained.release, id)
+                synchronized(stateLock) {
+                    checkActive(id)
+                    downloaded = retained
+                    offered = retained.release
+                    emit(id, if (app.packageManager.canRequestPackageInstalls()) UpdateState.Ready(retained)
+                        else UpdateState.NeedsPermission)
+                }
+            } catch (error: Exception) {
+                synchronized(stateLock) {
+                    if (generation.get() == id) {
+                        retained.file.delete()
+                        downloaded = null
+                        downloadPreferences.edit().clear().commit()
+                    }
+                }
+                throw error
+            }
         }
         return true
     }
@@ -247,19 +278,32 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
     /** Explicit user cancellation may abandon a staged/committed session if Android permits it. */
     fun cancel() {
         val sink = callback
+        var result: UpdateState = UpdateState.Cancelled
         val cancelledGeneration = synchronized(stateLock) {
             pause()
-            (sessionId ?: UpdateInstallReceiver.activeSession(app))?.let {
-                runCatching { app.packageManager.packageInstaller.abandonSession(it) }
+            val active = sessionId ?: UpdateInstallReceiver.activeSession(app)
+            val abandoned = active == null || runCatching {
+                app.packageManager.packageInstaller.abandonSession(active)
+            }.isSuccess
+            if (abandoned) {
+                sessionId = null
+                UpdateInstallReceiver.forget(app)
+            } else {
+                // Android owns the committed session. Do not discard its nonce or claim cancellation.
+                sessionId = active
+                callback = sink
+                val id = generation.get()
+                UpdateInstallReceiver.attach { state -> installerResult(id, state) }
+                result = UpdateInstallReceiver.savedState(app) ?: UpdateState.Failed
+                sessionId = UpdateInstallReceiver.activeSession(app)
             }
-            sessionId = null
-            UpdateInstallReceiver.forget(app)
             (downloaded ?: retainedDownload())?.file?.delete()
             downloaded = null
-            downloadPreferences.edit().clear().apply()
+            offered = null
+            downloadPreferences.edit().clear().commit()
             generation.get()
         }
-        main.post { if (!closed && generation.get() == cancelledGeneration) sink?.invoke(UpdateState.Cancelled) }
+        main.post { if (!closed && generation.get() == cancelledGeneration) sink?.invoke(result) }
     }
 
     override fun close() {
@@ -270,7 +314,7 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
         worker.shutdownNow()
     }
 
-    private fun launch(sink: (UpdateState) -> Unit, action: (Long) -> Unit) {
+    private fun launch(sink: (UpdateState) -> Unit, action: (Long) -> Unit) = synchronized(stateLock) {
         check(!closed)
         generation.incrementAndGet()
         connection?.disconnect()
@@ -279,19 +323,30 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
         val id = generation.get()
         operationDeadline = SystemClock.elapsedRealtime() + 180_000L
         if (UpdateInstallReceiver.hasActiveSession(app)) {
-            UpdateInstallReceiver.attach { result -> emit(id, result) }
+            UpdateInstallReceiver.attach { result -> installerResult(id, result) }
             UpdateInstallReceiver.savedState(app)?.let { emit(id, it) }
-            return
+            return@synchronized
         }
         task = worker.submit {
             try { action(id) } catch (_: Exception) {
                 if (generation.get() == id && !closed) emit(id, UpdateState.Failed)
             }
         }
+        Unit
     }
 
     private fun emit(id: Long, state: UpdateState) {
         main.post { if (!closed && generation.get() == id) callback?.invoke(state) }
+    }
+
+    private fun installerResult(id: Long, state: UpdateState) = synchronized(stateLock) {
+        if (generation.get() != id || closed) return@synchronized
+        sessionId = UpdateInstallReceiver.activeSession(app)
+        if (state == UpdateState.Installed) {
+            downloaded = null
+            offered = null
+        }
+        emit(id, state)
     }
 
     private fun checkActive(id: Long) {
@@ -376,7 +431,8 @@ class UpdateCoordinator(context: Context) : AutoCloseable {
         var url = initial
         repeat(5) { hop ->
             checkActive(id)
-            check(url.protocol == "https" && url.userInfo == null && (url.port == -1 || url.port == 443))
+            check(url.protocol == "https" && url.userInfo == null && url.ref == null &&
+                (url.port == -1 || url.port == 443))
             if (!asset) check(url.toString() == UpdateChannel.API)
             else if (hop == 0) check(url.toString().startsWith(UpdateChannel.PROJECT))
             else check(url.host == "release-assets.githubusercontent.com")

@@ -31,7 +31,7 @@ OpenVista is for the moments when a television should feel like a window, not a 
 | Area | Implemented behavior | Evidence / limits |
 | --- | --- | --- |
 | TV experience | Three-card Home, Cameras, My Videos, Favorites, onboarding, remote-first menus, EN/PT-BR | Home, library and basic D-pad/picker flows observed on Hisense; full accessibility pass pending |
-| Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Live HLS/DASH 720p and M3U import observed on Hisense; other stream formats/quality need testing |
+| Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Original HLS/DASH 720p and M3U import observed; an independent unmerged QA candidate also rendered controlled HLS 1080p and DASH/HEVC 4K test patterns on Hisense. Sustained decoding remains unverified |
 | Local videos | Scoped Android file/folder picker, recursive scan, persistence, playlists, player resume | MP4 and selected-folder restoration observed; physical USB removal/revocation and full codec matrix pending |
 | Ambient playback | Media3 fullscreen player, camera rotation, local looping, muted default, overlays | Physical playback confirmed; long-run performance and recovery not certified |
 | Weather | Free U.S. National Weather Service seven-day forecasts, hourly forecast condition, cache | Tucson forecast and on-video temperature observed; U.S. coverage only; no geocoding |
@@ -39,7 +39,7 @@ OpenVista is for the moments when a television should feel like a window, not a 
 | System screensaver | Optional Android DreamService implementation | Fire OS idle activation / OEM compatibility not approved |
 | Pairing and updates | Security-gated phone input and verified-update implementation | **Disabled** pending security, release channel and Android installer validation |
 
-See [the dated verification ledger](docs/STATUS.md) and [Hisense device matrix](docs/testing/compatibility.md). A feature being coded does **not** mean it has passed stable-release acceptance.
+See [the dated verification ledger](docs/STATUS.md), [the independent Codex QA candidate report](docs/testing/independent-codex-qa-2026-10-26.md), and [Hisense device matrix](docs/testing/compatibility.md). The additional QA candidate is not merged or release-certified. A feature being coded does **not** mean it has passed stable-release acceptance.
 
 ## Run it locally
 

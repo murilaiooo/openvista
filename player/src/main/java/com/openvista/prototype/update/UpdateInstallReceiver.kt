@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInstaller
+import java.io.File
 
 /** Explicit, non-exported recipient for the installer-owned PendingIntent capability. */
 class UpdateInstallReceiver : BroadcastReceiver() {
@@ -27,16 +28,17 @@ class UpdateInstallReceiver : BroadcastReceiver() {
                 } == true
                 if (confirmation != null && target != null && trusted) {
                     confirmation.component = target
-                    prefs.edit().putString("confirmation", confirmation.toUri(Intent.URI_INTENT_SCHEME)).apply()
-                    UpdateState.ConfirmationRequired(confirmation)
+                    if (prefs.edit().putString("confirmation", confirmation.toUri(Intent.URI_INTENT_SCHEME)).commit())
+                        UpdateState.ConfirmationRequired(confirmation) else UpdateState.Failed
                 } else UpdateState.Failed
             }
             PackageInstaller.STATUS_SUCCESS -> UpdateState.Installed
             else -> UpdateState.Failed
         }
         if (status != PackageInstaller.STATUS_PENDING_USER_ACTION || state == UpdateState.Failed) {
-            prefs.edit().clear().putInt("last_status", status).apply()
+            prefs.edit().clear().putInt("last_status", status).commit()
         }
+        if (state == UpdateState.Installed) clearInstalledDownload(context)
         listener?.invoke(state)
         if (status != PackageInstaller.STATUS_PENDING_USER_ACTION || state == UpdateState.Failed) listener = null
     }
@@ -55,7 +57,7 @@ class UpdateInstallReceiver : BroadcastReceiver() {
 
         internal fun forget(context: Context) {
             listener = null
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().commit()
         }
 
         internal fun attach(sink: (UpdateState) -> Unit) { listener = sink }
@@ -68,15 +70,44 @@ class UpdateInstallReceiver : BroadcastReceiver() {
 
         internal fun hasActiveSession(context: Context): Boolean = activeSession(context) != null
 
+        private fun clearInstalledDownload(context: Context) {
+            val provenance = context.getSharedPreferences("verified-update", Context.MODE_PRIVATE)
+            val name = provenance.getString("file", null)
+            if (name != null && name.matches(Regex("[a-f0-9-]{36}\\.apk"))) {
+                runCatching {
+                    val directory = File(context.cacheDir, "verified-updates")
+                    val file = File(directory, name)
+                    if (file.canonicalFile.parentFile == directory.canonicalFile) file.delete()
+                }
+            }
+            provenance.edit().clear().commit()
+        }
+
+        /** Recover the narrow createSession/persist window without touching committed installations. */
+        internal fun abandonUntrackedStaging(context: Context) {
+            val installer = context.packageManager.packageInstaller
+            val tracked = activeSession(context)
+            runCatching { installer.mySessions }.getOrDefault(emptyList()).filter {
+                it.sessionId != tracked && it.appPackageName == context.packageName && !it.isSealed
+            }.forEach { runCatching { installer.abandonSession(it.sessionId) } }
+        }
+
         @Suppress("DEPRECATION")
         internal fun savedState(context: Context): UpdateState? {
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             val active = activeSession(context)
             if (active != null) {
-                val exists = runCatching { context.packageManager.packageInstaller.getSessionInfo(active) != null }
-                    .getOrDefault(false)
+                val installer = context.packageManager.packageInstaller
+                val info = runCatching { installer.getSessionInfo(active) }.getOrNull()
                 // Retain the nonce for a possible delayed terminal result. Only explicit cancel forgets it.
-                if (!exists) return UpdateState.Failed
+                if (info == null) return UpdateState.Failed
+                // A process can die while copying bytes, before commit. Such a session cannot finish.
+                // API 26 isSealed distinguishes committed sessions on the Android 9 target.
+                if (!info.isSealed) {
+                    runCatching { installer.abandonSession(active) }
+                    prefs.edit().clear().putInt("last_status", PackageInstaller.STATUS_FAILURE).commit()
+                    return UpdateState.Failed
+                }
             }
             val serialized = prefs.getString("confirmation", null)
             if (serialized != null && active != null) {
@@ -89,7 +120,10 @@ class UpdateInstallReceiver : BroadcastReceiver() {
                 return if (intent != null && trusted) UpdateState.ConfirmationRequired(intent) else UpdateState.Failed
             }
             if (active != null) return UpdateState.Installing
-            return when (prefs.getInt("last_status", Int.MIN_VALUE)) {
+            val terminal = prefs.getInt("last_status", Int.MIN_VALUE)
+            // A terminal notification is shown once; it must not block every future update check.
+            if (terminal != Int.MIN_VALUE) prefs.edit().remove("last_status").commit()
+            return when (terminal) {
                 PackageInstaller.STATUS_SUCCESS -> UpdateState.Installed
                 Int.MIN_VALUE -> null
                 else -> UpdateState.Failed

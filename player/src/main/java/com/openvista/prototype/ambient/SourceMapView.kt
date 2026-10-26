@@ -14,9 +14,9 @@ import com.openvista.prototype.R
 import com.openvista.prototype.library.LibraryItem
 import kotlin.math.floor
 
-/** Provider-independent equirectangular coordinate view; no unlicensed basemap or tile requests. */
+/** D-pad map with aligned equirectangular markers and an offline coordinate/list fallback. */
 class SourceMapView(context: Context, private val sources: List<LibraryItem>,
-                    private val provider: MapBackdropProvider? = null,
+                    private val provider: MapBackdropProvider? = ProviderPolicy.map(context),
                     private val onStatus: (MapBackdropState) -> Unit = {},
                     private val choose: (LibraryItem) -> Unit) : FrameLayout(context) {
     private var repository = MapBackdropRepository(context, provider)
@@ -28,7 +28,18 @@ class SourceMapView(context: Context, private val sources: List<LibraryItem>,
     private var centerLat = 0.0
     private var centerLon = 0.0
 
-    init { setWillNotDraw(false); setBackgroundColor(0xFF0E2436.toInt()); clipChildren = true }
+    private val request = Runnable { requestBackdrop() }
+    init {
+        setWillNotDraw(false); setBackgroundColor(0xFF0E2436.toInt()); clipChildren = true
+        isFocusable = false; contentDescription = context.getString(R.string.map_pan_help)
+    }
+    fun pan(horizontal: Int, vertical: Int) {
+        if (level == 0) { zoom(1); return }
+        val scale = (1 shl level).toDouble()
+        centerLon = (centerLon + horizontal * 90 / scale).coerceIn(-180 + 180 / scale, 180 - 180 / scale)
+        centerLat = (centerLat + vertical * 45 / scale).coerceIn(-90 + 90 / scale, 90 - 90 / scale)
+        backdrop = null; renderMarkers(); removeCallbacks(request); postDelayed(request, 350); invalidate()
+    }
     fun zoom(delta: Int) {
         level = (level + delta).coerceIn(0, 5)
         val scale = (1 shl level).toDouble()
@@ -43,7 +54,7 @@ class SourceMapView(context: Context, private val sources: List<LibraryItem>,
         if (repositoryClosed) { repository = MapBackdropRepository(context, provider); repositoryClosed = false }
         requestBackdrop()
     }
-    override fun onDetachedFromWindow() { repository.close(); repositoryClosed = true; super.onDetachedFromWindow() }
+    override fun onDetachedFromWindow() { removeCallbacks(request); repository.close(); repositoryClosed = true; super.onDetachedFromWindow() }
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         backdrop?.let { canvas.drawBitmap(it.bitmap, null, Rect(0, 0, width, height), null); return }
@@ -101,7 +112,7 @@ class SourceMapView(context: Context, private val sources: List<LibraryItem>,
             text = credit; textSize = 12f; setTextColor(Color.WHITE); setBackgroundColor(0xCC000000.toInt())
             setPadding(dp(6), dp(3), dp(6), dp(3)); isFocusable = false
         }, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM)) }
-        findViewWithTag<android.view.View>(focusKey)?.requestFocus()
+        if (focusKey != null) findViewWithTag<android.view.View>(focusKey)?.requestFocus()
     }
     private fun requestBackdrop() {
         if (repositoryClosed || width <= 0 || height <= 0) return

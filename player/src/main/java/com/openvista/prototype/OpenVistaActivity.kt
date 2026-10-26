@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.CancellationSignal
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -59,8 +60,10 @@ class OpenVistaActivity : ComponentActivity() {
     private val worker = Executors.newSingleThreadExecutor()
     private var importTask: Future<*>? = null
     @Volatile private var importStream: java.io.InputStream? = null
+    @Volatile private var importCancellation: CancellationSignal? = null
     private var importGeneration = 0
     private var started = false
+    private var resumed = false
     private var ready = false
     private var activeDialog: AlertDialog? = null
     private var pendingMessage: String? = null
@@ -103,8 +106,14 @@ class OpenVistaActivity : ComponentActivity() {
                 runOnUiThread {
                     if (isDestroyed || isFinishing) return@runOnUiThread
                     store = loaded
+                    if (AppLocale.language(applicationContext) != store.settings().language) {
+                        AppLocale.save(applicationContext, store.settings().language)
+                        recreate()
+                        return@runOnUiThread
+                    }
                     access = LibraryAccess(this, store)
                     libraryScreens = LibraryScreens(this)
+                    libraryScreens.restoreState(savedInstanceState)
                     settingsScreens = SettingsScreens(this)
                     playerScreen = PlayerScreen(this, store)
                     ready = true
@@ -142,8 +151,23 @@ class OpenVistaActivity : ComponentActivity() {
 
     override fun onStart() { super.onStart(); started = true; if (ready) resumeForeground() }
 
+    override fun onResume() {
+        super.onResume()
+        resumed = true
+        if (ready && started && route.page == "player") renderPlayer()
+    }
+
+    override fun onPause() {
+        resumed = false
+        if (ready && route.page == "player") {
+            rememberPlayback()
+            playerScreen.suspendPlayback()?.let { playbackSnapshot = it }
+        }
+        super.onPause()
+    }
+
     private fun resumeForeground() {
-        if (route.page == "player") renderPlayer()
+        if (route.page == "player" && resumed) renderPlayer()
         access.restore { status ->
             if (route.page != "player") refresh()
             message(status)
@@ -179,7 +203,7 @@ class OpenVistaActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         rememberFocus()
-        if (ready) rememberPlayback()
+        if (ready) { rememberPlayback(); libraryScreens.saveState(outState) }
         outState.putString("navigation", JSONArray().apply {
             (history + route).takeLast(32).forEach { r -> put(JSONObject().put("page", r.page)
                 .put("id", r.id).put("family", r.family.name).put("offset", r.offset).put("focus", r.focus)) }
@@ -210,7 +234,7 @@ class OpenVistaActivity : ComponentActivity() {
 
     fun refresh() {
         if (!ready || isDestroyed || isFinishing) return
-        if (route.page == "player") { if (started) renderPlayer(); return }
+        if (route.page == "player") { if (resumed) renderPlayer(); return }
         val focused = currentFocus?.tag as? String
         root.removeAllViews()
         val outer = ui.column().apply { setPadding(ui.dp(32), ui.dp(18), ui.dp(32), ui.dp(18)) }
@@ -253,6 +277,7 @@ class OpenVistaActivity : ComponentActivity() {
     }
 
     private fun renderPlayer() {
+        if (!resumed) return
         if (playerScreen.isAttached) return
         val items = (playbackSnapshot?.itemIds ?: playbackIds).mapNotNull(store::item)
         if (items.isEmpty()) { route = LibraryRoute("home"); refresh(); message(R.string.no_playable_items); return }
@@ -336,14 +361,17 @@ class OpenVistaActivity : ComponentActivity() {
     private fun importList(uri: Uri) {
         cancelImport()
         val generation = importGeneration
+        val cancellation = CancellationSignal()
+        importCancellation = cancellation
         message(R.string.reading_list)
         importTask = worker.submit {
             val listName = try {
-                contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { rows ->
+                contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null, cancellation)?.use { rows ->
                     if (!rows.moveToFirst()) null else rows.getString(0)?.filterNot(Char::isISOControl)?.take(100)
                 }
             } catch (_: Exception) { null }
             val parsed = try {
+                cancellation.throwIfCanceled()
                 contentResolver.openInputStream(uri)?.let { input -> importStream = input; UserSourceParser().parseM3u(input) }
             } catch (_: Exception) { null } finally { importStream = null }
             runOnUiThread {
@@ -364,10 +392,17 @@ class OpenVistaActivity : ComponentActivity() {
 
     private fun cancelImport() {
         importGeneration++; importTask?.cancel(true); importTask = null
+        importCancellation?.cancel(); importCancellation = null
         try { importStream?.close() } catch (_: Exception) { }
         importStream = null
     }
-    private fun leaveScreen() { if (ready && route.page == "player") { rememberPlayback(); playerScreen.stop() } }
+    private fun leaveScreen() {
+        cancelImport()
+        if (ready) {
+            settingsScreens.onScreenExit()
+            if (route.page == "player") { rememberPlayback(); playerScreen.stop() }
+        }
+    }
     private fun rememberPlayback() {
         if (ready && route.page == "player") {
             playerScreen.currentItemId?.let { playbackSelected = it }

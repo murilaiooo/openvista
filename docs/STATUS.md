@@ -29,11 +29,15 @@
 
 These are **partial results**, not comprehensive acceptance for entire feature families. A local file or research-list import does not establish rights to redistribute a third-party stream. A declared 1080p/4K resolution is not a measured decoder result.
 
+### Independent unmerged QA candidate (2026-10-26)
+
+A separate review snapshot of the Codex remaining-development work passed local Kotlin/Android tests (23 cases), Gradle build, Lint and debug APK content scanning after one SAF cancellation correction and an updated grant-retention test. Its additional deduplication test also passed. On the physical Hisense, schema 1 -> 2 consolidated 44 stored sources into 43 (four videos into three), retaining all 40 cameras, favorites, playlist links and checkpoint references. PT-BR Home and four D-pad directions received partial checks. Controlled HLS/H.264 1080p and DASH/HEVC 4K fixtures later rendered on the Hisense; a falsely unavailable status after finite camera completion was corrected and retested. The independently verified SAF/storage subset was merged as [PR #25](https://github.com/murilaiooo/openvista/pull/25); **the remainder of the QA candidate is still unmerged and uncertified**. See [the independent QA evidence](testing/independent-codex-qa-2026-10-26.md), [the playback probe](testing/hisense-fhd-4k-playback-2026-10-26.md) and [owner-assisted hardware checks](testing/owner-assisted-acceptance-2026-10-26.md). USB, sustained 4K/HDR, full focus traversal, 24-hour soak, pairing, updates and DreamService remain gated.
+
 ## Known issues and unverified paths
 
-1. **Local video deduplication:** the same MP4 appeared twice after first adding it individually and then importing its parent folder. Reproduced after process restart; needs a canonical identity/dedup policy.
+1. **Local video deduplication:** the canonical tree/direct SAF identity correction was merged as PR #25 after local verification and a physical schema migration of the existing library. The real USB/provider revocation matrix is still pending.
 2. **Physical USB:** file/folder selection and persistence work for tested internal media. Unplug/replug, revoked grants, real USB drive behavior and all supported containers/codecs have not passed the required matrix.
-3. **High-resolution and long-duration playback:** 1080p/4K, HDR behavior, dropped frames, thermal/CPU/RAM and 24-hour uninterrupted rotation/soak are not signed off.
+3. **High-resolution and long-duration playback:** single controlled HLS/H.264 1080p and DASH/HEVC 4K clips visibly rendered on the target TV. Sustained playback, HDR, decoder dropped-frame statistics, thermal/CPU/RAM trends and 24-hour uninterrupted rotation/soak are not signed off.
 4. **DreamService:** source exists, but Fire OS idle activation, service selection, remote-key delivery and timing remain OEM-gated. The owner disabled the existing system screensaver for testing; OpenVista must not reactivate it without their approval.
 5. **Map/geocoding:** an app-local schematic and saved-coordinate list exist. Licensed map tiles and city-name geocoding are not integrated.
 6. **Weather scope:** NWS forecasts cover supported U.S. coordinates only. Some provider-supplied condition text remains English in PT-BR. Stale/offline behavior was not subjected to extended on-device failure injection.

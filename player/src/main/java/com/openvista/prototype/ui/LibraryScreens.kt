@@ -3,6 +3,7 @@ package com.openvista.prototype.ui
 import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
 import android.view.ViewGroup
@@ -34,6 +35,21 @@ class LibraryScreens(private val host: OpenVistaActivity) {
     private var category = ""
     private var favoriteOnly = false
     private var availableOnly = false
+
+    fun saveState(state: Bundle) {
+        state.putString("filterSearch", search); state.putString("filterCountry", country)
+        state.putString("filterCity", city); state.putString("filterCategory", category)
+        state.putBoolean("filterFavorite", favoriteOnly); state.putBoolean("filterAvailable", availableOnly)
+    }
+
+    fun restoreState(state: Bundle?) {
+        if (state == null) return
+        search = state.getString("filterSearch").orEmpty().take(100)
+        country = state.getString("filterCountry").orEmpty().take(100)
+        city = state.getString("filterCity").orEmpty().take(100)
+        category = state.getString("filterCategory").orEmpty().take(100)
+        favoriteOnly = state.getBoolean("filterFavorite"); availableOnly = state.getBoolean("filterAvailable")
+    }
 
     fun home(body: LinearLayout) {
         body.addView(ui.heading(s(R.string.app_name)))
@@ -384,6 +400,13 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         ui.button(controls, s(R.string.zoom_out)) { map.zoom(-1) }
         ui.button(controls, s(R.string.reset_view)) { map.reset() }
         body.addView(controls)
+        body.addView(ui.description(s(R.string.map_pan_help)))
+        val pan = ui.row()
+        ui.button(pan, s(R.string.map_west)) { map.pan(-1, 0) }
+        ui.button(pan, s(R.string.map_north)) { map.pan(0, 1) }
+        ui.button(pan, s(R.string.map_south)) { map.pan(0, -1) }
+        ui.button(pan, s(R.string.map_east)) { map.pan(1, 0) }
+        body.addView(pan)
         val panels = ui.row()
         panels.addView(map, LinearLayout.LayoutParams(0, ui.dp(300), 1.4f))
         val list = ui.column()
