@@ -148,7 +148,7 @@
     <string name="system_default">TV default</string>
     <string name="on">On</string>
     <string name="off">Off</string>
-    <string name="rotation">Camera rotation (minutes)</string>
+    <string name="rotation">Live camera rotation (minutes)</string>
     <string name="quality">Maximum video height</string>
     <string name="automatic">Automatic</string>
     <string name="aspect_ratio">Video fit</string>
@@ -182,10 +182,10 @@
     <string name="cool">Cool</string>
     <string name="overlay_x">Horizontal offset (%)</string>
     <string name="overlay_y">Vertical offset (%)</string>
-    <string name="overlay_movement">Periodically reposition overlays</string>
+    <string name="overlay_movement">The camera and weather panels move every minute to reduce static screen elements.</string>
     <string name="overlay_hiding">Hide overlays after inactivity</string>
     <string name="overlay_hide_delay">Overlay inactivity delay (seconds)</string>
-    <string name="overlay_notice">Movement and hiding are independent. These options do not guarantee protection from burn-in.</string>
+    <string name="overlay_notice">Both information panels move every minute. Random mode changes the path without covering the other panel. Moving overlays cannot guarantee prevention of image retention or burn-in.</string>
     <string name="schedule">Screensaver schedule</string>
     <string name="schedule_enable">Limit automatic screensaver playback to a daily window</string>
     <string name="schedule_start">Start (HH:mm)</string>
@@ -230,5 +230,15 @@
     <string name="sensitive_url_notice">This editor shows your private source URL. It is never included in reports.</string>
     <string name="weather_nws_notice">Free seven-day US forecasts are available for saved coordinates. Set your city and coordinates below. City search is not yet supported.</string>
     <string name="city_search_unavailable">City search is unavailable. Enter a city and coordinates manually.</string>
+    <string name="video_rotation">Local video rotation (minutes)</string>
+    <string name="overlay_random">Randomize panel positions</string>
+    <string name="camera_label">LIVE CAMERA</string>
+    <string name="video_label">LOCAL VIDEO</string>
+    <string name="local_time_label">LOCAL TIME</string>
+    <string name="time_zone_unavailable">Local time unavailable</string>
+    <string name="weather_region_label">LOCAL WEATHER</string>
+    <string name="weather_viewer_label">WEATHER · VIEWER LOCATION</string>
+    <string name="overlay_location_unknown">Location not provided</string>
+    <string name="camera_metadata_hint">Set the camera city, country, IANA time zone (for example America/New_York), and latitude/longitude for accurate local time and weather. Unspecified camera locations are never guessed from stream URLs.</string>
 </resources>
 

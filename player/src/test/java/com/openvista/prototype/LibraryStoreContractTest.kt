@@ -38,6 +38,11 @@ class LibraryStoreContractTest {
         assertTrue(store.folders().isEmpty())
         assertTrue(store.settings().muted)
         assertFalse(store.settings().onboardingComplete)
+        assertEquals(1, store.settings().rotationMinutes)
+        assertEquals(5, store.settings().videoRotationMinutes)
+        assertTrue(store.settings().moveOverlay)
+        assertTrue(store.settings().randomOverlayPosition)
+        assertTrue(store.settings().showLocation)
     }
 
     @Test fun importingDuplicateSourcesCreatesOneRecordAndOrderedPlaylistAtomically() {
@@ -108,6 +113,26 @@ class LibraryStoreContractTest {
         assertEquals("tree-clip", restored.item("direct-clip")?.id)
         assertEquals(2, restored.items().single().accessRoutes.size)
         assertEquals(listOf("tree-clip"), restored.playlists().single().itemIds)
+    }
+
+    @Test fun staticInformationPanelsCannotBeSavedAsAlwaysStationary() {
+        val store = open()
+        store.saveSettings(store.settings().copy(moveOverlay = false, randomOverlayPosition = false))
+        assertTrue(store.settings().moveOverlay)
+        assertFalse(store.settings().randomOverlayPosition)
+    }
+
+    @Test fun cameraAndVideoIntervalsAndMotionSettingsPersistIndependently() {
+        val store = open()
+        store.saveSettings(store.settings().copy(rotationMinutes = 2, videoRotationMinutes = 7,
+            moveOverlay = true, randomOverlayPosition = false, showLocation = true))
+        store.flush()
+        val restored = open()
+        assertEquals(2, restored.settings().rotationMinutes)
+        assertEquals(7, restored.settings().videoRotationMinutes)
+        assertTrue(restored.settings().moveOverlay)
+        assertFalse(restored.settings().randomOverlayPosition)
+        assertTrue(restored.settings().showLocation)
     }
 
     @Test fun settingsAreBoundedAndPersistWithoutInternetOrAccount() {

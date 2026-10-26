@@ -21,7 +21,7 @@ These are implementation and **scoped test milestones**, not public-stable accep
 
 - [x] Fix canonical direct-document/tree-document duplicates in the library (merged PR #25, local tests and sampled hardware migration passed; broader USB access matrix remains pending).
 - [ ] Audit complete D-pad focus, Back, first-run, import/error prompts, settings, localized text and accessibility on physical Fire OS.
-- [ ] Confirm camera rotation, video resume, source switching, favorites, local playlist ordering/looping and failure recovery with reproducible device evidence.
+- [ ] Confirm the newly separated 1-minute camera and 5-minute local-video rotation intervals, resume, source switching, favorites, local playlist ordering/looping and recovery with reproducible physical evidence; settings/UI implementation is in [smart ambient QA](testing/smart-ambient-rotation-2026-10-26.md).
 - [ ] Verify NWS caching, hourly-to-daily normalization, offline stale states and locale-friendly weather descriptions.
 - [ ] Resolve existing TV picker and UI regressions without changes to unrelated apps or the user's screen-saver preference.
 
@@ -30,7 +30,8 @@ These are implementation and **scoped test milestones**, not public-stable accep
 - [ ] Complete USB unplug/replug, persisted-grant revocation, nested folder traversal and video format matrix (MP4/MKV/WebM/MOV, supported codecs only).
 - [x] Render controlled 1080p HLS/H.264 and 4K DASH/HEVC QA test patterns on the Hisense with captured frames and HTTP segment evidence (development only).
 - [ ] Verify sustained 1080p/4K playback, real-world sources, HDR capability, decoder fallback, CPU/RAM/network/dropped-frame measurements.
-- [ ] Prove or explicitly document Hisense Fire OS 7 DreamService selection/idle/remote support with owner-approved OS settings and rollback.
+- [x] Observe owner-authorized Hisense OpenVista DreamService selection and automatic idle entry, retaining reversible system settings ([evidence](testing/hisense-dreamservice-activation-2026-10-26.md)).
+- [ ] Complete DreamService remote controls, sleep/wake, normal 3-minute idle and long-running lifecycle QA.
 - [ ] Review/select geographically suitable, legally usable map tiles and city geocoding; keep current schematic/list fallback until then.
 - [ ] Securely validate QR/LAN phone-to-TV input before enabling PairingSecurity.REVIEWED; no unreviewed HTTP exposure.
 - [ ] Approve signing/update-channel policy and test Android PackageInstaller user confirmation without silent-install claims.

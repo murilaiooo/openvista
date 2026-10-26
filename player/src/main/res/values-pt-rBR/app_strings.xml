@@ -148,7 +148,7 @@
     <string name="system_default">Padrão da TV</string>
     <string name="on">Ativado</string>
     <string name="off">Desativado</string>
-    <string name="rotation">Rotação de câmeras (minutos)</string>
+    <string name="rotation">Troca de câmeras ao vivo (minutos)</string>
     <string name="quality">Altura máxima do vídeo</string>
     <string name="automatic">Automático</string>
     <string name="aspect_ratio">Ajuste do vídeo</string>
@@ -182,10 +182,10 @@
     <string name="cool">Frio</string>
     <string name="overlay_x">Deslocamento horizontal (%)</string>
     <string name="overlay_y">Deslocamento vertical (%)</string>
-    <string name="overlay_movement">Reposicionar sobreposições periodicamente</string>
+    <string name="overlay_movement">Os painéis da câmera e do clima mudam de posição a cada minuto para reduzir elementos estáticos na tela.</string>
     <string name="overlay_hiding">Ocultar sobreposições após inatividade</string>
     <string name="overlay_hide_delay">Tempo de inatividade da sobreposição (segundos)</string>
-    <string name="overlay_notice">Movimento e ocultação são independentes. Essas opções não garantem proteção contra retenção permanente da imagem.</string>
+    <string name="overlay_notice">Os dois painéis mudam de posição a cada minuto. O modo aleatório altera o percurso sem sobrepor os painéis. Movimentar as informações não garante a prevenção de retenção de imagem ou burn-in.</string>
     <string name="schedule">Horário do protetor de tela</string>
     <string name="schedule_enable">Limitar a reprodução automática a um horário diário</string>
     <string name="schedule_start">Início (HH:mm)</string>
@@ -230,5 +230,15 @@
     <string name="sensitive_url_notice">Este editor mostra a URL privada da fonte. Ela nunca é incluída nos relatórios.</string>
     <string name="weather_nws_notice">Previsão gratuita de sete dias nos EUA para as coordenadas salvas. Defina a cidade e as coordenadas abaixo. A busca de cidades ainda não está disponível.</string>
     <string name="city_search_unavailable">A busca de cidades não está disponível. Informe a cidade e as coordenadas manualmente.</string>
+    <string name="video_rotation">Troca de vídeos locais (minutos)</string>
+    <string name="overlay_random">Posições aleatórias dos painéis</string>
+    <string name="camera_label">CÂMERA AO VIVO</string>
+    <string name="video_label">VÍDEO LOCAL</string>
+    <string name="local_time_label">HORA LOCAL</string>
+    <string name="time_zone_unavailable">Horário local indisponível</string>
+    <string name="weather_region_label">CLIMA LOCAL</string>
+    <string name="weather_viewer_label">CLIMA · LOCALIZAÇÃO DO USUÁRIO</string>
+    <string name="overlay_location_unknown">Localização não informada</string>
+    <string name="camera_metadata_hint">Informe cidade, país, fuso horário IANA (por exemplo America/New_York) e latitude/longitude para mostrar hora e clima locais. O aplicativo não adivinha a localização pela URL da câmera.</string>
 </resources>
 

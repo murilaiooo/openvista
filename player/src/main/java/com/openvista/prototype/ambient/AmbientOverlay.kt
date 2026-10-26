@@ -1,133 +1,300 @@
 package com.openvista.prototype.ambient
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.text.TextUtils
 import android.text.format.DateFormat
-import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.openvista.prototype.R
+import com.openvista.prototype.library.AppSettings
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.LibraryStore
+import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Random
 import java.util.TimeZone
 
-/** Informational widgets only. Menu timeout is owned independently by the player screen. */
+/**
+ * Two independent TV-safe informational panels. Camera identity/time and regional weather
+ * never share one static box. Positions rotate each minute by default; randomized mode
+ * moves to a different corner without affecting playback or provider refresh cadence.
+ * This reduces persistent static UI exposure, but does not guarantee burn-in prevention.
+ */
 class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameLayout(context) {
     private val main = Handler(Looper.getMainLooper())
-    private val box = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-    private val clock = TextView(context)
-    private val date = TextView(context)
-    private val location = TextView(context)
-    private val weather = TextView(context)
-    private val credit = TextView(context)
-    private var item: LibraryItem? = null
-    private var interactionAt = SystemClock.elapsedRealtime()
-    private var running = false
-    private var forecast: Forecast? = null
+    private val random = Random()
     private val weatherRepository = WeatherRepository(context)
+
+    private val scenePanel = panel()
+    private val weatherPanel = panel()
+    private val sceneEyebrow = field(12f, 0xFF82CBE1.toInt(), true)
+    private val sceneTitle = field(25f, Color.WHITE, true)
+    private val cameraLocation = field(16f, 0xFFCFDAE3.toInt())
+    private val timeEyebrow = field(12f, 0xFF82CBE1.toInt(), true)
+    private val clock = field(33f, Color.WHITE, true)
+    private val date = field(15f, 0xFFCFDAE3.toInt())
+    private val weatherEyebrow = field(12f, 0xFF82CBE1.toInt(), true)
+    private val weather = field(25f, Color.WHITE, true)
+    private val weatherDetail = field(15f, 0xFFCFDAE3.toInt())
+    private val credit = field(11f, 0xFFCFDAE3.toInt())
+
+    private var item: LibraryItem? = null
+    private var forecast: Forecast? = null
     private var locationKey: WeatherLocation? = null
     private var weatherAt = Long.MIN_VALUE
+    private var interactionAt = SystemClock.elapsedRealtime()
+    private var running = false
+    private var minute = Long.MIN_VALUE
+    private var positionSlot = 0
+    private var placementSettings = ""
     private val tick = object : Runnable {
-        override fun run() { if (running) { update(); main.postDelayed(this, 1000) } }
+        override fun run() {
+            if (!running) return
+            update()
+            main.postDelayed(this, 1_000)
+        }
     }
 
     init {
         isFocusable = false
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        val margin = (24 * resources.displayMetrics.density).toInt()
-        setPadding(margin, margin, margin, margin)
-        box.setPadding(margin / 2, margin / 3, margin / 2, margin / 3)
-        box.setBackgroundColor(0x66000000)
-        listOf(clock, date, location, weather, credit).forEach { view ->
-            view.setShadowLayer(3f, 1f, 1f, 0xFF000000.toInt()); box.addView(view)
+        setClipChildren(false)
+        setClipToPadding(false)
+        setPadding(dp(28), dp(22), dp(28), dp(22))
+        scenePanel.apply {
+            minimumWidth = dp(300)
+            listOf(sceneEyebrow, sceneTitle, cameraLocation, timeEyebrow, clock, date).forEach {
+                it.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+            }
+            addView(sceneEyebrow)
+            addView(sceneTitle)
+            addView(cameraLocation)
+            addView(space(12))
+            addView(timeEyebrow)
+            addView(clock)
+            addView(date)
         }
-        clock.setTypeface(clock.typeface, Typeface.NORMAL)
-        credit.textSize = 12f
-        credit.setTextColor(android.graphics.Color.WHITE)
-        credit.maxWidth = (420 * resources.displayMetrics.density).toInt()
+        weatherPanel.apply {
+            minimumWidth = dp(280)
+            listOf(weatherEyebrow, weather, weatherDetail, credit).forEach {
+                it.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+            }
+            addView(weatherEyebrow)
+            addView(weather)
+            addView(weatherDetail)
+            addView(credit)
+        }
+        addView(scenePanel, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+        addView(weatherPanel, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         credit.visibility = View.GONE
-        addView(box, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+        sceneTitle.maxLines = 2
+        sceneTitle.ellipsize = TextUtils.TruncateAt.END
+        weatherDetail.maxLines = 2
+        weatherDetail.ellipsize = TextUtils.TruncateAt.END
     }
 
-    fun start() { if (!running) { running = true; main.post(tick) } }
-    fun stop() { running = false; main.removeCallbacks(tick); weatherRepository.cancel() }
-    fun updateItem(item: LibraryItem?) { this.item = item; weatherAt = Long.MIN_VALUE; if (running) update() }
-    fun userInteraction() { interactionAt = SystemClock.elapsedRealtime(); if (running) update() }
-    override fun onDetachedFromWindow() { stop(); weatherRepository.close(); super.onDetachedFromWindow() }
+    private fun panel() = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(21), dp(15), dp(21), dp(16))
+        background = GradientDrawable().apply {
+            cornerRadius = dp(18).toFloat()
+            setColor(0xDE0A1929.toInt())
+            setStroke(dp(1), 0x6672A5BE)
+        }
+        elevation = dp(5).toFloat()
+        clipToPadding = false
+    }
+
+    private fun field(size: Float, color: Int, bold: Boolean = false) = TextView(context).apply {
+        textSize = size
+        setTextColor(color)
+        setTypeface(Typeface.create("sans-serif", if (bold) Typeface.BOLD else Typeface.NORMAL))
+        includeFontPadding = false
+        maxWidth = dp(390)
+        setPadding(0, dp(3), 0, dp(3))
+        setShadowLayer(dp(2).toFloat(), 0f, 1f, 0xA8000000.toInt())
+    }
+
+    private fun space(height: Int) = View(context).apply {
+        layoutParams = LinearLayout.LayoutParams(1, dp(height))
+    }
+
+    private fun dp(value: Int) = (value * resources.displayMetrics.density + .5f).toInt()
+
+    fun start() {
+        if (!running) {
+            running = true
+            main.removeCallbacks(tick)
+            main.post(tick)
+        }
+    }
+
+    fun stop() {
+        running = false
+        main.removeCallbacks(tick)
+        weatherRepository.cancel()
+    }
+
+    fun updateItem(source: LibraryItem?) {
+        item = source
+        weatherAt = Long.MIN_VALUE
+        forecast = null
+        locationKey = null
+        if (running) update()
+    }
+
+    fun userInteraction() {
+        interactionAt = SystemClock.elapsedRealtime()
+        if (running) update()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        post { placePanels() }
+    }
+
+    override fun onDetachedFromWindow() {
+        stop()
+        weatherRepository.close()
+        super.onDetachedFromWindow()
+    }
 
     private fun update() {
-        val settings = store.settings()
-        val idle = SystemClock.elapsedRealtime() - interactionAt
-        visibility = if (settings.hideOverlay && idle > settings.overlayHideSeconds.coerceIn(10, 3600) * 1000L)
+        val s = store.settings()
+        val nowElapsed = SystemClock.elapsedRealtime()
+        val idle = nowElapsed - interactionAt
+        visibility = if (s.hideOverlay && idle >= s.overlayHideSeconds.coerceIn(10, 3600) * 1_000L)
             View.INVISIBLE else View.VISIBLE
-        val zone = if (settings.weatherContext == "camera") item?.timeZone else settings.viewerTimeZone
-        val timeZone = zone?.takeIf { it in TimeZone.getAvailableIDs() }?.let(TimeZone::getTimeZone) ?: TimeZone.getDefault()
-        val pattern = when (settings.clockFormat) {
-            "12" -> "h:mm a"; "24" -> "HH:mm"
+
+        val camera = item
+        sceneEyebrow.setText(if (camera?.family == com.openvista.prototype.library.MediaFamily.CAMERAS)
+            R.string.camera_label else R.string.video_label)
+        sceneTitle.text = camera?.title?.takeIf(String::isNotBlank) ?: context.getString(R.string.app_name)
+        val region = camera?.let { listOf(it.city, it.country).filter(String::isNotBlank).joinToString(", ") }.orEmpty()
+        cameraLocation.text = region
+        cameraLocation.visibility = if (s.showLocation && region.isNotBlank()) View.VISIBLE else View.GONE
+
+        val knownZone = camera?.timeZone?.takeIf { it.isNotBlank() && it in TimeZone.getAvailableIDs() }
+        val isCamera = camera?.family == com.openvista.prototype.library.MediaFamily.CAMERAS
+        val timezone = when {
+            isCamera -> knownZone
+            else -> s.viewerTimeZone.takeIf { it.isNotBlank() && it in TimeZone.getAvailableIDs() }
+                ?: TimeZone.getDefault().id
+        }
+        timeEyebrow.setText(R.string.local_time_label)
+        val locale = resources.configuration.locales[0]
+        val pattern = when (s.clockFormat) {
+            "12" -> "h:mm a"
+            "24" -> "HH:mm"
             else -> if (DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a"
         }
-        clock.text = java.text.SimpleDateFormat(pattern, resources.configuration.locales[0]).apply { this.timeZone = timeZone }.format(Date())
-        date.text = java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, resources.configuration.locales[0])
-            .apply { this.timeZone = timeZone }.format(Date())
-        location.text = if (settings.weatherContext == "camera") item?.let { listOf(it.city, it.country).filter(String::isNotBlank).joinToString(", ") }.orEmpty()
-            else settings.viewerCity
-        clock.visibility = if (settings.showClock) View.VISIBLE else View.GONE
-        date.visibility = if (settings.showDate) View.VISIBLE else View.GONE
-        location.visibility = if (settings.showLocation && location.text.isNotBlank()) View.VISIBLE else View.GONE
-        weather.visibility = if (settings.showWeather) View.VISIBLE else View.GONE
-        credit.visibility = if (settings.showWeather && forecast?.requiresVisibleAttribution == true) View.VISIBLE else View.GONE
-        listOf(clock, date, location, weather).forEach {
-            it.textSize = settings.overlaySize.coerceIn(14, 40).toFloat()
-            it.setTextColor(settings.overlayColor)
+        clock.text = if (timezone == null) context.getString(R.string.time_zone_unavailable)
+            else SimpleDateFormat(pattern, locale).apply { timeZone = TimeZone.getTimeZone(timezone) }.format(Date())
+        date.text = if (timezone == null) ""
+            else java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, locale)
+                .apply { timeZone = TimeZone.getTimeZone(timezone) }.format(Date())
+        clock.visibility = if (s.showClock) View.VISIBLE else View.GONE
+        timeEyebrow.visibility = clock.visibility
+        date.visibility = if (s.showDate && timezone != null) View.VISIBLE else View.GONE
+
+        weatherPanel.visibility = if (s.showWeather) View.VISIBLE else View.GONE
+        val cameraWeather = camera?.takeIf { it.latitude != null && it.longitude != null }?.let {
+            WeatherLocation(it.city.ifBlank { it.country.ifBlank { it.title } }, it.latitude!!, it.longitude!!, it.timeZone)
         }
-        box.alpha = settings.overlayOpacity.coerceIn(20, 100) / 100f
-        val corner = if (settings.moveOverlay) ((SystemClock.elapsedRealtime() / 300_000).toInt() + settings.overlayCorner) % 4
-            else settings.overlayCorner.coerceIn(0, 3)
-        (box.layoutParams as LayoutParams).apply {
-            gravity = when (corner) { 1 -> Gravity.TOP or Gravity.END; 2 -> Gravity.BOTTOM or Gravity.START
-                3 -> Gravity.BOTTOM or Gravity.END; else -> Gravity.TOP or Gravity.START }
-            box.layoutParams = this
+        val viewerWeather = if (s.viewerLatitude != null && s.viewerLongitude != null)
+            WeatherLocation(s.viewerCity, s.viewerLatitude, s.viewerLongitude, s.viewerTimeZone) else null
+        val target = if (s.weatherContext == "camera") cameraWeather ?: viewerWeather else viewerWeather
+        val usesCameraWeather = s.weatherContext == "camera" && cameraWeather != null
+        weatherEyebrow.setText(if (usesCameraWeather) R.string.weather_region_label else R.string.weather_viewer_label)
+        weatherDetail.text = target?.name?.takeIf(String::isNotBlank) ?: context.getString(R.string.overlay_location_unknown)
+
+        val minuteNow = nowElapsed / 60_000L
+        val key = "${s.overlayCorner}/${s.moveOverlay}/${s.randomOverlayPosition}/${s.overlayX}/${s.overlayY}"
+        if (minute != minuteNow || placementSettings != key) {
+            if (minute == Long.MIN_VALUE || placementSettings != key || !s.moveOverlay) {
+                positionSlot = s.overlayCorner.coerceIn(0, 3)
+            } else if (s.randomOverlayPosition) {
+                positionSlot = OverlayMotionPolicy.nextCorner(positionSlot, 1 + random.nextInt(3), randomized = true)
+            } else {
+                positionSlot = OverlayMotionPolicy.nextCorner(positionSlot, 1, randomized = false)
+            }
+            minute = minuteNow
+            placementSettings = key
+            post { placePanels() }
         }
-        // Percentage offsets remain inside measured safe margins, including long localized text.
-        val availableX = (width - paddingLeft - paddingRight - box.width).coerceAtLeast(0)
-        val availableY = (height - paddingTop - paddingBottom - box.height).coerceAtLeast(0)
-        box.translationX = settings.overlayX.coerceIn(0, 100) / 100f * availableX * if (corner % 2 == 0) 1 else -1
-        box.translationY = settings.overlayY.coerceIn(0, 100) / 100f * availableY * if (corner < 2) 1 else -1
-        val cameraLocation = item?.let { source ->
-            if (source.latitude == null || source.longitude == null) null else WeatherLocation(source.city.ifBlank { source.title }, source.latitude, source.longitude, source.timeZone)
-        }
-        val viewerLocation = if (settings.viewerLatitude != null && settings.viewerLongitude != null)
-            WeatherLocation(settings.viewerCity, settings.viewerLatitude, settings.viewerLongitude, settings.viewerTimeZone) else null
-        // Imported playlists often have no camera geotags. Use the viewer's selected city in that case.
-        val target = if (settings.weatherContext == "camera") cameraLocation ?: viewerLocation else viewerLocation
-        if (settings.showWeather && (weatherAt == Long.MIN_VALUE || target != locationKey || SystemClock.elapsedRealtime() - weatherAt > 900_000)) {
-            locationKey = target; weatherAt = SystemClock.elapsedRealtime()
+        val scale = s.overlaySize.coerceIn(14, 40) / 20f
+        sceneTitle.textSize = 25f * scale
+        clock.textSize = 33f * scale
+        weather.textSize = 25f * scale
+        scenePanel.alpha = s.overlayOpacity.coerceIn(20, 100) / 100f
+        weatherPanel.alpha = scenePanel.alpha
+
+        if (s.showWeather && (weatherAt == Long.MIN_VALUE || target != locationKey ||
+                nowElapsed - weatherAt >= 900_000L)) {
+            locationKey = target
+            weatherAt = nowElapsed
+            forecast = null
+            weather.text = context.getString(R.string.weather_loading)
+            credit.visibility = View.GONE
             weatherRepository.load(target) { state ->
+                if (!running || !store.settings().showWeather || target != locationKey) return@load
                 forecast = (state as? WeatherState.Ready)?.forecast
+                weather.text = weatherLabel(state, s)
                 credit.text = forecast?.attribution.orEmpty()
-                credit.visibility = if (settings.showWeather && forecast?.requiresVisibleAttribution == true) View.VISIBLE else View.GONE
-                weather.text = when (state) {
-                    WeatherState.Loading -> context.getString(R.string.weather_loading)
-                    WeatherState.NoLocation -> context.getString(R.string.weather_no_location)
-                    WeatherState.ProviderRequired -> context.getString(R.string.weather_provider_required)
-                    is WeatherState.Ready -> state.forecast.current?.temperatureC?.let { temperature ->
-                        val fahrenheit = settings.temperatureUnit == "fahrenheit" ||
-                            (settings.temperatureUnit == "system" && context.applicationContext.resources.configuration.locales[0].country == "US")
-                        val temperatureLabel = String.format(resources.configuration.locales[0], "%.0f°%s", if (fahrenheit) temperature * 9 / 5 + 32 else temperature,
-                            if (fahrenheit) "F" else "C")
-                        temperatureLabel + " " + state.forecast.current?.let { WeatherText.description(context, it) }.orEmpty() +
-                            (if (state.stale) " · ${context.getString(R.string.weather_cached)}" else "")
-                    } ?: context.getString(R.string.weather_unavailable)
-                    WeatherState.Unavailable -> context.getString(R.string.weather_unavailable)
-                }
+                credit.visibility = if (forecast?.requiresVisibleAttribution == true) View.VISIBLE else View.GONE
+                post { placePanels() }
             }
         }
+    }
+
+    private fun weatherLabel(state: WeatherState, s: AppSettings): String = when (state) {
+        is WeatherState.Ready -> state.forecast.current?.temperatureC?.let { c ->
+            val fahrenheit = s.temperatureUnit == "fahrenheit" ||
+                (s.temperatureUnit == "system" && resources.configuration.locales[0].country == "US")
+            val value = if (fahrenheit) c * 9 / 5 + 32 else c
+            val unit = if (fahrenheit) "F" else "C"
+            String.format(resources.configuration.locales[0], "%.0f°%s", value, unit) +
+                "  " + (state.forecast.current?.let { WeatherText.description(context, it) }.orEmpty()) +
+                if (state.stale) " · " + context.getString(R.string.weather_cached) else ""
+        } ?: context.getString(R.string.weather_unavailable)
+        WeatherState.NoLocation -> context.getString(R.string.weather_no_location)
+        WeatherState.ProviderRequired -> context.getString(R.string.weather_provider_required)
+        WeatherState.Unavailable -> context.getString(R.string.weather_unavailable)
+        WeatherState.Loading -> context.getString(R.string.weather_loading)
+    }
+
+    private fun placePanels() {
+        if (width <= 0 || height <= 0 || scenePanel.width == 0 || weatherPanel.width == 0) {
+            // A first layout pass will arrive via onSizeChanged.
+            return
+        }
+        val s = store.settings()
+        // Opposite diagonal corners keep city/time separate from the weather card.
+        val slot = if (s.moveOverlay) positionSlot else s.overlayCorner.coerceIn(0, 3)
+        val opposite = OverlayMotionPolicy.oppositeCorner(slot)
+        fun position(card: View, corner: Int) {
+            val availX = (width - paddingLeft - paddingRight - card.width).coerceAtLeast(0)
+            val availY = (height - paddingTop - paddingBottom - card.height).coerceAtLeast(0)
+            val right = corner % 2 == 1
+            val bottom = corner >= 2
+            val shiftX = (availX * (s.overlayX.coerceIn(0, 100) / 100f) * .20f).toInt()
+            val shiftY = (availY * (s.overlayY.coerceIn(0, 100) / 100f) * .20f).toInt()
+            // Each card keeps a safe margin while changing quadrant every minute.
+            val x = if (right) paddingLeft + availX - shiftX else paddingLeft + shiftX
+            val y = if (bottom) paddingTop + availY - shiftY else paddingTop + shiftY
+            card.translationX = x.toFloat()
+            card.translationY = y.toFloat()
+        }
+        position(scenePanel, slot)
+        position(weatherPanel, opposite)
     }
 }

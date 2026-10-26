@@ -81,6 +81,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         body.addView(ui.heading(s(R.string.playback)))
         toggle(body, R.string.sound, !store.settings().muted) { it.copy(muted = !it.muted) }
         number(body, R.string.rotation, store.settings().rotationMinutes, 1..60) { settings, value -> settings.copy(rotationMinutes = value) }
+        number(body, R.string.video_rotation, store.settings().videoRotationMinutes, 1..60) { settings, value -> settings.copy(videoRotationMinutes = value) }
         choice(body, R.string.quality, listOf(0, 720, 1080, 2160), listOf(s(R.string.automatic), "720p", "1080p", "2160p"),
             store.settings().maxVideoHeight) { value -> store.saveSettings(store.settings().copy(maxVideoHeight = value)) }
         choice(body, R.string.aspect_ratio, listOf("crop", "fit"), listOf(s(R.string.crop), s(R.string.fit)), store.settings().resizeMode) {
@@ -112,12 +113,14 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         choice(body, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"), store.settings().clockFormat) {
             store.saveSettings(store.settings().copy(clockFormat = it))
         }
+        body.addView(ui.description(s(R.string.overlay_movement)))
+        toggle(body, R.string.overlay_random, store.settings().randomOverlayPosition) { it.copy(randomOverlayPosition = !it.randomOverlayPosition) }
         if (editor) {
             val overlay = AmbientOverlay(host, store)
             preview = overlay
             overlay.setBackgroundColor(0xFF173044.toInt())
             store.lastItemId()?.let(store::item)?.let(overlay::updateItem)
-            body.addView(overlay, LinearLayout.LayoutParams(-1, ui.dp(200)))
+            body.addView(overlay, LinearLayout.LayoutParams(-1, ui.dp(340)))
             overlay.start()
             choice(body, R.string.overlay_corner, listOf(0, 1, 2, 3), listOf(s(R.string.top_left), s(R.string.top_right), s(R.string.bottom_left), s(R.string.bottom_right)), store.settings().overlayCorner) {
                 store.saveSettings(store.settings().copy(overlayCorner = it))
@@ -130,7 +133,6 @@ class SettingsScreens(private val host: OpenVistaActivity) {
                 listOf(s(R.string.white), s(R.string.warm), s(R.string.cool)), store.settings().overlayColor) {
                 store.saveSettings(store.settings().copy(overlayColor = it))
             }
-            toggle(body, R.string.overlay_movement, store.settings().moveOverlay) { it.copy(moveOverlay = !it.moveOverlay) }
             toggle(body, R.string.overlay_hiding, store.settings().hideOverlay) { it.copy(hideOverlay = !it.hideOverlay) }
             number(body, R.string.overlay_hide_delay, store.settings().overlayHideSeconds, 10..3600) { settings, value -> settings.copy(overlayHideSeconds = value) }
             body.addView(ui.description(s(R.string.overlay_notice)))
