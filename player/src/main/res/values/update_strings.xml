@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_idle">Check for updates</string>
+    <string name="update_checking">Checking the project release channel…</string>
+    <string name="update_unavailable">No compatible public update is available. The release channel is awaiting approval.</string>
+    <string name="update_available">A compatible signed update is available.</string>
+    <string name="update_downloading">Downloading the update…</string>
+    <string name="update_ready">Download verified. Continue to the system installer.</string>
+    <string name="update_permission">Allow this app to request installation in system settings, then try again.</string>
+    <string name="update_confirmation">The system requires your approval to install. Open the confirmation screen.</string>
+    <string name="update_installing">Waiting for the system installer…</string>
+    <string name="update_installed">The system reported successful installation.</string>
+    <string name="update_failed">The update could not be verified or installed. Your current version is kept.</string>
+    <string name="update_cancelled">Update cancelled.</string>
+    <string name="update_download_action">Download update</string>
+    <string name="update_install_action">Continue installation</string>
+    <string name="update_settings_action">Open installation settings</string>
+    <string name="update_cancel_action">Cancel update</string>
+</resources>

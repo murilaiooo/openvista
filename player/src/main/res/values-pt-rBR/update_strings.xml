@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_idle">Buscar atualizações</string>
+    <string name="update_checking">Consultando o canal de versões do projeto…</string>
+    <string name="update_unavailable">Nenhuma atualização pública compatível está disponível. O canal aguarda aprovação.</string>
+    <string name="update_available">Uma atualização assinada compatível está disponível.</string>
+    <string name="update_downloading">Baixando a atualização…</string>
+    <string name="update_ready">Download verificado. Continue no instalador do sistema.</string>
+    <string name="update_permission">Permita que este app solicite instalação nas configurações do sistema e tente novamente.</string>
+    <string name="update_confirmation">O sistema exige sua aprovação para instalar. Abra a tela de confirmação.</string>
+    <string name="update_installing">Aguardando o instalador do sistema…</string>
+    <string name="update_installed">O sistema informou que a instalação foi concluída.</string>
+    <string name="update_failed">Não foi possível verificar ou instalar a atualização. Sua versão atual é mantida.</string>
+    <string name="update_cancelled">Atualização cancelada.</string>
+    <string name="update_download_action">Baixar atualização</string>
+    <string name="update_install_action">Continuar instalação</string>
+    <string name="update_settings_action">Abrir configurações de instalação</string>
+    <string name="update_cancel_action">Cancelar atualização</string>
+</resources>

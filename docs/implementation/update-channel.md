@@ -1,0 +1,36 @@
+# Project update channel
+
+Status: source implementation; distribution and G-09 approval pending. `UpdateChannel.APPROVED` remains `false`. An explicit check returns “No compatible public update” without network activity. The local player/diagnostic artifacts are not public update releases. No release, automatic installation, Fire OS installer behavior or other-device compatibility has been validated here.
+
+`UpdateCoordinator` owns discovery, a cancellable bounded download, APK verification and a supported PackageInstaller session. Construction performs no network operation. The UI may call discovery after an explicit check or an enabled update preference; the preference cannot enable the compile-time publication gate. Installing is a separate UI action and can require OS confirmation. Backgrounding calls `pause()` to stop foreground work and detach callbacks. Screen destruction calls `close()`. Both preserve a committed system installation and its confirmation state. Only explicit `cancel()` requests abandonment when Android permits it.
+
+## Proposed future publication contract
+
+This contract is implemented behind the disabled gate. It needs owner approval and a reviewed release procedure before activation:
+
+- Only the `murilaiooo/openvista` public GitHub repository is a source. Discovery uses its exact `releases/latest` API endpoint; draft and prerelease results are rejected. No credentials are sent.
+- A stable release tag is `v<positive decimal versionCode>`. One uploaded asset must be named `openvista-<installed package name>-<tag>.apk`. The numeric tag, APK long version code and GitHub asset metadata must agree. Version names must be stable three-part decimal versions. Different package identities cannot cross-update.
+- GitHub metadata must provide `sha256:<64 lowercase hex digits>`. The download URL must exactly match the expected project release path. The asset size must be positive and at most 256 MiB. Missing metadata fails closed.
+- Discovery accepts at most 512 KiB of JSON and 32 assets. Downloads stream to an app-private temporary cache file, enforce exact expected size, hash the complete content and rename only after verification. Failure/cancellation deletes the partial file. Files are never placed in public storage.
+- HTTPS is mandatory, with platform certificate validation. Automatic redirects are disabled. Discovery accepts no redirects. Binary downloads permit at most four redirects, only to the exact `release-assets.githubusercontent.com` host, on port 443 without userinfo. Every redirect is rechecked. A CDN change requires a source review instead of an expanded wildcard allowlist.
+- Installed and candidate packages must be production builds: no debuggable/test-only flags or prototype/prerelease version names. The candidate package must match, its version must increase, and its current signer set must exactly equal the installed signer set using API-28 `SigningInfo`. No signer key is hardcoded. Key rotation, even with a proven lineage, is deliberately rejected until a separate rotation policy is reviewed.
+
+The [GitHub Releases API](https://docs.github.com/en/rest/releases/releases#get-the-latest-release) defines latest-release discovery, release asset URLs, sizes and SHA-256 digests. On Android 9 the [platform archive parser](https://android.googlesource.com/platform/prebuilts/fullsdk/sources/android-28/+/refs/heads/androidx-master-release/android/content/pm/PackageManager.java) collects certificates without skipping verification when signing information is requested. The [SigningInfo API](https://developer.android.com/reference/android/content/pm/SigningInfo) exposes signer sets and lineage. The system installer independently enforces APK validity and update eligibility at installation.
+
+## Installer boundary
+
+The manifest declares `REQUEST_INSTALL_PACKAGES` and the explicit non-exported `.update.UpdateInstallReceiver`. PackageInstaller streams the already verified file; no public file URI or FileProvider is needed.
+
+Before staging, the coordinator checks [canRequestPackageInstalls](https://developer.android.com/reference/android/content/pm/PackageManager#canRequestPackageInstalls()). If entitlement is missing, the UI can open `ACTION_MANAGE_UNKNOWN_APP_SOURCES` for this package. The app does not change that setting itself.
+
+The installer result PendingIntent has an explicit component, package-private receiver and unique session nonce/data URI. It remains mutable because the installer fills its status extras; API 31+ adds `FLAG_MUTABLE` behind a version check. Earlier Android versions use their supported mutable default. [Session.commit](https://developer.android.com/reference/android/content/pm/PackageInstaller.Session#commit(android.content.IntentSender)) rejects an immutable status receiver for target SDK 35+, so using immutability here would lose required status handling. See also [PendingIntent flags](https://developer.android.com/reference/android/app/PendingIntent#FLAG_MUTABLE).
+
+On `STATUS_PENDING_USER_ACTION`, the receiver verifies that the returned confirmation resolves to a system package, makes its component explicit and surfaces the Intent to the foreground UI. The receiver does not silently launch background UI or report installation success. Only the system success status produces `Installed`. Session failures retain the existing running version. The implementation never calls API-31-only `setRequireUserAction`; Android 9 system confirmation is expected and must be measured on the Hisense.
+
+The app privately stores the installer session nonce, pending confirmation Intent and terminal status so `resumeInstallation(callback)` can reconnect a recreated foreground UI. It also retains verified-download provenance for up to one day across the unknown-apps settings round trip or process recreation. Returning to the foreground rechecks the complete cached file, package and signer before surfacing `Ready` when entitlement is granted, or `NeedsPermission` otherwise. Install always remains a separate action. New downloads clear older generated cache artifacts; explicit cancellation deletes the retained artifact and metadata.
+
+`resumeInstallation(callback)` returns `false` when there is no prior installation or retained download. It performs no network request and never starts system confirmation itself. The foreground caller must skip an automatic discovery check when it returns `true`, so that an installer confirmation is not replaced by a new check. A lost/stale session becomes a visible failure; the user can cancel and retry. These lifecycle/recovery paths still need process-death and system-settings evidence on Fire OS.
+
+## Evidence still required
+
+Owner-approved channel/package/signing policy, source/build review, actual signed-artifact content guard, corrupt/truncated/wrong-package/downgrade/signer/redirect cases, cancellation and process-death behavior, OS entitlement/confirmation/denial/storage failures, preservation of library data and physical Hisense Fire OS 7 evidence remain release gates. This change adds no release, CI run, device change or acceptance result.

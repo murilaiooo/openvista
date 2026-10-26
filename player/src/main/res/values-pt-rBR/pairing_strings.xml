@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pairing_review_pending">O pareamento com celular aguarda uma revisão de segurança independente. Digite uma fonte na TV ou selecione uma lista de fontes.</string>
+    <string name="pairing_start_description">Inicie uma sessão de dois minutos na sua rede privada. Revise cada fonte na TV antes de salvar.</string>
+    <string name="pairing_waiting">Leia este código com um celular na mesma rede privada. A sessão expira em dois minutos.</string>
+    <string name="pairing_confirm_tv">Revise esta fonte na TV. Ela só será salva após sua aprovação na TV.</string>
+    <string name="pairing_unavailable">Não foi possível iniciar o pareamento em uma única interface de rede privada. Digite na TV ou selecione uma lista de fontes.</string>
+    <string name="pairing_expired">A sessão de pareamento terminou. Inicie novamente para obter outro código.</string>
+    <string name="pairing_default_title">Minha transmissão</string>
+    <string name="pairing_page_title">Enviar uma fonte ao OpenVista</string>
+    <string name="pairing_http_warning">Esta conexão local usa HTTP. Quem monitora sua rede pode ler a URL da fonte. Use uma rede privada confiável e evite URLs que contenham segredos.</string>
+    <string name="pairing_title_label">Nome da fonte</string>
+    <string name="pairing_url_label">URL da fonte</string>
+    <string name="pairing_kind_label">Formato da transmissão</string>
+    <string name="pairing_send">Enviar à TV para revisão</string>
+    <string name="pairing_phone_failed">Não foi possível enviar a solicitação. Inicie uma nova sessão de pareamento na TV.</string>
+    <string name="pairing_approve">Salvar fonte</string>
+    <string name="pairing_deny">Rejeitar fonte</string>
+    <string name="pairing_start">Parear um celular</string>
+    <string name="pairing_close">Encerrar pareamento</string>
+</resources>

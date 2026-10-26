@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pairing_review_pending">Phone pairing is awaiting an independent security review. Enter a source on the TV or select a source list.</string>
+    <string name="pairing_start_description">Start a two-minute session on your private network. Review each source on the TV before saving.</string>
+    <string name="pairing_waiting">Scan this code with a phone on the same private network. This session expires in two minutes.</string>
+    <string name="pairing_confirm_tv">Review this source on the TV. It will be saved only after you approve it there.</string>
+    <string name="pairing_unavailable">Pairing could not start on one private network interface. Use TV entry or a selected source list.</string>
+    <string name="pairing_expired">The pairing session ended. Start again to get a new code.</string>
+    <string name="pairing_default_title">My Stream</string>
+    <string name="pairing_page_title">Send a source to OpenVista</string>
+    <string name="pairing_http_warning">This local connection uses HTTP. People who can monitor your network may read the source URL. Use a trusted private network and avoid URLs containing secrets.</string>
+    <string name="pairing_title_label">Source name</string>
+    <string name="pairing_url_label">Source URL</string>
+    <string name="pairing_kind_label">Stream format</string>
+    <string name="pairing_send">Send to TV for review</string>
+    <string name="pairing_phone_failed">The request could not be sent. Start a new pairing session on the TV.</string>
+    <string name="pairing_approve">Save source</string>
+    <string name="pairing_deny">Reject source</string>
+    <string name="pairing_start">Pair a phone</string>
+    <string name="pairing_close">End pairing</string>
+</resources>
