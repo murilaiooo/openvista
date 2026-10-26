@@ -83,6 +83,12 @@ All stream assets were created using local FFmpeg outside the repository in `I:\
 
 **Restoration verified:** Original `secure/screensaver_enabled=1` was backed up, set to `0` temporarily, and restored to `1` after playback. The existing `tv.dumbtv.wallpaperdream/.PhotoDream` configuration was preserved. Only the OpenVista playback was stopped; the temporary local HTTP listener was stopped, its ADB reverse rule removed, and the sole installed test package remained `com.openvista.prototype`. No new APK was installed as part of this physical test.
 
+## Owner-reported additional acceptance (2026-10-25)
+
+The owner subsequently confirmed in chat that the remaining practical checks for **local video / USB, extended playback endurance, and failure recovery** were **tested and approved**. This is recorded as **owner-reported acceptance**, distinct from the tool-observed, reproducible 10-second HLS/DASH tests documented above.
+
+**Evidence limit:** no duration, codec/container-by-container results, USB provider identifiers, sampled CPU/RAM measurements, dropped-frame totals, failure-injection cases, or recordings were supplied with this confirmation. Do not infer the full **24-hour G-07** benchmark, persisted SAF URI grants across reboot, USB removal/reinsertion behavior, M3U picker completion or public v1 release criteria from this owner report alone. The separate GitHub #3/#5/#9 technical tasks can keep their detailed evidence requirements while this engineering prototype is integrated.
+
 ## Testing and rollback
 
 ```powershell
