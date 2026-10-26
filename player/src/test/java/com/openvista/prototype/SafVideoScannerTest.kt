@@ -32,6 +32,32 @@ class SafVideoScannerTest {
         assertFalse(ready.capped)
     }
 
+    @Test fun cyclicFolderLinksCannotDuplicateOrRevisitSelectedTree() {
+        val app = RuntimeEnvironment.getApplication()
+        val provider = TestTreeProvider().apply { includeRootCycle = true }
+        ShadowContentResolver.registerProviderInternal(AUTHORITY, provider)
+        val result = SafVideoScanner(app.contentResolver).scan(
+            DocumentsContract.buildTreeDocumentUri(AUTHORITY, "root"),
+            CancellationSignal(),
+        ) as SafVideoScanner.Result.Ready
+
+        assertEquals(listOf("holiday.mp4", "surf.webm"), result.videos.map { it.title })
+        assertEquals("Selected tree must be read exactly once", 1, provider.rootQueries)
+        assertFalse(result.capped)
+    }
+
+    @Test fun repeatedFileIdsAreListedOnlyOnce() {
+        val app = RuntimeEnvironment.getApplication()
+        val provider = TestTreeProvider().apply { includeDuplicateVideo = true }
+        ShadowContentResolver.registerProviderInternal(AUTHORITY, provider)
+        val result = SafVideoScanner(app.contentResolver).scan(
+            DocumentsContract.buildTreeDocumentUri(AUTHORITY, "root"), CancellationSignal()
+        ) as SafVideoScanner.Result.Ready
+
+        assertEquals(listOf("holiday.mp4", "surf.webm"), result.videos.map { it.title })
+        assertFalse(result.capped)
+    }
+
     @Test fun cancellationReturnsUnavailableWithoutReadingUserFiles() {
         val app = RuntimeEnvironment.getApplication()
         val provider = TestTreeProvider()
@@ -45,6 +71,10 @@ class SafVideoScannerTest {
     }
 
     class TestTreeProvider : ContentProvider() {
+        var includeRootCycle = false
+        var includeDuplicateVideo = false
+        var rootQueries = 0
+
         override fun onCreate() = true
         override fun query(
             uri: Uri, projection: Array<out String>?, selection: String?,
@@ -58,7 +88,14 @@ class SafVideoScannerTest {
             val rows = MatrixCursor(fields)
             when {
                 uri.toString().contains("/document/root/children") -> {
+                    rootQueries++
+                    if (includeRootCycle) {
+                        rows.addRow(arrayOf("root", DocumentsContract.Document.MIME_TYPE_DIR, "self"))
+                    }
                     rows.addRow(arrayOf("root/holiday", "video/mp4", "holiday.mp4"))
+                    if (includeDuplicateVideo) {
+                        rows.addRow(arrayOf("root/holiday", "video/mp4", "holiday.mp4"))
+                    }
                     rows.addRow(arrayOf("root/photo", "image/jpeg", "photo.jpg"))
                     rows.addRow(arrayOf("root/folder", DocumentsContract.Document.MIME_TYPE_DIR, "folder"))
                 }

@@ -21,6 +21,8 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
         catch (_: RuntimeException) { return Result.Unavailable }
         val queue = ArrayDeque<Pair<String, Int>>()
         queue.add(root to 0)
+        val visitedDirectories = hashSetOf(root)
+        val visitedVideos = hashSetOf<String>()
         val videos = mutableListOf<Video>()
         var inspected = 0
         var capped = false
@@ -45,8 +47,10 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
                         val mime = rows.getString(mimeColumn)
                         val title = rows.getString(titleColumn)
                         if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
-                            if (depth < MAX_DIRECTORY_DEPTH) queue.add(id to depth + 1)
-                        } else if (LocalVideoRules.isSupported(mime, title)) {
+                            if (depth < MAX_DIRECTORY_DEPTH && visitedDirectories.add(id)) {
+                                queue.add(id to depth + 1)
+                            }
+                        } else if (LocalVideoRules.isSupported(mime, title) && visitedVideos.add(id)) {
                             videos += Video(
                                 uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, id),
                                 title = LocalVideoRules.displayTitle(title),
