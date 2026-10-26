@@ -11,7 +11,7 @@
 | Is there a public APK or stable release? | **No.** Only locally built debug/test APKs; no signed public release or owner authorization to publish. |
 | Does OpenVista bundle live-camera links, M3U lists or videos? | **No.** Users import their own. Research-only media/playlist fixtures are excluded from runtime artifacts. |
 | Does weather work? | **Yes, for NWS-covered U.S. coordinates.** Tucson hourly conditions and seven-day forecast were exercised physically. Worldwide geocoding is not implemented. |
-| Are all original v1 requirements finished? | **No.** OEM DreamService, USB edge cases, 24-hour soak, maps, pairing security, updater and final release gates remain. |
+| Are all original v1 requirements finished? | **No.** Hisense DreamService entry was observed, but its full remote/lifecycle/endurance acceptance, USB edge cases, 24-hour soak, maps, pairing security, updater and final release gates remain. |
 | Are there open GitHub issues/PRs? | **No, as of this review.** The owner closed the prior backlog administratively, not as proof every feature passed acceptance. Closed records and branches remain available. |
 
 ## Evidence actually collected
@@ -37,8 +37,8 @@ A separate review snapshot of the Codex remaining-development work passed local 
 
 1. **Local video deduplication:** the canonical tree/direct SAF identity correction was merged as PR #25 after local verification and a physical schema migration of the existing library. The real USB/provider revocation matrix is still pending.
 2. **Physical USB:** file/folder selection and persistence work for tested internal media. Unplug/replug, revoked grants, real USB drive behavior and all supported containers/codecs have not passed the required matrix.
-3. **High-resolution and long-duration playback:** single controlled HLS/H.264 1080p and DASH/HEVC 4K clips visibly rendered on the target TV. Sustained playback, HDR, decoder dropped-frame statistics, thermal/CPU/RAM trends and 24-hour uninterrupted rotation/soak are not signed off.
-4. **DreamService:** source exists, but Fire OS idle activation, service selection, remote-key delivery and timing remain OEM-gated. The owner disabled the existing system screensaver for testing; OpenVista must not reactivate it without their approval.
+3. **High-resolution and long-duration playback:** controlled HLS/H.264 1080p and DASH/HEVC 4K clips visibly rendered on the Hisense. Sustained playback, HDR, dropped-frame statistics, thermal/CPU/RAM trends and the 24-hour soak are not signed off.
+4. **DreamService:** on 2026-10-26 the owner approved selecting OpenVista. Automatic real DreamService idle entry rendered camera video and clock/weather on the Hisense; original three-minute system timers were restored. Dream-mode remote controls, sleep/wake recovery, endurance and other devices remain unverified. See [Hisense DreamService activation evidence](testing/hisense-dreamservice-activation-2026-10-26.md).
 5. **Map/geocoding:** an app-local schematic and saved-coordinate list exist. Licensed map tiles and city-name geocoding are not integrated.
 6. **Weather scope:** NWS forecasts cover supported U.S. coordinates only. Some provider-supplied condition text remains English in PT-BR. Stale/offline behavior was not subjected to extended on-device failure injection.
 7. **LAN pairing:** code exists, but the security gate remains off. It must not expose a listener before confidentiality and local authorization review.
