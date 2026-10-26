@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
+import android.os.CancellationSignal
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -41,10 +42,14 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private var mediaPlayer: ExoPlayer? = null
     private var currentKind = StreamKind.HLS
     private var imported = emptyList<UserSource>()
+    private var localVideos = emptyList<SafVideoScanner.Video>()
+    private var scanGeneration = 0
+    private var folderScanSignal: CancellationSignal? = null
     private lateinit var urlInput: EditText
     private lateinit var status: TextView
     private lateinit var video: PlayerView
     private lateinit var playImportedButton: Button
+    private lateinit var playVideoButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +124,10 @@ class PlayerPrototypeActivity : ComponentActivity() {
         root.addView(footer)
         playImportedButton = action("Play first imported", footer) { imported.firstOrNull()?.let(::playSource) }
         playImportedButton.isEnabled = false
+        playVideoButton = action("Play first video", footer) {
+            localVideos.firstOrNull()?.let(::playLocalVideo)
+        }
+        playVideoButton.isEnabled = false
         action("Stop", footer) { mediaPlayer?.stop(); setStatus("Playback stopped.") }
         action("Exit", footer) { finish() }
         add.requestFocus()
@@ -148,6 +157,9 @@ class PlayerPrototypeActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        scanGeneration++
+        folderScanSignal?.cancel()
+        folderScanSignal = null
         video.player = null
         mediaPlayer?.release()
         mediaPlayer = null
@@ -164,23 +176,35 @@ class PlayerPrototypeActivity : ComponentActivity() {
     }
 
     private fun playSource(source: UserSource) {
-        val player = mediaPlayer ?: run {
-            setStatus("Player not ready. Reopen the app and try again.")
-            return
-        }
         try {
             val mime = when (source.kind) {
                 StreamKind.HLS -> MimeTypes.APPLICATION_M3U8
                 StreamKind.DASH -> MimeTypes.APPLICATION_MPD
             }
             val item = MediaItem.Builder().setUri(source.url).setMimeType(mime).build()
-            player.setMediaItem(item)
-            player.prepare()
-            player.playWhenReady = true
-            video.requestFocus()
+            prepareAndPlay(item)
         } catch (_: RuntimeException) {
             setStatus("Unable to prepare this source.")
         }
+    }
+
+    private fun playLocalVideo(file: SafVideoScanner.Video) {
+        try {
+            prepareAndPlay(MediaItem.fromUri(file.uri))
+        } catch (_: RuntimeException) {
+            setStatus("Unable to prepare the selected video.")
+        }
+    }
+
+    private fun prepareAndPlay(item: MediaItem) {
+        val player = mediaPlayer ?: run {
+            setStatus("Player not ready. Reopen the app and try again.")
+            return
+        }
+        player.setMediaItem(item)
+        player.prepare()
+        player.playWhenReady = true
+        video.requestFocus()
     }
 
     private fun openM3uPicker() {
@@ -217,9 +241,40 @@ class PlayerPrototypeActivity : ComponentActivity() {
             setStatus("The system returned no document.")
             return
         }
+        val generation = ++scanGeneration
+        folderScanSignal?.cancel()
+        folderScanSignal = null
         if (requestCode == REQUEST_FOLDER) {
-            setStatus("Video folder selected. Recursive media scanning is not implemented in this first prototype.")
+            val signal = CancellationSignal()
+            folderScanSignal = signal
+            localVideos = emptyList()
+            playVideoButton.isEnabled = false
+            setStatus("Checking selected folder for supported video files...")
+            Thread {
+                val result = SafVideoScanner(contentResolver).scan(uri, signal)
+                runOnUiThread {
+                    if (folderScanSignal === signal) folderScanSignal = null
+                    if (isFinishing || isDestroyed || generation != scanGeneration) return@runOnUiThread
+                    when (result) {
+                        is SafVideoScanner.Result.Ready -> {
+                            localVideos = result.videos
+                            playVideoButton.isEnabled = localVideos.isNotEmpty()
+                            val extra = if (result.capped) " Search capped for TV performance." else ""
+                            if (localVideos.isEmpty()) {
+                                setStatus("No supported videos found. Choose another folder.$extra")
+                            } else {
+                                setStatus("Found ${localVideos.size} video(s). Press Play first video to start.$extra")
+                            }
+                        }
+                        SafVideoScanner.Result.Unavailable -> {
+                            setStatus("Could not read that folder. Select another folder or add a stream.")
+                        }
+                    }
+                }
+            }.start()
         } else if (requestCode == REQUEST_LIST) {
+            imported = emptyList()
+            playImportedButton.isEnabled = false
             setStatus("Reading the selected M3U file...")
             Thread {
                 val result = try {
@@ -229,6 +284,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
                     PlaylistResult.Rejected(com.openvista.sources.PlaylistFailure.READ_FAILED)
                 }
                 runOnUiThread {
+                    if (isFinishing || isDestroyed || generation != scanGeneration) return@runOnUiThread
                     when (result) {
                         is PlaylistResult.Ready -> {
                             imported = result.sources

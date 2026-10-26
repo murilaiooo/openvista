@@ -23,8 +23,9 @@
 | App launch / 4K UI rendering | PASS, actual TV screenshot visually inspected |
 | D-pad Add/Import control | PASS, `Import a list` opened OEM `ACTION_OPEN_DOCUMENT` picker after focus checks |
 | Physical remote-only picker import | NOT TESTED; do not assume the OEM picker is fully D-pad-accessible |
-| `ACTION_OPEN_DOCUMENT_TREE` folder selection | NOT TESTED |
+| `ACTION_OPEN_DOCUMENT_TREE` folder selection | IMPLEMENTED LOCALLY, **NOT PHYSICALLY TESTED** |
 | HLS/DASH playback | NOT TESTED; no stream decoding/quality claims |
+| Selected local video playback | IMPLEMENTED LOCALLY, **NOT PHYSICALLY TESTED** |
 | Back/Stop lifecycle | NOT TESTED with active playback |
 | DreamService | NOT TESTED and outside this Activity's scope |
 
@@ -64,5 +65,6 @@ Local APK: `player/build/outputs/apk/debug/player-debug.apk`. Only the owner-aut
 
 - Verify playback with owner-generated HLS and DASH assets while the OpenVista Activity has foreground focus, inspect decoding/quality/errors, and test resume/Back.
 - Verify keyboard entry and error states without accidentally interacting with system dialogs or other apps.
+- Verify user-selected SAF folders on the physical TV, including the bounded 100-video / 500-document / depth-3 scanner and Play first video action. Media decoding and URI permissions are not established by Kotlin compilation.
 - Complete picker M3U import with a user-selected local fixture and validate handling of missing/unsupported providers. Verify actual USB and folder traversal separately under #9.
 - Add integration tests for user input and playback lifecycle before integrating the full player into `main`.
