@@ -67,6 +67,22 @@ Decision **D-06** requires playback to begin muted while allowing viewers to ena
 
 The Android 9 JVM harness also exercises the SAF folder scanner against a synthetic `ContentProvider`: a user-selected tree contains two recognized videos, an excluded image, and a nested folder. The scan returns only the two videos and the URI authority from the granted fixture tree. A cancelled scan returns without reading content. **These are simulated provider tests, not evidence of physical Fire OS USB compatibility or successful media decoding.**
 
+## Physical HLS and DASH playback (2026-10-25, Arizona time)
+
+The owner explicitly opened the player and later authorized **temporarily disabling the TV screensaver** to test playback. The following is real evidence on **Hisense 58U6HF / Fire OS 7 / Android 9 / AFTHA001**; it is not general device compatibility or long-run certification.
+
+| User-provided test | Physical result | Evidence |
+| --- | --- | --- |
+| H.264 HLS, synthetic 720p / 24 fps / 10 seconds | **PASS — Media3 READY** | OpenVista displayed `Playing selected source (muted)`; the local HTTP server returned 200 for the manifest and all five `.ts` segments |
+| H.264 MPEG-DASH, synthetic 720p / 24 fps / 10 seconds | **PASS — playback ended at 00:10 / 00:10** | OpenVista showed visible color test frames and `Playback ended`; localhost server returned HTTP 200 for the `.mpd`, fMP4 init segment and five media segments |
+| Physical USB folder/video playback, user-selected M3U, stream interruption/recovery, HDR/4K and 24-hour soak | **NOT TESTED** | These remain independent acceptance tasks under #3, #5 and #9 |
+
+All stream assets were created using local FFmpeg outside the repository in `I:\codex\openvista-fixtures` and served only during testing from a loopback-bound Python HTTP server via an ephemeral ADB reverse tunnel. No streams, sample media, playlists, or test media URLs were packaged in the app. The test is not proof of arbitrary HLS/DASH streams, all codecs, or live network resilience.
+
+**Physical-test pitfalls and safe recovery:** Fire OS may turn the **display OFF / `mWakefulness=Asleep`** even after `secure/screensaver_enabled=0`; the Activity may still report foreground focus while screenshots are fully black and `uiautomator dump` fails. Confirm display/wakefulness separately before drawing UI conclusions. On this owner-authorized run a `KEYCODE_WAKEUP` restored the panel while OpenVista was foreground. The OEM virtual keyboard also intercepted Play/format button touches; it introduced a trailing comma into the URL. With OpenVista foreground and the input method visibly open, one Delete followed by Back dismissed the IME; only then were DASH and Play buttons tapped. Guard foreground before/after every input and verify `mInputShown=false` before tapping player controls. Do not navigate OEM launchers, unrelated apps, or dialogs.
+
+**Restoration verified:** Original `secure/screensaver_enabled=1` was backed up, set to `0` temporarily, and restored to `1` after playback. The existing `tv.dumbtv.wallpaperdream/.PhotoDream` configuration was preserved. Only the OpenVista playback was stopped; the temporary local HTTP listener was stopped, its ADB reverse rule removed, and the sole installed test package remained `com.openvista.prototype`. No new APK was installed as part of this physical test.
+
 ## Testing and rollback
 
 ```powershell
