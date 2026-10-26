@@ -1,6 +1,6 @@
 # Codex implementation handoff
 
-**Historical implementation handoff recorded before independent QA, retained for provenance.** The code has since compiled, passed local tests and received partial Hisense TV verification, and the NWS adapter was added separately. The former draft PRs were closed administratively; see [current status](../STATUS.md), [TV QA](../testing/production-pr22-validation-2026-10-26.md) and [NWS QA](../testing/nws-weather-integration-2026-10-26.md). The original untested-handoff details below describe what was true **at that time**, not today.
+**Historical implementation handoff recorded before independent QA, retained for provenance.** Subsequent QA evidence includes [verified SAF migration](../testing/saf-canonical-qa-2026-10-26.md), [Hisense 1080p/4K playback](../testing/hisense-fhd-4k-playback-2026-10-26.md), and [owner-assisted acceptance](../testing/owner-assisted-acceptance-2026-10-26.md). The source correction for normal camera end-of-stream remains in the unmerged QA candidate. The code has since compiled, passed local tests and received partial Hisense TV verification, and the NWS adapter was added separately. The former draft PRs were closed administratively; see [current status](../STATUS.md), [TV QA](../testing/production-pr22-validation-2026-10-26.md) and [NWS QA](../testing/nws-weather-integration-2026-10-26.md). The original untested-handoff details below describe what was true **at that time**, not today.
 
 ## Implemented source and requirement coverage
 

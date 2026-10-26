@@ -169,7 +169,11 @@ class PlaybackSession(
                             completedCurrent = true
                             saveCheckpoint(completed = true)
                             if (!tryRecoveryAtBoundary()) advance(1)
-                        } else failCurrent()
+                        } else {
+                            // A finite user-supplied camera clip may end normally after playing.
+                            // Completion is not an availability failure or a decoder error.
+                            advance(1)
+                        }
                     }
                 }
             }

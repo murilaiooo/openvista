@@ -31,7 +31,7 @@ OpenVista is for the moments when a television should feel like a window, not a 
 | Area | Implemented behavior | Evidence / limits |
 | --- | --- | --- |
 | TV experience | Three-card Home, Cameras, My Videos, Favorites, onboarding, remote-first menus, EN/PT-BR | Home, library and basic D-pad/picker flows observed on Hisense; full accessibility pass pending |
-| Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Live HLS/DASH 720p and M3U import observed on Hisense; other stream formats/quality need testing |
+| Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Original HLS/DASH 720p and M3U import observed; an independent unmerged QA candidate also rendered controlled HLS 1080p and DASH/HEVC 4K test patterns on Hisense. Sustained decoding remains unverified |
 | Local videos | Scoped Android file/folder picker, recursive scan, persistence, playlists, player resume | MP4 and selected-folder restoration observed; physical USB removal/revocation and full codec matrix pending |
 | Ambient playback | Media3 fullscreen player, camera rotation, local looping, muted default, overlays | Physical playback confirmed; long-run performance and recovery not certified |
 | Weather | Free U.S. National Weather Service seven-day forecasts, hourly forecast condition, cache | Tucson forecast and on-video temperature observed; U.S. coverage only; no geocoding |

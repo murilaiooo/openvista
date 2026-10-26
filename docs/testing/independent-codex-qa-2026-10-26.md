@@ -44,7 +44,7 @@ The source changes above are review candidates and have not been merged into `ma
 
 - Real USB removal/reinsert, provider/grant revocation, malformed large files, complex picker flows, nested-directory edge cases on hardware.
 - EN translation, full accessibility traversal, remote focus on every dialog, playlist CRUD, repeated playback switching, camera-source fallback and reconnect storms.
-- Verified HLS/DASH 1080p or 4K decoding, HDR, dropped frames, network throughput, CPU/RAM/thermal budgets and 24-hour endurance.
+- Full HD HLS/H.264 and 4K DASH/HEVC test patterns visibly rendered on Hisense with HTTP segment retrieval, after correcting a missing HEVC codec field in the private MPD. A false-unavailable status at normal camera end-of-stream was reproduced, corrected in this QA branch and physically retested. Sustained 4K/HDR, dropped-frame counts, network throughput, CPU/RAM/thermal trends and 24-hour endurance remain unverified; see [the limited playback probe](hisense-fhd-4k-playback-2026-10-26.md).
 - Full weather/offline behavior and worldwide city search. Worldwide Open-Meteo and OSM adapters exist in source but remain disabled pending independent legal/provider review; NWS remains the deployed U.S. adapter.
 - OEM DreamService selection/idle, QR/LAN confidentiality and consent gate, Android PackageInstaller/release-channel compatibility and any non-Hisense device.
 - Signed *public release* content and signing policy, privacy review and all G-01–G-10 stable-v1 gates.

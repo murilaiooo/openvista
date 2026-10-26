@@ -19,7 +19,7 @@ These are implementation and **scoped test milestones**, not public-stable accep
 
 ## Phase A: improve the existing development preview
 
-- [ ] Fix the reproduced duplicate-video issue when the same SAF media is added by document and folder routes.
+- [x] Fix canonical direct-document/tree-document duplicates in the library (merged PR #25, local tests and sampled hardware migration passed; broader USB access matrix remains pending).
 - [ ] Audit complete D-pad focus, Back, first-run, import/error prompts, settings, localized text and accessibility on physical Fire OS.
 - [ ] Confirm camera rotation, video resume, source switching, favorites, local playlist ordering/looping and failure recovery with reproducible device evidence.
 - [ ] Verify NWS caching, hourly-to-daily normalization, offline stale states and locale-friendly weather descriptions.
@@ -28,7 +28,8 @@ These are implementation and **scoped test milestones**, not public-stable accep
 ## Phase B: compatibility and provider gates
 
 - [ ] Complete USB unplug/replug, persisted-grant revocation, nested folder traversal and video format matrix (MP4/MKV/WebM/MOV, supported codecs only).
-- [ ] Run representative user-supplied 1080p and 4K sources, HDR capability checks, decoder fallback, CPU/RAM/network/dropped-frame measurements.
+- [x] Render controlled 1080p HLS/H.264 and 4K DASH/HEVC QA test patterns on the Hisense with captured frames and HTTP segment evidence (development only).
+- [ ] Verify sustained 1080p/4K playback, real-world sources, HDR capability, decoder fallback, CPU/RAM/network/dropped-frame measurements.
 - [ ] Prove or explicitly document Hisense Fire OS 7 DreamService selection/idle/remote support with owner-approved OS settings and rollback.
 - [ ] Review/select geographically suitable, legally usable map tiles and city geocoding; keep current schematic/list fallback until then.
 - [ ] Securely validate QR/LAN phone-to-TV input before enabling PairingSecurity.REVIEWED; no unreviewed HTTP exposure.

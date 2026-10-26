@@ -2,6 +2,8 @@
 
 **Status:** Draft test method approved only as a *planning artifact*, not an executed test or owner-approved numerical thresholds. Stable-v1 gate G07 and D-76 require a **documented 24-hour run**. Hardware/software build must be recorded first.
 
+The read-only Windows sampler in [`scripts/hisense-soak-monitor.ps1`](../../scripts/hisense-soak-monitor.ps1) can collect UTC, process liveness, foreground state, wakefulness, PSS and process CPU ticks while a person operates the TV. Its two-sample smoke test passed; **no 24-hour run has been executed**. Decoder dropped frames and thermals remain NOT_MEASURABLE unless a verified platform mechanism is added.
+
 ## Before testing: freeze acceptance criteria
 
 1. Record exact firmware/API, OpenVista version, display mode, network conditions, chosen playlists/cameras, storage type, decoding capabilities and power/schedule state.
