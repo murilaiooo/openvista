@@ -44,6 +44,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private var muted = true
     private var imported = emptyList<UserSource>()
     private var localVideos = emptyList<SafVideoScanner.Video>()
+    private val folderAccess by lazy { SavedFolderAccess(this) }
     private var scanGeneration = 0
     private var folderScanSignal: CancellationSignal? = null
     private lateinit var urlInput: EditText
@@ -51,6 +52,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private lateinit var video: PlayerView
     private lateinit var playImportedButton: Button
     private lateinit var playVideoButton: Button
+    private lateinit var forgetFolderButton: Button
     private lateinit var soundButton: Button
 
     // Register unconditionally so the result is delivered after Activity recreation.
@@ -71,6 +73,10 @@ class PlayerPrototypeActivity : ComponentActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN
         buildScreen()
+        folderAccess.restore()?.let { saved ->
+            forgetFolderButton.isEnabled = true
+            scanFolder(saved, saveSelection = false)
+        }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val player = mediaPlayer
@@ -143,6 +149,8 @@ class PlayerPrototypeActivity : ComponentActivity() {
             localVideos.firstOrNull()?.let(::playLocalVideo)
         }
         playVideoButton.isEnabled = false
+        forgetFolderButton = action("Forget folder", footer) { forgetSavedFolder() }
+        forgetFolderButton.isEnabled = false
         action("Stop", footer) { mediaPlayer?.stop(); setStatus("Playback stopped.") }
         action("Exit", footer) { finish() }
         add.requestFocus()
@@ -244,7 +252,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private fun openVideoFolderPicker() {
         try {
             folderPicker.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
             })
         } catch (_: RuntimeException) {
             setStatus("Folder picker unavailable. Use Add a stream instead.")
@@ -261,38 +269,14 @@ class PlayerPrototypeActivity : ComponentActivity() {
             setStatus("The system returned no document.")
             return
         }
+        if (requestCode == REQUEST_FOLDER) {
+            scanFolder(uri, saveSelection = true)
+            return
+        }
         val generation = ++scanGeneration
         folderScanSignal?.cancel()
         folderScanSignal = null
-        if (requestCode == REQUEST_FOLDER) {
-            val signal = CancellationSignal()
-            folderScanSignal = signal
-            localVideos = emptyList()
-            playVideoButton.isEnabled = false
-            setStatus("Checking selected folder for supported video files...")
-            Thread {
-                val result = SafVideoScanner(contentResolver).scan(uri, signal)
-                runOnUiThread {
-                    if (folderScanSignal === signal) folderScanSignal = null
-                    if (isFinishing || isDestroyed || generation != scanGeneration) return@runOnUiThread
-                    when (result) {
-                        is SafVideoScanner.Result.Ready -> {
-                            localVideos = result.videos
-                            playVideoButton.isEnabled = localVideos.isNotEmpty()
-                            val extra = if (result.capped) " Search capped for TV performance." else ""
-                            if (localVideos.isEmpty()) {
-                                setStatus("No supported videos found. Choose another folder.$extra")
-                            } else {
-                                setStatus("Found ${localVideos.size} video(s). Press Play first video to start.$extra")
-                            }
-                        }
-                        SafVideoScanner.Result.Unavailable -> {
-                            setStatus("Could not read that folder. Select another folder or add a stream.")
-                        }
-                    }
-                }
-            }.start()
-        } else if (requestCode == REQUEST_LIST) {
+        if (requestCode == REQUEST_LIST) {
             imported = emptyList()
             playImportedButton.isEnabled = false
             setStatus("Reading the selected M3U file...")
@@ -316,6 +300,52 @@ class PlayerPrototypeActivity : ComponentActivity() {
                 }
             }.start()
         }
+    }
+
+    private fun scanFolder(uri: android.net.Uri, saveSelection: Boolean) {
+        val persisted = if (saveSelection) folderAccess.remember(uri) else true
+        if (saveSelection && !persisted) folderAccess.forget()
+        forgetFolderButton.isEnabled = folderAccess.restore() != null
+        val generation = ++scanGeneration
+        folderScanSignal?.cancel()
+        val signal = CancellationSignal()
+        folderScanSignal = signal
+        localVideos = emptyList()
+        playVideoButton.isEnabled = false
+        setStatus("Checking selected folder for supported video files...")
+        Thread {
+            val result = SafVideoScanner(contentResolver).scan(uri, signal)
+            runOnUiThread {
+                if (folderScanSignal === signal) folderScanSignal = null
+                if (isFinishing || isDestroyed || generation != scanGeneration) return@runOnUiThread
+                when (result) {
+                    is SafVideoScanner.Result.Ready -> {
+                        localVideos = result.videos
+                        playVideoButton.isEnabled = localVideos.isNotEmpty()
+                        val limited = if (result.capped) " Search capped for TV performance." else ""
+                        val grant = if (persisted) " Folder access saved." else " Select again after restarting."
+                        setStatus(if (localVideos.isEmpty())
+                            "No supported videos found. Choose another folder.$limited$grant"
+                        else "Found ${localVideos.size} video(s). Press Play first video to start.$limited$grant")
+                    }
+                    SafVideoScanner.Result.Unavailable -> {
+                        setStatus("Could not read that folder. Select another folder or add a stream.")
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun forgetSavedFolder() {
+        ++scanGeneration
+        folderScanSignal?.cancel()
+        folderScanSignal = null
+        folderAccess.forget()
+        mediaPlayer?.stop()
+        localVideos = emptyList()
+        playVideoButton.isEnabled = false
+        forgetFolderButton.isEnabled = false
+        setStatus("Saved folder access removed. Choose a video folder to play again.")
     }
 
     private fun focusUrl() {
