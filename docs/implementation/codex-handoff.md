@@ -18,7 +18,7 @@ D-07/D-08 and D-69–D-71/D-76–D-77 remain distribution/acceptance constraints
 ## Working branch and dependencies
 
 - `codex/complete-tv-implementation`, initially based on PR #21 commit `af4c3ce`.
-- Integration draft PR: pending creation; its link will be recorded here before the final push.
+- Integration draft PR: [#22](https://github.com/murilaiooo/openvista/pull/22), targeting `main` and intentionally awaiting independent validation.
 - Production commits: `8664bed` (library/SAF), `5c1ac95` (gated integrations), `ad6496e` (shared playback/ambient), `fca2352` (TV shell and production integration).
 - PR #20: https://github.com/murilaiooo/openvista/pull/20 (DreamService registration).
 - PR #21: https://github.com/murilaiooo/openvista/pull/21 (single persisted SAF grant).
