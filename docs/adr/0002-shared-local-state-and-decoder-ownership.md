@@ -1,0 +1,5 @@
+# Shared local state and decoder ownership
+
+The October 26, 2026 implementation uses one process-wide `LibraryStore` for app mode and Dream mode, with a versioned, bounded AtomicFile JSON schema and serialized writes. This keeps user sources, playlists, grants and checkpoints together without introducing a database dependency; schema changes now require explicit migration, and damaged or newer data must remain untouched. This is an implementation decision made under the autonomous engineering mission, with source implementation awaiting independent validation.
+
+Both entry points use `PlaybackSession`, which releases the previous process-local decoder owner before creating another player. A local fallback video finishes before a camera recovery attempt uses that same decoder, accepting a possible connection gap instead of overlapping decoders; a rendered frame is required before the return is committed. Provider selection, security review, OEM support and release acceptance remain separate gates, and this decision does not mark them approved.
