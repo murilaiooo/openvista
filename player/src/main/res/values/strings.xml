@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OpenVista Player Prototype</string>
+    <string name="dream_service_name">OpenVista Dream Probe</string>
 </resources>
