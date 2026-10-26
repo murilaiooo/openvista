@@ -1,6 +1,6 @@
 # User-managed live sources and weather
 
-**Status:** Owner-confirmed product scope from round 4, 2026-10-24. Engineering details are still to be researched and specified.
+**Product brief created 2026-10-24, updated for implementation status 2026-10-26.** The library, import workflow and U.S. NWS weather adapter are implemented with partial Hisense validation. The sections below remain design requirements; see [current status](../STATUS.md) for observed proof and open gates.
 
 ## User-managed live source discovery
 
@@ -31,7 +31,7 @@ Product approval covers two entry options, **not a particular pairing protocol**
 - On request, display **seven-day detail** with forecast conditions, temperatures, precipitation/rain, wind and humidity **when a licensed provider makes the relevant fields available**. Sunrise/sunset can instead be estimated locally from explicitly provided coordinates using tested solar calculations; label accuracy/unknown/polar limitations.
 - Weather can follow either the **current camera location** or the **viewer's chosen city**.
 - Set viewer location by **manual city search** or **optional device-supported detection** with the required permission and clear consent. The app should function without granting viewer location access.
-- Choose provider based on official terms, permitted use by a completely free public app, API rate limits, data reliability and attribution. Refresh/caching/units/time zones and missing-data states remain research tasks. See [ambient solar and display experiments](ambient-experiments.md) for optional geotag-based discovery.
+- The **U.S. National Weather Service** is integrated for supported coordinates, using an identifying User-Agent, bounded requests and a forecast cache. It does **not** supply global city geocoding or licensed map tiles. Other providers still require terms/rate/attribution review. See [NWS device evidence](../testing/nws-weather-integration-2026-10-26.md) and [ambient solar/display experiments](ambient-experiments.md).
 
 ## Live wallpapers
 

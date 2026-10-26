@@ -1,6 +1,6 @@
 # OpenVista implementation plan: ship small, prove on hardware
 
-**Revised:** 2026-10-25. **Baseline:** 78 owner-approved historical decisions and C-01 (user-managed content). **Current evidence:** Python/docs research; no OpenVista Android app or APK. See [the detailed sequencing review](first-apk-sequencing-review-2026-10-25.md) and [critical path](critical-path.md).
+**Historical plan recorded 2026-10-25.** It preserves the original engineering order and should not be read as the current completion status. The native TV preview, device smoke tests and NWS adapter now exist; use [the updated roadmap](../roadmap.md) and [canonical status](../STATUS.md). The 78 owner-approved decisions and C-01 remain binding. See [the detailed sequencing review](first-apk-sequencing-review-2026-10-25.md) and [critical path](critical-path.md) for historical engineering rationale.
 
 ## Invariants
 

@@ -41,7 +41,7 @@ for path, marker in summary_contracts:
         errors.append(f"{path}: stale or missing baseline marker {marker}")
 
 trace_text = TRACE.read_text(encoding="utf-8")
-trace_rows = re.findall(r"^\| D-(\d{2}) \| (G\d{2}) \|[^\n]*\| NOT TESTED \|$", trace_text, re.M)
+trace_rows = re.findall(r"^\| D-(\d{2}) \| (G\d{2}) \|[^\n]*\| (?:NOT TESTED|PENDING V1 ACCEPTANCE) \|$", trace_text, re.M)
 mapped_ids = [int(id_text) for id_text, gate in trace_rows]
 allowed_gates = {f"G{n:02d}" for n in range(1, 11)}
 if sorted(mapped_ids) != expected:
@@ -99,7 +99,7 @@ for file in [*docs, *(ROOT / "scripts").glob("*.py")]:
             errors.append(f"Non-English prose found in {file.relative_to(ROOT)}: {phrase}")
 
 # Prevent future runtime tree from accidentally bundling research streams or media.
-runtime_roots = [ROOT / name for name in ("app", "androidApp", "application")]
+runtime_roots = [ROOT / name for name in ("app", "androidApp", "application")] + [ROOT / "player/src/main", ROOT / "diagnostics/src/main"]
 for runtime in runtime_roots:
     if not runtime.exists():
         continue
@@ -130,8 +130,8 @@ if errors:
     sys.exit(1)
 
 print("PASS: all 78 ordered, unique approved decisions; eight rounds complete")
-print("PASS: 78/78 D-ID mappings across 10 acceptance gates (planned, NOT TESTED)")
+print("PASS: 78/78 D-ID mappings across 10 stable-v1 gates (acceptance pending)")
 print(f"PASS: local relative links valid across {len(files)} Markdown documents")
 print("PASS: active steering and ADR avoid stale interview/device claims")
-print("PASS: English-language prose checks and zero bundled runtime media (where runtime source exists)")
+print("PASS: English-language prose checks and zero bundled media/stream endpoints in Android runtime source")
 print("NOTE: documentation checks do not validate APK builds, device playback or media permissions")

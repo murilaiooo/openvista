@@ -1,127 +1,104 @@
 <div align="center">
 
-<img src="assets/branding/openvista-cover.png" alt="OpenVista — A window to everywhere. An atmospheric illustration of mountains, water, and a glowing horizon." width="100%" />
+<img src="assets/branding/openvista-cover.png" alt="OpenVista: a serene mountain lake beneath a warm horizon" width="100%" />
 
-<br />
+# OpenVista
 
 **Your screen. Your scenery. Your moment.**
 
-An open-source ambient video experience designed for **Android TV, Google TV, and Fire TV**.
+An open-source ambient video player built in Kotlin for Android TV, Fire TV, and potentially Google TV.
 
-Turn your TV into a calm, immersive window with live streams and your own local videos — enhanced by an elegant clock, weather, and distraction-free controls.
+Play your own live cameras and local videos, with a minimal clock and optional weather.
 
-<br />
+[![Status](https://img.shields.io/badge/status-development%20preview-4DDBC4?style=flat-square)](docs/STATUS.md)
+[![Platform](https://img.shields.io/badge/tested-Hisense%20Fire%20OS%207-84C7FF?style=flat-square)](docs/testing/compatibility.md)
+[![License](https://img.shields.io/badge/license-MIT-9EC5C1?style=flat-square)](LICENSE)
 
-[![Project status](https://img.shields.io/badge/status-in%20development-4DDBC4?style=for-the-badge&labelColor=11283F)](docs/roadmap.md)
-[![License: MIT](https://img.shields.io/badge/license-MIT-84C7FF?style=for-the-badge&labelColor=11283F)](LICENSE)
-[![Android TV](https://img.shields.io/badge/platform-Android%20TV-9EC5C1?style=for-the-badge&labelColor=11283F)](docs/testing/compatibility.md)
-
-[**Explore the vision**](docs/product/vision.md) · [**Project roadmap**](docs/roadmap.md) · [**Contribute**](CONTRIBUTING.md) · [**Issues**](https://github.com/murilaiooo/openvista/issues)
+[Status](docs/STATUS.md) · [Get started](#run-it-locally) · [Roadmap](docs/roadmap.md) · [Contributing](CONTRIBUTING.md) · [Product decisions](docs/product/decisions.md)
 
 </div>
 
 ---
 
-## A beautiful reason to leave the TV on
+## A window to somewhere you choose
 
-OpenVista is being built around a simple idea: a television can become something more than a screen full of menus.
+OpenVista is for the moments when a television should feel like a window, not a wall of menus. Pick a live beach camera, a city skyline, or a video from your own collection. Let it play with only the information you want to see.
 
-Imagine a quiet beach at sunrise, a city skyline after dark, or a favorite landscape playing in the background — with just the information you choose, arranged exactly where you want it.
+**You bring the content.** The app ships with **no camera streams, M3U playlists, videos, or hosted catalog**. Add a compatible HLS/MPEG-DASH URL, import your own M3U list, or select media from internal/USB storage. Research-only streams in this repository are **not** part of the APK.
 
-The experience is designed for the couch, not a phone: **immersive visuals, effortless remote navigation, and as little interface as possible.**
+## What's in the development build?
 
-## What OpenVista is designed to do
+| Area | Implemented behavior | Evidence / limits |
+| --- | --- | --- |
+| TV experience | Three-card Home, Cameras, My Videos, Favorites, onboarding, remote-first menus, EN/PT-BR | Home, library and basic D-pad/picker flows observed on Hisense; full accessibility pass pending |
+| Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Live HLS/DASH 720p and M3U import observed on Hisense; other stream formats/quality need testing |
+| Local videos | Scoped Android file/folder picker, recursive scan, persistence, playlists, player resume | MP4 and selected-folder restoration observed; physical USB removal/revocation and full codec matrix pending |
+| Ambient playback | Media3 fullscreen player, camera rotation, local looping, muted default, overlays | Physical playback confirmed; long-run performance and recovery not certified |
+| Weather | Free U.S. National Weather Service seven-day forecasts, hourly forecast condition, cache | Tucson forecast and on-video temperature observed; U.S. coverage only; no geocoding |
+| Maps | Local metadata coordinates, schematic map and source list | A licensed map-tile provider is not active |
+| System screensaver | Optional Android DreamService implementation | Fire OS idle activation / OEM compatibility not approved |
+| Pairing and updates | Security-gated phone input and verified-update implementation | **Disabled** pending security, release channel and Android installer validation |
 
-<table>
-<tr>
-<td width="50%" valign="top">
+See [the dated verification ledger](docs/STATUS.md) and [Hisense device matrix](docs/testing/compatibility.md). A feature being coded does **not** mean it has passed stable-release acceptance.
 
-### 🌎 Live scenes
+## Run it locally
 
-Play compatible **HLS and MPEG-DASH** streams you add to your collection. Organize cameras into playlists, switch scenes with the remote, and explore location-based entries through a planned interactive map.
+This repository currently contains Android app source and tests, **not a public release APK**.
 
-</td>
-<td width="50%" valign="top">
+Requirements: JDK 17, Android SDK (API 36), a compatible Android/Fire TV test device, and a supported Gradle environment. The Gradle wrapper is included.
 
-### 🎞️ Your videos
+On Windows, from the repository root:
 
-Select video folders on internal storage or USB drives, including nested folders. Build playlists, shuffle or loop your favorites, and resume a video where you left off.
+    gradlew.bat :player:assembleDebug
 
-</td>
-</tr>
-<tr>
-<td valign="top">
+To run the existing local validation:
 
-### ☀️ Time & weather
+    gradlew.bat :player:testDebugUnitTest :source-core:test :diagnostics:testDebugUnitTest :player:lintDebug
+    python -m unittest discover -s scripts -p test_*.py
+    python scripts/validate_discovery_docs.py
+    python scripts/release_content_guard.py player/build/outputs/apk/debug/player-debug.apk
 
-Add a clean clock, current conditions, or a detailed seven-day forecast. Choose a city, customize the visual style, and keep the scenery front and center.
+Linux/macOS: use the Gradle wrapper script instead of gradlew.bat. The app module is **player**; the development APK is written to the Android Gradle output directory. Build locally and review the risks before installing; this is not a release distribution or compatibility promise.
 
-</td>
-<td valign="top">
+Do not install a separate diagnostic app alongside OpenVista on the owner's test Fire TV. The existing debug package is **com.openvista.prototype**, minimum Android API 28. Preserve device launcher, user media grants and system settings.
 
-### ✨ Made for the big screen
+## Add your scenery
 
-Full-screen playback, remote-first controls, quick source switching, customizable transitions, and thoughtful performance handling for TV hardware.
+1. Open **Cameras** to add an HLS/DASH URL or import your own M3U playlist with Android's file picker.
+2. Open **My Videos** to select an accessible video or folder from the device or attached storage.
+3. Choose a source, set Favorites or playlists, and play it fullscreen.
+4. Configure clock, ambient overlay, playback preferences and a viewer location under **Settings**.
 
-</td>
-</tr>
-</table>
+For U.S. weather, supply a city name and coordinates manually; the NWS endpoint does **not** offer city-name search in this build. Weather information remains optional, and the app works without location permission. When a camera has no coordinates, its ambient weather widget can use your saved viewer location.
 
-### Thoughtful by design
+## Compatibility and release policy
 
-- **Personalize the experience:** flexible playlists, favorites, clock and weather layouts, plus simple and advanced settings.
-- **Keep things effortless:** default five-minute scene rotation, with adjustable timing and automatic recovery from unavailable sources.
-- **Stay in control:** audio muted by default, local settings storage, no required account, no ads, and no automatic analytics.
-- **Choose how it runs:** open it like a regular TV app; use system screensaver integration where your device allows it.
-- **Use the remote naturally:** press OK for a compact control menu, switch between cameras and videos, then return to an unobstructed view.
+**Physical test target:** Hisense 58U6HF, Fire OS 7 / Android 9 (API 28). That confirms only the specific observed workflows on that device. Other Fire OS, Android TV and Google TV builds have **not** been verified.
 
-## How it will work
+There is no public stable release, no owner-approved signing/update channel and no guarantee of automatic system screensaver or silent APK installation. Publication requires review of the [v1 acceptance gates](docs/product/v1-acceptance.md), 24-hour hardware endurance, security/privacy and license checks, and explicit owner approval.
 
-1. **Choose your source.** Add a compatible live stream or select videos stored on your TV or an attached drive.
-2. **Make it yours.** Arrange sources into playlists, save favorites, and set the scene rotation you prefer.
-3. **Enjoy the view.** Enter full-screen ambient mode, optionally add weather and time, and let your TV fade into the background.
+## Architecture and project map
 
-> [!IMPORTANT]
-> **OpenVista is in active development.** The app is not downloadable yet, and the features above describe its planned experience rather than completed functionality. Device support and system screensaver integration will be confirmed through real hardware testing.
+| Area | Read |
+| --- | --- |
+| What exists today, proof and blockers | [Current status](docs/STATUS.md) |
+| Milestones and what is still outstanding | [Roadmap](docs/roadmap.md) |
+| Kotlin modules and ownership | [Architecture](docs/architecture/overview.md) and [module guide](docs/implementation/production-module-guide.md) |
+| Original owner decisions (D-01–D-78 and C-01) | [Decisions](docs/product/decisions.md) |
+| Weather implementation and Fire TV evidence | [NWS validation](docs/testing/nws-weather-integration-2026-10-26.md) |
+| Hardware/software acceptance | [Compatibility](docs/testing/compatibility.md) and [v1 gates](docs/product/v1-acceptance.md) |
+| Privacy, safe content handling | [Security and media rights](docs/SECURITY_AND_CONTENT.md) |
+| How to help | [Contributing](CONTRIBUTING.md) |
 
-## Development status
+The research and October 25 planning notes are retained as **dated engineering history**, not current status. The canonical summary is [docs/STATUS.md](docs/STATUS.md).
 
-| Area | Status |
-| :-- | :-- |
-| Product direction and interaction requirements | Defined |
-| Media playback, file browsing, and TV navigation | Research and prototype planning |
-| Automatic screensaver integration | Device-dependent; not yet verified |
-| Android TV / Google TV / Fire TV compatibility | Not yet verified |
-| First development APK | Not yet available |
-| Public release | Not scheduled |
+## Contribute
 
-The initial engineering test device is a **Hisense 58U6HF running Fire OS 7**. This does **not** imply support for other devices yet.
+OpenVista is MIT licensed and welcomes small, reviewable improvements to TV navigation, playback reliability, source handling, localization, privacy, weather, and testing.
 
-OpenVista will be developed as an **original Kotlin Android TV application**, with **Media3 / ExoPlayer** and Android's supported storage and system APIs evaluated through real prototypes.
+[Contribution guide](CONTRIBUTING.md) · [GitHub issues](https://github.com/murilaiooo/openvista/issues) · [Source repository](https://github.com/murilaiooo/openvista)
 
-## Project documentation
-
-| Start here | What you'll find |
-| :-- | :-- |
-| [Product vision](docs/product/vision.md) | What we're building and why |
-| [TV experience](docs/product/experience.md) | Remote navigation, playback, overlays, and customization |
-| [Roadmap](docs/roadmap.md) | What's next and how work is prioritized |
-| [Implementation plan](docs/implementation/priority-plan.md) | Engineering stages, dependencies, and acceptance goals |
-| [Technical research](docs/research/platform-feasibility-2026-10-25.md) | Platform capabilities and open questions |
-| [Curated upstream code research](docs/research/curated-upstream-code-2026-10-25.md) | Ranked open-source references, source-file pointers, licenses and implementation sequence |
-| [Architecture](docs/architecture/overview.md) | Candidate components and boundaries |
-| [Compatibility](docs/testing/compatibility.md) | Test scope and device-specific limitations |
-| [Contributing](CONTRIBUTING.md) | How to propose improvements and collaborate |
-
-The [decision log](docs/product/decisions.md) preserves the approved requirements and design history. Research-only test assets are kept separate from runtime content.
-
-## Build with us
-
-OpenVista is an open-source project, and thoughtful contributions are welcome — especially around Android TV navigation, media playback, accessible interface design, storage, weather, performance, and device testing.
-
-Browse the [open issues](https://github.com/murilaiooo/openvista/issues), read the [contribution guide](CONTRIBUTING.md), and keep proposed changes focused and reproducible.
-
-**Repository language:** English for documentation, code comments, issues, and pull requests.
+All repository prose, engineering documentation and contributions use **English**. The app intentionally includes **Brazilian Portuguese** UI resources.
 
 ---
 
@@ -129,8 +106,6 @@ Browse the [open issues](https://github.com/murilaiooo/openvista/issues), read t
 
 **A window to everywhere.**
 
-Made for quiet moments, curious minds, and bigger screens.
-
-[MIT License](LICENSE) · [Roadmap](docs/roadmap.md) · [Contributing](CONTRIBUTING.md)
+[License](LICENSE) · [Status](docs/STATUS.md) · [Roadmap](docs/roadmap.md)
 
 </div>

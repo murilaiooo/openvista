@@ -1,6 +1,6 @@
 # OpenVista: faster route to the first local APK
 
-**Review date:** 2026-10-25. **Status:** Engineering sequencing adopted for prototyping; not a rewrite of owner-approved decisions D-01–D-78 or C-01. No real-device compatibility, new Android source, or built APK is claimed by this document.
+**Historical sequencing review — 2026-10-25.** The original diagnostic and Media3 prototype work has since been implemented and partially device tested. See [current status](../STATUS.md). **Review date:** 2026-10-25. **Status:** Engineering sequencing adopted for prototyping; not a rewrite of owner-approved decisions D-01–D-78 or C-01. No real-device compatibility, new Android source, or built APK is claimed by this document.
 
 ## Decision table
 

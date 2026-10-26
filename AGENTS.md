@@ -1,6 +1,6 @@
 # OpenVista: agent instructions
 
-OpenVista completed **eight product interview rounds (D-01–D-78)**. Engineering has started: an isolated, read-only Kotlin diagnostics app was built and tested on the owner-approved Hisense on 2026-10-25. This is **not the media player or a public APK release**. Never claim other-device compatibility, validated media playback, approved providers, or automatic installation without reproducible evidence.
+OpenVista completed **eight product interview rounds (D-01–D-78)**, with C-01 overriding first-party catalog assumptions. The Kotlin TV application, tests and official U.S. NWS adapter now live in the development codebase and have partial physical Hisense evidence. **This is a local development preview, not a public/stable release.** Start at [the canonical status](docs/STATUS.md) and [live roadmap](docs/roadmap.md); dated research plans are historical. Never claim other-device compatibility, full media matrix coverage, Fire OS DreamService selection or unattended installation without reproducible evidence.
 
 ## Working agreements
 
@@ -18,8 +18,8 @@ OpenVista completed **eight product interview rounds (D-01–D-78)**. Engineerin
 - **Do not ship any live-camera URLs, streaming playlists, hosted catalogs, research feed fixtures, or videos in the app.** Users supply their own sources and local media. Keep research fixtures out of all public APK/release assets. Before any distribution, run [the package-content guard](docs/testing/release-content-guard.md) on the actual signed artifact and complete source/build reviews.
 - Do not hardcode API keys, user locations, or authentication material into version control.
 - GitHub Actions is not a substitute for local reproducible tests and physical TV validation.
-- **First APK stays local for tests on Hisense 58U6HF / Fire OS 7**. Other TVs are unverified; first GitHub binary release requires explicit owner approval. Do not install on or change a TV in a planning/documentation audit.
-- Start implementation with an isolated **local-only diagnostic self-check APK**, then a thin shared Media3 Activity for direct URL, selected M3U import, video folder picker and D-pad smoke tests. Keep separate #3/#5/#9 acceptance records. QR/LAN is P3, not a first-APK blocker; D-32/D-73 still apply to stable v1. See [first-APK plan](docs/implementation/first-apk-sequencing-review-2026-10-25.md).
+- **The development APK stays local for tests on Hisense 58U6HF / Fire OS 7.** Other TVs are unverified; first GitHub binary release requires explicit owner approval. Do not change TV settings/apps without the owner's specific authorization; the owner currently requires the existing system screensaver to remain **disabled** until they say otherwise.
+- **Do not restart or redo the diagnostic/first-player milestones.** The TV application, Media3, SAF/M3U, libraries, weather and optional Dream source already exist. Use the [current status](docs/STATUS.md) for remaining tests, the [module guide](docs/implementation/production-module-guide.md) for ownership and the older [first-APK plan](docs/implementation/first-apk-sequencing-review-2026-10-25.md) as historical rationale. QR/LAN pairing and the public updater remain **disabled** pending security/release approval.
 - Treat Daylight/Golden Hour and Display care as opt-in research concepts, not approved shipped features. Never include a procedural demo shader or video without explicit owner approval.
 - Review public copy with [No AI Slop / code quality guidelines](docs/quality/writing-and-code-review.md); use project-local `no-ai-slop` for human-readable prose and optional telemetry-disabled `aislop` for Python, **not Kotlin**.
 - Public v1 must work with **zero bundled streams**, user-managed source URL/list import, and meaningful empty states; verify no research stream URLs or playlist assets end up in the APK. Retain the documented 24-hour stability, privacy, and real-device playback gates.
@@ -43,7 +43,7 @@ Single-context: one root `GLOSSARY.md`, decisions under `docs/adr/`. See `docs/a
 
 Look for `.agents/skills/<name>/SKILL.md` (Codex) and `.claude/skills/<name>/SKILL.md` (Claude Code). Use the **applicable** skills, not every one on every task. Start with `grill-with-docs` for discovery, `research` for external facts, `to-spec` and `to-tickets` when decisions are approved, `tdd` for logic, and `code-review` before merge. See `docs/skill-selection.md`.
 
-## Quality gates (once app code exists)
+## Remaining quality gates
 
 1. Document target OS/API support and unsupported device policies.
 2. Verify on-device D-pad navigation, folder-grant persistence, lifecycle and screen-off transitions.

@@ -1,6 +1,6 @@
 # OpenVista dependency frontier
 
-**Revised 2026-10-25.** This is a test-first implementation sequence, not a record of device validation or a new product decision. Keep the 78 approved D-IDs and C-01 unchanged.
+**Historical plan revised 2026-10-25.** This diagram describes the *original first-APK dependency frontier*, not today's implementation status. For the currently built TV application, physical smoke results, provider integration and release blockers see [current status](../STATUS.md) and [roadmap](../roadmap.md). Keep the 78 approved D-IDs and C-01 unchanged.
 
 ## First local APK critical path
 
@@ -39,7 +39,7 @@ Using a single codebase/prototype for #3, #5 and #9 reduces setup and duplicate 
 
 ## Go / no-go rules
 
-1. No APK/source currently exists at the start of this plan. Do not treat future proposal documents or PC `ffprobe` research as a completed Android prototype.
+1. At the start of this 2026-10-25 plan there was no app source. **App source and local debug APKs now exist;** rely on dated TV/build evidence in [current status](../STATUS.md), not this historical line or PC-only `ffprobe` research.
 2. No privileged ADB install bypass, TV root, auto-launch at boot, forced screensaver or changes to unrelated installed apps.
 3. The first APK is local only on Hisense 58U6HF / Fire OS 7. Other TV models remain unverified.
 4. Release packages must contain no user-stream URLs, playlists or video files (C-01), checked on the actual signed artifact with [release guard](../testing/release-content-guard.md).

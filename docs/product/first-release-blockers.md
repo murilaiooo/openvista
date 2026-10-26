@@ -1,6 +1,6 @@
 # OpenVista: first-release blockers and evidence checklist
 
-**Status 2026-10-25:** all **78 owner decisions** approved over eight rounds. This is a research checklist, not an app implementation or release.
+**Updated 2026-10-26:** the Kotlin app and local debug APK exist, with partial real Hisense testing. This document remains a **stable release blocker checklist**, not a claim that all items are unimplemented or untested. The authoritative results are in [current status](../STATUS.md).
 
 ## Approved release boundaries
 
@@ -28,8 +28,8 @@
 | P1 | App UX and resilience | D-pad focus, control menu, playlists, diagnostics, offline-to-local return, no busy loops |
 | P3 | Public acceptance | Documented 24h physical-TV soak, compatibility, legal/privacy and owner release sign-off |
 
-Direct TV keyboard and user-selected M3U/USB import precede QR; see [first-APK sequencing](../implementation/first-apk-sequencing-review-2026-10-25.md). A shared player/picker prototype does not replace independent #3/#5/#9 tests. Weather still needs a provider even if sun events are computed locally.
+Direct TV keyboard and user-selected M3U/USB import precede QR; see [first-APK sequencing](../implementation/first-apk-sequencing-review-2026-10-25.md). A shared player/picker prototype does not replace independent #3/#5/#9 tests. A U.S. NWS forecast provider has now been integrated and physically checked in Tucson; **city geocoding and licensed map imagery remain unresolved**. This does not imply global camera-local weather support.
 
-Research must be done before production implementation for its dependent feature. The previously discussed first-party 25-camera directory is superseded by [the user-managed content clarification](user-managed-content.md); release builds should contain zero feeds and videos. No signed binary, compatibility claim, source license or silent installation is proven yet.
+The remaining release gates must be validated before enabling or distributing their dependent features. The previously discussed first-party 25-camera directory is superseded by [the user-managed content clarification](user-managed-content.md); release builds should contain zero feeds and videos. No public signed binary, broad-device compatibility or silent installation is proven. Local Hisense build/playback, selected-source imports and NWS forecasts have been physically demonstrated, but comprehensive acceptance is still incomplete.
 
 Use [v1 acceptance](v1-acceptance.md), [engineering plan](../implementation/priority-plan.md) and [official platform notes](../research/platform-feasibility-2026-10-25.md).

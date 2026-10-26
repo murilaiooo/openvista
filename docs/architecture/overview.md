@@ -1,30 +1,55 @@
-# OpenVista architecture: hypotheses, not approved implementation
+# OpenVista architecture
 
-## Design constraints
-- A normal fullscreen app must work even where the OS restricts third-party screensavers. **First APK is a local-only test on Hisense 58U6HF / Fire OS 7; all other TVs untested initially.**
-- Optional Android `DreamService` can share a media session/controller layer with the fullscreen app. Its availability depends on OS/OEM.
-- Hardware-decoded video and power/memory limits matter on low-end TV SoCs. Codec capability is per device and source.
-- TV remote focus/back handling, no touch assumptions. The owner approved OK to show Dream controls, Back to exit, and directional navigation where the OS delivers them. **No automatic app launch on TV boot.**
+**Current as of 2026-10-26:** this describes implemented Kotlin development-preview modules, not a proposal to build a new app. Evidence, limitations and hardware-specific acceptance live in [STATUS](../STATUS.md), the [module guide](../implementation/production-module-guide.md) and [device matrix](../testing/compatibility.md).
 
-## Candidate seams
-1. **User-managed live source library**: start empty; import user-entered HLS/DASH URLs or source lists, store playlists locally, allow optional user metadata for categories, source details, availability and geographic coordinates. TV remote map and clusters show **only geolocated user sources**, with an offline saved-source list and clear no-network state. **No bundled camera feed catalog, provider directory or source publication service.**
-2. **Media source resolver and source details**: authorized **HLS/MPEG-DASH** input via TV keyboard or **phone-TV same LAN QR pairing with explicit TV confirmation** (short-lived secure protocol to research), plus user-granted internal/USB SAF recursive URI source, MP4/MKV/WebM/MOV codec tests and typed errors. Defer RTSP.
-3. **Playback and sequence controller**: AndroidX Media3/ExoPlayer candidate, separate camera/video playlists with camera sequence/shuffle (**shuffle default**) and playlist create/rename/reorder/duplicate/delete plus **batch add/remove/reorder of entries**. Camera rotation defaults to **5 minutes** (configurable 1–60); local videos advance/loop, use fixed ±10-second seeks, persist **per-video resume positions**, and bound bad-media skipping. Persist last scene for Dream entry; skip bad cameras immediately. During configured local fallback, perform nondisruptive recovery checks and **finish the current file before returning to verified playable live camera**, unless user chooses to remain local. Stable decoder/HDR handling first; no promise of universal transcoding.
-4. **Weather/overlay controller**: compact clock/current weather and expanded 7-day high/low temperatures, rain, wind, humidity and sunrise/sunset when offered by an authorized weather provider. Support camera or viewer weather context, manual city geocoding and optional device detection; no forced location permissions. Preserve simple/advanced editor, presets and independent position-shift/inactivity-hide settings.
-5. **Input/navigation**: image-backed Home cards for Cameras/My Videos/Favorites, single Favorites hub with separated media sections, 2D map clusters/list and remote focus. **OK opens controls including immediate Cameras/My Videos switch, which auto-hide after five seconds of inactivity**; D-pad navigates visible controls, otherwise changes cameras or seeks ±10 seconds locally. Respect OS-owned Dream keys. Skippable first-run guide and clean Back semantics.
-6. **Dream lifecycle, energy and scheduling**: optional DreamService with supported **1/3/5/10/15/30-minute** system-owned idle intervals and user-facing limitation guidance; keep-awake settings only within OS/OEM policy; optional schedule; no boot autostart or invasive settings changes. On resume, attempt last camera/video. App mode remains independent.
-7. **Settings/persistence, diagnostics and resources**: Basic/Advanced settings; device-reported codec/resolution/errors and bounded **local diagnostics copied/shared only on deliberate user action**, sanitized paths/tokens; no automatic telemetry. Preferences, favorites/playlists/checkpoints persist on device without cloud/settings export. Cache within provider terms; respect URI grants, transitions, localization and no secrets in source.
-8. **APK update subsystem (conditional)**: intended automatic GitHub-release download and install, with package/signature/version verification; evaluate **Fire OS 7 PackageInstaller permissions/installer ownership** in isolated tests before implementation. If user consent is required, show the official installer prompt; never bypass Android protections or claim silent install unverified.
+## System boundaries
 
-**Do not construct a large abstraction layer now.** Validate seams with independent spikes for HLS playback, folder selection and DreamService before finalizing structure.
+OpenVista is an **offline-first, account-free native Android TV application**. It uses Media3 playback for compatible **user-selected** live HLS/MPEG-DASH and local videos. No bundled streams, sample media, hosted source directory, cloud account or TV boot launch are present.
 
-## User content folder
-Investigate `ACTION_OPEN_DOCUMENT_TREE` with persisted URI permissions and `DocumentFile`. Android 11+ disallows choosing certain roots and Download directories by tree picker; OEMs may omit a functioning DocumentsUI. Within the granted URI tree, **recursively include all accessible nested subfolders by default**, using safe enumeration with loop/dedup checks and nonblocking scanning. Missing/revoked sources must not hang playback. Provide a user-tested picker fallback, without broad storage access by default.
+| Code | Responsibility | Key boundary |
+| --- | --- | --- |
+| player / OpenVistaActivity | TV launcher, navigation history, dialogs, Activity Result picker integration, foreground lifecycle | One visible app package: com.openvista.prototype |
+| player / ui | Home, source library, settings, remote focus, playback controls and PT-BR/EN resources | D-pad first; no touch requirement |
+| player / library | Process-shared LibraryStore and SAF access management, bounded atomic JSON state, favorites, playlists and resume checkpoints | Never bypass Android user-granted storage URIs |
+| player / playback | Media3 ExoPlayer owner, source selection, rotation, retries/fallback, resumable local media | Shared player ownership; no concurrent active decoders assumed |
+| player / ambient | Clock/date/place overlay, NWS forecast provider/cache, user-coordinate schematic map/list | U.S. NWS only; no external geocoder or licensed base map |
+| player / OpenVistaDreamService | Optional OS-selected screensaver entry with shared state | Must be validated per Fire OS device; no forced system setting writes |
+| player / update | Version/channel/download/hash/signer/PackageInstaller pathways | Feature intentionally disabled pending distribution approval |
+| player / pairing | Short-lived phone entry, QR and TV confirmation boundary | Feature intentionally disabled pending security approval |
+| player / diagnostics | Bounded sanitized local diagnostic journal | No telemetry; deliberate report preview/copy/share only |
+| source-core | Validates user-supplied direct URLs, playlists and file rules | Limits size, count, invalid schemes, duplicate records |
+| diagnostics | Independent read-only device capability probe | Separate diagnostic package; not the TV player |
 
-## Streams and weather
-A user-controlled source resolver validates HLS/DASH URLs and future source-list imports without bundling third-party feeds. No scraping, rehosting, automatic upload or logging private URLs. Weather data must be licensed for intended distribution; use caching and explicit timezone attribution.
+## App lifecycle
 
-## Proposed tests
-- Unit tests: camera playlist shuffle/sequence, playlist lifecycle and reorder/duplicate, local next-item/repeat, ±10-second seek bounds, per-video checkpoint resume, exhausted playlist/all-invalid safeguard, 1–60 min camera rotation, OS-supported idle-interval visibility, persisted last-scene choice, immediate failover, non-disruptive offline-to-local behavior with bounded reconnect probes, quality caps, schedule windows, timezone labels, forecast state and permissions boundaries.
-- Emulator: focus graph, image-backed Home accessibility, map marker clustering/list navigation, camera-versus-local contextual remote input, simple/advanced overlay editor, reposition and inactivity-hide settings, skippable onboarding, switchable transition modes, source rotation, USB-picker boundaries, locale detection/overrides, lifecycle and process death.
-- Real TV: internal/USB recursive folders with deep trees and safe hot-unplug notice; MP4/MKV/WebM/MOV containers with multiple codecs; local-video resume/±10-second seeks, no subtitle UI; fill/crop, stable decoder/HDR behavior and transitions; OS-specific Dream controls/timeouts, stay-awake/standby, no boot autostart, last-scene resume, offline playback without interruption on reconnect, background work suspension, sleep/wake, 24-hour soak and CPU/RAM/network.
+- The player launches from the TV Home. It does not start automatically on boot.
+- A media source may be entered through the TV keyboard, user-selected M3U with ACTION_OPEN_DOCUMENT, a chosen video file, or an authorized folder tree with ACTION_OPEN_DOCUMENT_TREE.
+- URI grants are handled through Android scoped-storage APIs; unavailable/revoked folders preserve metadata without inventing files.
+- Persisted library and last-scene state stay in app-private storage. Settings/favorites/playlists are not uploaded or automatically backed up off-device.
+- Display and decoder lifecycle are bounded: no promise that all sources or 4K/HDR codecs work on every TV.
+- The optional DreamService is separate from normal app mode and remains under system/OEM control.
+- Paired phone input and public updater are disabled by security/release gates even if their source is present.
+
+## Weather and map data
+
+An official National Weather Service adapter resolves U.S. coordinates to NWS gridpoint daily and hourly forecasts using HTTPS and an identifying User-Agent. Cache refresh is rate-limited; weather is optional and some forecast fields may be absent. Forecast probability (%) is distinct from rainfall volume (mm). The provider is identified in documentation and request metadata without an on-video attribution label.
+
+NWS is not a global service. Imported cameras lacking coordinates may show the viewer-selected city weather instead. City geocoding is not enabled. The existing map presents saved locations in a schematic/list, not an approved online tile basemap.
+
+See [NWS validation](../testing/nws-weather-integration-2026-10-26.md), [privacy](../SECURITY_AND_CONTENT.md) and [current blockers](../STATUS.md).
+
+## Verification boundaries
+
+Only the Hisense 58U6HF / Fire OS 7 / Android 9 (API 28) has device test evidence. The working Android SDK is configured for compile/target 36, minimum 28. A local debug APK passing tests and playing a fixture is **not** a public signed release, stable-v1 proof or generalized compatibility claim.
+
+| Gate | Remaining work |
+| --- | --- |
+| Media | Real USB failure, high-resolution/codec/thermal and long-run tests, source recovery |
+| UI | Full D-pad/accessibility and localization test matrix |
+| Dream | OEM service selection, idle timers and remote |
+| Weather/map | NWS stale/offline longevity; worldwide data/licensed map/geocoding choice |
+| Security | Phone pairing confidentiality and threat-model approval |
+| Updates | Signing/channel approval and actual Android installer behavior |
+| Stable v1 | G01–G10 review, 24-hour soak and owner authorization |
+
+The original architecture hypotheses and planning audit are retained in the dated research/history files, not as a reason to rebuild a working codebase.

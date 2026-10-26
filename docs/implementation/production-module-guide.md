@@ -1,6 +1,6 @@
 # Production module guide
 
-Status: **IMPLEMENTED — AWAITING CHATGPT VALIDATION**. This guide describes source ownership, not observed behavior. See [the handoff](codex-handoff.md) for acceptance work and external gates.
+**Current source guide, 2026-10-26.** The full development-preview source has partial independent Windows/Hisense validation. Not every feature is accepted; see [current status](../STATUS.md), the original [Codex handoff](codex-handoff.md) and [v1 release gates](../product/v1-acceptance.md).
 
 | Module | Ownership and integration |
 | --- | --- |
@@ -8,7 +8,7 @@ Status: **IMPLEMENTED — AWAITING CHATGPT VALIDATION**. This guide describes so
 | `library/` | One shared app-private state owner; bounded versioned atomic storage, transaction validation, library/playlist ordering, favorites, settings, per-video checkpoints, multiple selected SAF trees and direct documents, grant migration/revocation, session-only access and disconnected records. |
 | `playback/` | Media3 HLS/DASH/local media, decoder fallback, quality cap, muted default, text-track disabling, audio selection integration, finite failed-source passes, camera rotation, local loop/resume, foreground snapshots and optional local fallback recovery. |
 | `OpenVistaDreamService` | Optional platform-selected Dream entry using the same state/player; last scene, controls, overlay, optional local daily schedule and bounded lifecycle ownership. No boot receiver or settings writes. |
-| `ambient/` | Clock/date/place overlays, presets/editor settings, independent reposition/hide, weather/geocoder interfaces and cache, and map backdrop interface/cache plus user-coordinate clustering/list UI. No provider is selected. |
+| `ambient/` | Clock/date/place overlays, presets/editor settings, independent reposition/hide, official U.S. NWS forecast adapter and cache, unconfigured city geocoder, and schematic user-coordinate map/list with unconfigured licensed map backdrop. |
 | `diagnostics/` | A fixed-vocabulary, local, bounded seven-day error journal (64 entries). Reports omit titles, URLs, paths and coordinates and require preview plus explicit copy/share. Media3 exception logging is disabled to avoid recording user URIs. |
 | `update/` | Gated release discovery, bounded private HTTPS download, SHA-256/package/version/current-signer checks, PackageInstaller staging, confirmation and lifecycle recovery. |
 | `pairing/` | Gated two-minute, same-subnet, one-submission phone input with origin/host/token/body/rate checks and explicit TV approval. No source probing or autoplay. |
@@ -25,7 +25,7 @@ Camera startup/stall attempts time out after 15 seconds. An all-failed camera pa
 
 ## Provider and release boundaries
 
-`ForecastProvider`, `CitySearchProvider` and `MapBackdropProvider` require adapters reviewed for licensing, privacy, quota and attribution. Their repositories already handle asynchronous cancellation, bounded cache data, missing fields, stale/offline data and UI results. The default app installs no adapter and sends no weather/geocoding/map request. The map displays an explicitly labeled coordinate schematic and saved-source sidebar, without claiming a licensed basemap or offline map.
+`ForecastProvider`, `CitySearchProvider` and `MapBackdropProvider` require adapters reviewed for licensing, privacy, quota and attribution. Their repositories already handle asynchronous cancellation, bounded cache data, missing fields, stale/offline data and UI results. The app now installs the official U.S. NWS adapter for supported viewer/camera coordinates and sends weather requests only when needed. It does **not** configure a city geocoder or licensed map tiles. The map displays an explicitly labeled coordinate schematic and saved-source sidebar without claiming a real licensed basemap. See [NWS validation](../testing/nws-weather-integration-2026-10-26.md).
 
 Forecast and map data are not demo fixtures. The forecast cache retains one location, and the map cache retains one explicitly requested viewport, never a bulk tile set. Cache age and permitted persistence follow the eventual adapter policy. Map images are bounded to 1024 × 768. A map adapter must render the supplied equirectangular viewport so geotagged markers align with it.
 
@@ -39,4 +39,4 @@ Forecast and map data are not demo fixtures. The forecast cache retains one loca
 - [DreamService](https://developer.android.com/reference/android/service/dreams/DreamService).
 - [ZXing 3.5.3 source and release](https://github.com/zxing/zxing/releases/tag/zxing-3.5.3), used only to encode local pairing QR images. It is an Apache-2.0 dependency and performs no network operation. Its artifact notices must remain in any eventual packaged distribution.
 
-No tests, compilation, Android Lint, APK packaging, validation scripts, CI or device operations were performed during this mission.
+**Historical handoff note:** The initial Codex implementation mission did not run tests, compilation, Android Lint, APK packaging, validation scripts, CI or device operations. Subsequent independent QA **did** run these checks and physically test the app. See [current status](../STATUS.md), [TV QA](../testing/production-pr22-validation-2026-10-26.md) and [NWS QA](../testing/nws-weather-integration-2026-10-26.md).

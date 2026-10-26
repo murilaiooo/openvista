@@ -29,4 +29,4 @@ Scope: incoming head e9ce0ac16e7a364b9aecea902bde60f244f664c3 on codex/complete-
 - Security/release gates remain disabled: PairingSecurity.REVIEWED=false and UpdateChannel.APPROVED=false. No pairing listener or public update channel was activated.
 - This is a debug-artifact package guard, not signed public release validation.
 
-Decision: Keep PR #22 as draft. Local checks PASS only after narrow validation fixes; physical acceptance and external gates are incomplete. Do not merge, publish, or mark stable-v1 passed.
+**Original QA decision on 2026-10-26:** Keep PR #22 as draft. That PR was later **closed administratively, unmerged**, and its reviewed source was consolidated into the development mainline. The local check results above remain valid only for the tested snapshot, while the weather PR's later tests are described in [NWS QA](nws-weather-integration-2026-10-26.md). Release acceptance and external gates remain incomplete. See [current status](../STATUS.md).

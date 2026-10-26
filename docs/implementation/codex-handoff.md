@@ -1,6 +1,6 @@
 # Codex implementation handoff
 
-Status: **IMPLEMENTED — AWAITING CHATGPT VALIDATION**, except the externally gated adapters/activation listed below. All new production code is unbuilt and untested. ChatGPT owns validation, debugging through validation, hardware checks, and acceptance. This is a source handoff, not stable-v1 acceptance.
+**Historical implementation handoff recorded before independent QA, retained for provenance.** The code has since compiled, passed local tests and received partial Hisense TV verification, and the NWS adapter was added separately. The former draft PRs were closed administratively; see [current status](../STATUS.md), [TV QA](../testing/production-pr22-validation-2026-10-26.md) and [NWS QA](../testing/nws-weather-integration-2026-10-26.md). The original untested-handoff details below describe what was true **at that time**, not today.
 
 ## Implemented source and requirement coverage
 

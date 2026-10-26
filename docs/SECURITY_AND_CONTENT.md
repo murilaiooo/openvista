@@ -21,7 +21,7 @@
 - QR-assisted URL entry is restricted to phone and TV on the same local network with **explicit TV pairing confirmation**; must not leak local endpoints or private tokens. Review LAN exposure, binding scope, pairing confirmation, short token expiry, replay/CSRF and untrusted URLs before implementation.
 
 ## Weather
-- Provider must allow chosen distribution model; cache within terms, show stale-data state, and honor attribution.
+- The integrated official U.S. National Weather Service forecast adapter is free and does not require a key. Send its requested identifying User-Agent, document its data provenance, respect rate/cache limits and display stale data honestly. There is no compulsory on-video provider-credit label; do not claim NWS endorsement. Additional weather, city geocoding and map providers require separate licensing/terms review.
 - Exact location is optional and must require permission/clear consent. Provide manual city search; device-assisted location is opt-in and only available where the TV supports it. A camera's publicly known coordinates do not disclose the viewer's location.
 - Show temperature, precipitation, wind, humidity and solar events only when the forecast provider offers applicable values and the data's freshness is known.
 - API secrets stay out of the app repository and release artifacts when server-side use is required.

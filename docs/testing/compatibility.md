@@ -1,17 +1,17 @@
 # TV compatibility and acceptance matrix
 
-**Status:** Planned, no devices have been tested for OpenVista yet.
+**Updated 2026-10-26.** One device, Hisense 58U6HF / Fire OS 7 / Android 9 (API 28), has **partial physical verification** of the development preview. Other devices and stable-v1 acceptance remain unverified. See [current status](../STATUS.md).
 
 | Device family | App mode | DreamService auto idle | Local storage picker | Live HLS | Weather | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Hisense 58U6HF, Fire OS 7 | Unverified | Unverified | Unverified | Unverified | Unverified | **Only initial test target** |
+| Hisense 58U6HF, Fire OS 7 | Basic Home/player tested | Not accepted | File + folder selection and process-restore tested; real USB edge cases pending | HLS/DASH 720p observed | Tucson NWS forecast observed | **Partial physical proof, not stable-v1 accepted** |
 | Google TV 12+ | Unverified | OEM policy varies | Unverified | Unverified | Unverified | Test representative model |
 | Older Android TV | Unverified | Unverified | Unverified | Unverified | Unverified | Test representative model |
 | Other Fire OS versions | Unverified | OEM policy varies | Unverified | Unverified | Unverified | Test representative model |
 
-**Recording rule:** no 'supported' flag without reproducible results on that device/OS build. **Only Hisense 58U6HF / Fire OS 7 is scheduled for initial tests; all other devices are untested.** Test manual app mode separately from system screensaver integration.
+**Recording rule:** no blanket 'supported' flag without reproducible results on that exact device/OS build. **Only Hisense 58U6HF / Fire OS 7 has evidence; all other listed device families are untested.** Test manual app mode separately from system screensaver integration.
 
-**Stable-v1 quality gate:** verify **empty-library behavior and user-supplied camera/playlist imports with no bundled streams or videos**, plus full playback/compatibility/privacy checklist and at least **24 hours** of documented device playback/soak. Superseded 25-project-camera target is no longer active (C-01). The first development APK is **local only**.
+**Stable-v1 quality gate still outstanding:** verify **empty-library behavior and user-supplied camera/playlist imports with no bundled streams or videos**, plus full playback/compatibility/privacy checklist and at least **24 hours** of documented device playback/soak. Superseded 25-project-camera target is no longer active (C-01). The first development APK is **local only**.
 
 ## Acceptance test scenarios
 1. Cold boot / launch and input focus; Back exits cleanly.

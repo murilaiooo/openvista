@@ -1,6 +1,6 @@
 # OpenVista v1: acceptance contract and release stages
 
-**Owner-confirmed scope:** the 78 historical decisions, as modified by the later **C-01 user-managed content clarification**. The app ships no camera feeds, source lists, or videos. This page separates a **local engineering APK** from future **stable public v1.0**. It is not a record of completed testing.
+**Owner-confirmed scope:** the 78 historical decisions, as modified by the **C-01 user-managed content clarification**. The app ships no camera feeds, source lists or videos. **Local engineering APKs and limited physical Hisense tests now exist.** This is the future **stable public v1.0 acceptance contract**, not certification. See [current evidence and blockers](../STATUS.md).
 
 ## Local engineering APK (first artifact)
 
@@ -72,6 +72,6 @@ See Google's [PackageInstaller.SessionParams](https://developer.android.com/refe
 
 ## Decision trace and acceptance evidence
 
-Each approved decision is assigned a primary G01–G10 owner in [requirement traceability](requirement-traceability.md), with every D-ID currently marked **NOT TESTED**. Multiple gates may be relevant to individual requirements; tests will add concrete evidence links when produced. The [planning audit](../reviews/2026-10-25-planning-audit.md) records blocking risks.
+Each approved decision is assigned a primary G01–G10 owner in [requirement traceability](requirement-traceability.md), with every D-ID currently marked **PENDING V1 ACCEPTANCE**. Multiple gates may be relevant to individual requirements; tests will add concrete evidence links when produced. The [planning audit](../reviews/2026-10-25-planning-audit.md) records blocking risks.
 
-No gates have been passed and no application APK exists at the date of writing. Each gate requires test runs with date, exact device build, test case, expected/actual outcome, evidence location and responsible reviewer. Later testing may trigger a documented scope change rather than silently waiving a requirement.
+App source and local debug APKs now exist, with partial verification recorded in [current status](../STATUS.md). **No entire G01–G10 stable-v1 gate has been signed off**, and no public APK has been authorized. Each gate requires test runs with date, exact device build, test case, expected/actual outcome, evidence location and reviewer; later testing may require a documented scope change rather than silently waiving a requirement.

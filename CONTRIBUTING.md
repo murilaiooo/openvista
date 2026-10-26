@@ -1,48 +1,57 @@
 # Contributing to OpenVista
 
-Thanks for your interest in OpenVista — an open-source ambient video experience built for the big screen.
+OpenVista is a Kotlin/Media3 ambient TV application under the [MIT License](LICENSE). The current repository contains a **development-preview app** and reproducible tests; it is not a published or stable APK.
 
-OpenVista is currently in **engineering research and early development**. There is no public APK yet. Useful contributions include technical research, accessible TV interfaces, storage and playback prototypes, performance measurements, translations, documentation, and reproducible tests.
+Please read [current engineering status](docs/STATUS.md), the [live roadmap](docs/roadmap.md) and the [architecture](docs/architecture/overview.md) before opening work. The former issue and PR backlog was closed at the owner's request; **closed does not mean the release requirements were accepted**. New isolated, evidence-backed work is welcome.
 
-## Find something to work on
+## Areas where contributions help
 
-Start with the [project roadmap](docs/roadmap.md), [open issues](https://github.com/murilaiooo/openvista/issues), and [engineering plan](docs/implementation/priority-plan.md). If an issue is already assigned or has active discussion, coordinate there before beginning a large change.
+- Reliable Media3 stream switching, codecs and low-resource Fire TV playback.
+- TV D-pad focus, accessibility, Back, input and EN/PT-BR localization.
+- Scoped USB/SAF recovery, bounded folder walking and duplicate local-media identity.
+- Clock and weather presentation, NWS cache/offline handling, user-entered geography.
+- Legal map/geocoding provider research and TV-first map interaction.
+- Secure optional QR/LAN pairing and platform-compliant update delivery.
+- Device-labeled QA, 24-hour stability metrics and security/privacy review.
 
-Small, focused contributions with a clear test plan are especially valuable.
+## Start a change
 
-## Before proposing a change
+1. Check [roadmap and known blockers](docs/STATUS.md). Search closed issue/PR history for related code before duplicating a solution.
+2. Make a small branch from current main, one coherent change at a time.
+3. Follow the [product decisions](docs/product/decisions.md) and [user-managed content policy](docs/product/user-managed-content.md).
+4. Use official Android/Media3 APIs, avoid privileged TV changes and support TV remote focus.
+5. Provide a local test plan and, when suitable, automated tests. For Fire OS behavior, distinguish physical test evidence from assumptions.
+6. Submit a focused PR with behavior, exact tests, supported target, known limitations and rollback. Do not mark tasks accepted without evidence.
 
-- Read the [product vision](docs/product/vision.md) and [architecture hypotheses](docs/architecture/overview.md).
-- Respect the [user-managed content model](docs/product/user-managed-content.md): the app does **not** bundle camera streams, streaming playlists or video media.
-- Prefer supported Android APIs, practical TV D-pad navigation, and well-defined fallbacks.
-- Use real evidence for device compatibility. A successful desktop playback test does not prove a stream works on Fire OS.
-- Do not commit private stream URLs, account tokens, secrets, personal files, copyrighted footage, or test-fixture playlists into app runtime assets.
-- Before proposing a distributable APK/AAB, run [the local release-content guard](docs/testing/release-content-guard.md) and its regression tests against the actual artifact, then document the output. This does not replace source/code review or owner release approval.
+## Local checks
 
-## Issues and bug reports
+Windows workstation with JDK 17, Android SDK API 36 and Python 3:
 
-A useful report includes the expected result, observed behavior, steps to reproduce, and any relevant device details. For playback issues, include the OS version, source protocol (for example HLS/DASH), codec, resolution, and approximate bitrate where available.
+    gradlew.bat :player:testDebugUnitTest :source-core:test :diagnostics:testDebugUnitTest :player:assembleDebug :player:lintDebug
+    python -m unittest discover -s scripts -p test_*.py
+    python scripts/validate_discovery_docs.py
+    python scripts/release_content_guard.py player/build/outputs/apk/debug/player-debug.apk
 
-Remove secrets, locations, and private URLs from logs before sharing them.
+Run the Android check on the exact code under review. Use a **local** workstation, not GitHub Actions as a substitute for TV hardware proof. A debug APK guard is not a signed release approval.
 
-## Pull requests
+## Non-negotiable product boundaries
 
-1. Fork or branch from the current `main`.
-2. Keep the change scoped to one issue or independently testable feature.
-3. Describe the user-visible behavior and link the relevant issue or [decision record](docs/product/decisions.md).
-4. Run applicable local tests and document the commands and results.
-5. Explain device-specific assumptions, known limitations, and the rollback path for any OS integration change.
+- **No bundled or hosted live streams, M3U source lists or video wallpapers.** Users provide their own content.
+- No passwords, API tokens, user locations, private stream URLs, local media files or personally identifying logs in source control.
+- Avoid broad storage permissions and external uploads; stick to user-authorized Android SAF paths.
+- No root, boot auto-launch, silent system setting changes, forced screensaver selection or unauthorized app deletion.
+- Do not enable LAN pairing or the public updater while their security/distribution gates remain disabled.
+- No compatibility claim for an untested device, source codec or 4K/HDR stream.
+- Do not publish any APK or release without explicit project-owner authorization.
 
-Changes to Android TV navigation, player lifecycle, USB access, or screensaver integration need physical-device verification before compatibility is claimed.
+## Reports and privacy
 
-## Repository language
+For a bug report, provide exact model, Fire OS/Android version, protocol, media codec/resolution where known, expected/actual behavior, and safe steps to reproduce. Remove tokens, personal URLs, local paths and sensitive data. For security issues, contact the maintainer privately instead of publishing an exploit.
 
-**English is mandatory** for all documentation, source-code comments, identifiers/descriptions, commit messages, issues, and pull requests — regardless of the language in which a request was originally made. Proper nouns, real place names, URLs, and externally defined identifiers remain unchanged.
+## Language and licensing
 
-The app itself is intended to support **English and Brazilian Portuguese** at launch. Translatable user-interface resources are the only intentional exception to the English-only repository prose rule.
+**English is mandatory for source comments, documentation, branch/commit/PR/issue prose and contributor communication in the repository.** App user interface resources may be translated into Brazilian Portuguese and other explicitly supported locales.
 
-## Licensing and conduct
+Contribute only code, assets and sample evidence you are licensed to share. Research playlist files are not permission to redistribute someone else's live streams.
 
-OpenVista is released under the [MIT License](LICENSE). Only submit content and code you are permitted to contribute under compatible terms. Be respectful, constructive, and precise in reviews and discussions.
-
-For sensitive security issues, avoid disclosing exploit details or secrets in a public issue; contact the repository maintainer privately first.
+See [project skills](docs/skill-selection.md), [quality guidance](docs/quality/writing-and-code-review.md), [compatibility gates](docs/testing/compatibility.md) and [v1 acceptance](docs/product/v1-acceptance.md).

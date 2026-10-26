@@ -1,6 +1,6 @@
 # OpenVista product decisions
 
-**Status:** Eight product decision rounds completed (78 owner-confirmed decisions) on 2026-10-25. Product discovery baseline frozen for engineering validation; no APK yet. Reopen decisions only when technical evidence or explicit owner change requires it.
+**Historical owner decision record:** Eight product rounds (78 owner-confirmed decisions) were completed on 2026-10-25. The original decisions below are preserved verbatim as a historical contract, with C-01 overriding the bundled-catalog assumptions. A Kotlin TV development APK now exists; see [current engineering status](../STATUS.md) for implementation and validation, not this record. Reopen decisions only when technical evidence or explicit owner change requires it.
 
 Only owner-confirmed choices are requirements. Open questions, design recommendations and proposed technical solutions are **not** approved. Product agreement is not proof of compatibility or implementation.
 
