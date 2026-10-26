@@ -24,10 +24,15 @@ class SavedFolderAccessTest {
         assertNull(SavedFolderAccess(context).restore())
     }
 
-    @Test fun revokedGrantIsNotReusedAfterRestart() {
+    @Test fun missingGrantCannotRestoreAccessAndCanBeExplicitlyForgotten() {
         val preferences = context.getSharedPreferences("openvista_saved_folder", Context.MODE_PRIVATE)
-        preferences.edit().putString("tree_uri", "content://private.documents/tree/expired").commit()
+        val selected = "content://private.documents/tree/expired"
+        preferences.edit().putString("tree_uri", selected).commit()
+        // Preserve the user's selection metadata while a removable provider may be absent,
+        // but never treat that metadata as an OS-backed read grant.
         assertNull(SavedFolderAccess(context).restore())
+        assertEquals(selected, preferences.getString("tree_uri", null))
+        SavedFolderAccess(context).forget()
         assertNull(preferences.getString("tree_uri", null))
     }
 

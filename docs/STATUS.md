@@ -29,6 +29,10 @@
 
 These are **partial results**, not comprehensive acceptance for entire feature families. A local file or research-list import does not establish rights to redistribute a third-party stream. A declared 1080p/4K resolution is not a measured decoder result.
 
+### Independent unmerged QA candidate (2026-10-26)
+
+A separate review snapshot of the Codex remaining-development work passed local Kotlin/Android tests (23 cases), Gradle build, Lint and debug APK content scanning after one SAF cancellation correction and an updated grant-retention test. Its additional deduplication test also passed. On the physical Hisense, schema 1 -> 2 consolidated 44 stored sources into 43 (four videos into three), retaining all 40 cameras, favorites, playlist links and checkpoint references. PT-BR Home and four D-pad directions received partial checks; several source-playback attempts were focus-guarded when the TV slept. **These changes are not yet merged or signed off.** See [the independent QA evidence](testing/independent-codex-qa-2026-10-26.md). USB, 1080p/4K playback, full focus traversal, 24-hour soak, pairing, updates and DreamService remain gated.
+
 ## Known issues and unverified paths
 
 1. **Local video deduplication:** the same MP4 appeared twice after first adding it individually and then importing its parent folder. Reproduced after process restart; needs a canonical identity/dedup policy.

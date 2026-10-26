@@ -15,6 +15,8 @@
 
 These are implementation and **scoped test milestones**, not public-stable acceptance.
 
+**Unmerged QA candidate (October 26):** an isolated copy of Codex's additional storage/playback/provider/security/UI work passed local tests after an SAF cancellation fix, and migrated the Hisense's saved library with no broken legacy references in the sampled data set. The duplicate-document correction is still a review candidate, not stable USB/SAF acceptance. [Evidence and remaining gates](testing/independent-codex-qa-2026-10-26.md).
+
 ## Phase A: improve the existing development preview
 
 - [ ] Fix the reproduced duplicate-video issue when the same SAF media is added by document and folder routes.

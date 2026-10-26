@@ -8,12 +8,12 @@
     <string name="pairing_expired">The pairing session ended. Start again to get a new code.</string>
     <string name="pairing_default_title">My Stream</string>
     <string name="pairing_page_title">Send a source to OpenVista</string>
-    <string name="pairing_http_warning">This local connection uses HTTP. People who can monitor your network may read the source URL. Use a trusted private network and avoid URLs containing secrets.</string>
+    <string name="pairing_http_warning">Secure phone entry requires an approved HTTPS client. Ordinary LAN HTTP cannot protect the page against modification, so source entry is disabled there. Use TV entry or import a list.</string>
     <string name="pairing_title_label">Source name</string>
     <string name="pairing_url_label">Source URL</string>
     <string name="pairing_kind_label">Stream format</string>
     <string name="pairing_send">Send to TV for review</string>
-    <string name="pairing_phone_failed">The request could not be sent. Start a new pairing session on the TV.</string>
+    <string name="pairing_phone_failed">Secure pairing is unavailable or the session expired. Use the approved secure client with a new TV code, or enter the source on the TV.</string>
     <string name="pairing_approve">Save source</string>
     <string name="pairing_deny">Reject source</string>
     <string name="pairing_start">Pair a phone</string>

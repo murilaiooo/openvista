@@ -35,45 +35,60 @@ class LibraryStore(context: Context) : AutoCloseable {
         val folders: List<FolderGrant> = emptyList(),
         val settings: AppSettings = AppSettings(),
         val checkpoints: List<PlaybackCheckpoint> = emptyList(),
+        val migratedCheckpoints: List<PlaybackCheckpoint> = emptyList(),
         val lastItem: String? = null,
     )
 
     private val lock = Object()
     private val file = AtomicFile(File(context.applicationContext.filesDir, "openvista-library.json"))
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "OpenVista-library-store") }
+    private var migrationRequired = false
     private var state = read()
-    private var generation = 0L
+    private var generation = if (migrationRequired) 1L else 0L
     private var persistedGeneration = 0L
     private var pending = false
     private var closed = false
     private var storageError: LibraryStorageException? = null
 
-    fun items(): List<LibraryItem> = synchronized(lock) { state.items.toList() }
-    fun item(id: String): LibraryItem? = synchronized(lock) { state.items.find { it.id == id } }
+    init {
+        if (migrationRequired) synchronized(lock) { scheduleWrite() }
+    }
+
+    fun items(): List<LibraryItem> = synchronized(lock) { state.items.map(::detached) }
+    fun item(id: String): LibraryItem? = synchronized(lock) { state.items.find { it.id == id || id in it.formerIds }?.let(::detached) }
     fun playlists(): List<SavedPlaylist> = synchronized(lock) {
         state.playlists.map { it.copy(itemIds = it.itemIds.toList()) }
     }
     fun folders(): List<FolderGrant> = synchronized(lock) { state.folders.toList() }
     fun settings(): AppSettings = synchronized(lock) { state.settings }
     fun checkpoint(itemId: String): PlaybackCheckpoint? = synchronized(lock) {
-        state.checkpoints.find { it.itemId == itemId }
+        val canonical = resolveId(state, itemId)
+        state.checkpoints.find { it.itemId == canonical }
     }
     fun lastItemId(): String? = synchronized(lock) { state.lastItem }
     fun lastStorageError(): LibraryStorageException? = synchronized(lock) { storageError }
 
     fun upsert(item: LibraryItem) = change { old ->
         val normalized = normalize(item)
-        old.copy(items = replace(old.items, normalized) { it.id })
+        val existing = old.items.find { it.id == item.id || item.id in it.formerIds }
+        checkValue(existing == null || existing.family == normalized.family, "A source cannot change media family.")
+        checkValue(existing == null || normalized.family != MediaFamily.VIDEOS || identity(existing) == identity(normalized),
+            "A saved video identifier cannot be reassigned to another document.")
+        val saved = if (existing == null) normalized else withRoutes(normalized.copy(id = existing.id,
+            formerIds = (existing.formerIds + normalized.formerIds).distinct(),
+        ), mergeRoutes(existing.accessRoutes, normalized.accessRoutes))
+        old.copy(items = replace(old.items, saved) { it.id })
     }
 
     /** Adds a source import as one transaction, retaining existing metadata for duplicate URIs. */
     fun addItems(items: List<LibraryItem>): Int = synchronized(lock) {
         checkValue(items.size <= MAX_ITEMS, "The source import exceeds the library item limit.")
-        val known = state.items.mapTo(hashSetOf()) { it.family to it.uri }
-        val additions = items.map(::normalize).distinctBy { it.family to it.uri }
-            .filterNot { (it.family to it.uri) in known }
+        val known = state.items.mapTo(hashSetOf()) { identity(it) }
+        val normalized = items.map(::normalize)
+        val additions = normalized.distinctBy(::identity).filterNot { identity(it) in known }
         // change validates the complete result before updating memory or scheduling a write.
-        change { old -> old.copy(items = old.items + additions) }
+        val routeUpdates = normalized.filter { it.family == MediaFamily.VIDEOS && identity(it) in known }
+        change { old -> old.copy(items = old.items + additions + routeUpdates) }
         additions.size
     }
 
@@ -106,25 +121,27 @@ class LibraryStore(context: Context) : AutoCloseable {
     }
 
     fun removeItem(id: String) = change { old ->
+        val canonical = resolveId(old, id)
         old.copy(
-            items = old.items.filterNot { it.id == id },
-            playlists = old.playlists.map { it.copy(itemIds = it.itemIds.filterNot { itemId -> itemId == id }) },
-            checkpoints = old.checkpoints.filterNot { it.itemId == id },
-            lastItem = old.lastItem.takeUnless { it == id },
+            items = old.items.filterNot { it.id == canonical },
+            playlists = old.playlists.map { it.copy(itemIds = it.itemIds.filterNot { itemId -> itemId == canonical }) },
+            checkpoints = old.checkpoints.filterNot { it.itemId == canonical },
+            migratedCheckpoints = old.migratedCheckpoints.filterNot { resolveId(old, it.itemId) == canonical },
+            lastItem = old.lastItem.takeUnless { it == canonical },
         )
     }
 
     /** Keeps the dependency check and grant release indivisible with respect to store edits. */
     internal fun releaseDocumentIfUnused(uri: String, release: () -> Unit) {
         synchronized(lock) {
-            if (state.items.none { it.uri == uri || it.folderUri == uri } && state.folders.none { it.uri == uri }) release()
+            if (state.items.none { item -> item.accessRoutes.any { it.uri == uri || it.folderUri == uri } } && state.folders.none { it.uri == uri }) release()
         }
     }
 
     fun savePlaylist(playlist: SavedPlaylist) = change { old ->
         val normalized = playlist.copy(
             id = identifier(playlist.id), name = text(playlist.name, 120).ifBlank { "Playlist" },
-            itemIds = playlist.itemIds.map(::identifier).distinct(),
+            itemIds = playlist.itemIds.map { resolveId(old, identifier(it)) }.distinct(),
         )
         old.copy(playlists = replace(old.playlists, normalized) { it.id })
     }
@@ -148,11 +165,12 @@ class LibraryStore(context: Context) : AutoCloseable {
 
     /** Changes order within a source family without moving the other family's slots. */
     fun moveItem(id: String, delta: Int) = change { old ->
-        val current = old.items.find { it.id == id }
+        val canonical = resolveId(old, id)
+        val current = old.items.find { it.id == canonical }
         if (current == null) old else {
             val indices = old.items.indices.filter { old.items[it].family == current.family }
             val familyItems = indices.map { old.items[it] }.toMutableList()
-            val from = familyItems.indexOfFirst { it.id == id }
+            val from = familyItems.indexOfFirst { it.id == canonical }
             val to = (from.toLong() + delta).coerceIn(0, familyItems.lastIndex.toLong()).toInt()
             familyItems.add(to, familyItems.removeAt(from))
             val reordered = old.items.toMutableList()
@@ -172,51 +190,73 @@ class LibraryStore(context: Context) : AutoCloseable {
     fun removeFolder(uri: String) = change { old ->
         old.copy(
             folders = old.folders.filterNot { it.uri == uri },
-            items = old.items.map {
-                if (it.folderUri == uri) it.copy(availability = Availability.UNAVAILABLE) else it
+            items = old.items.map { item ->
+                if (item.accessRoutes.none { it.folderUri == uri }) item else {
+                    val retained = item.accessRoutes.filterNot { it.folderUri == uri }
+                    if (retained.isEmpty()) item.copy(availability = Availability.UNAVAILABLE,
+                        accessRoutes = item.accessRoutes.map { it.copy(availability = Availability.UNAVAILABLE) })
+                    else withRoutes(item, retained)
+                }
             },
         )
     }
 
     /** Missing files remain saved. A rescan never erases names, favorites or playlist order. */
-    fun replaceFolderItems(uri: String, items: List<LibraryItem>) = change { old ->
+    fun replaceFolderItems(uri: String, items: List<LibraryItem>, complete: Boolean = true) = change { old ->
         contentUri(uri)
         checkValue(old.folders.any { it.uri == uri }, "The selected folder is not registered.")
         checkValue(items.size <= MAX_ITEMS, "Too many videos in this folder.")
         val found = items.map {
             checkValue(it.family == MediaFamily.VIDEOS && it.folderUri == uri, "Invalid folder video.")
             normalize(it)
-        }.distinctBy { it.uri }
-        val foundByUri = found.associateBy { it.uri }
-        val knownUris = old.items.mapTo(hashSetOf()) { it.uri }
+        }.distinctBy(::identity)
+        val foundByIdentity = found.associateBy(::identity)
+        val known = old.items.mapTo(hashSetOf()) { identity(it) }
         val merged = old.items.map { existing ->
-            val discovered = foundByUri[existing.uri]
+            val discovered = foundByIdentity[identity(existing)]
             when {
-                discovered != null && existing.family == MediaFamily.VIDEOS -> existing.copy(
-                    folderUri = uri, availability = discovered.availability, observedAt = discovered.observedAt,
-                )
-                existing.folderUri == uri -> existing.copy(availability = Availability.UNAVAILABLE)
+                discovered != null && existing.family == MediaFamily.VIDEOS -> withRoutes(existing.copy(
+                    formerIds = (existing.formerIds + discovered.id).filterNot { it == existing.id }.distinct()),
+                    mergeRoutes(existing.accessRoutes, discovered.accessRoutes))
+                existing.accessRoutes.any { it.folderUri == uri } -> withRoutes(existing, existing.accessRoutes.map {
+                    if (it.folderUri == uri) it.copy(availability = if (complete) Availability.UNAVAILABLE else Availability.UNKNOWN,
+                        observedAt = System.currentTimeMillis()) else it
+                })
                 else -> existing
             }
-        } + found.filterNot { it.uri in knownUris }
+        } + found.filterNot { identity(it) in known }
         old.copy(items = merged)
     }
 
+    internal fun updateFolderAvailability(uri: String, availability: Availability) = change { old ->
+        old.copy(items = old.items.map { item -> withRoutes(item, item.accessRoutes.map {
+            if (it.folderUri == uri) it.copy(availability = availability, observedAt = System.currentTimeMillis()) else it
+        }) })
+    }
+
+    internal fun updateAccessRoutes(routesById: Map<String, List<VideoAccessRoute>>) = change { old ->
+        old.copy(items = old.items.map { item -> routesById[item.id]?.let { withRoutes(item, it) } ?: item })
+    }
+
     fun saveCheckpoint(checkpoint: PlaybackCheckpoint) = change { old ->
-        checkValue(old.items.any { it.id == checkpoint.itemId && it.family == MediaFamily.VIDEOS }, "Only saved videos can have a playback position.")
+        val canonical = resolveId(old, checkpoint.itemId)
+        checkValue(old.items.any { it.id == canonical && it.family == MediaFamily.VIDEOS }, "Only saved videos can have a playback position.")
         val duration = checkpoint.durationMs.coerceAtLeast(0)
         val position = checkpoint.positionMs.coerceAtLeast(0).let { if (duration > 0) it.coerceAtMost(duration) else it }
-        old.copy(checkpoints = replace(old.checkpoints, checkpoint.copy(positionMs = position, durationMs = duration)) { it.itemId })
+        old.copy(checkpoints = replace(old.checkpoints, checkpoint.copy(itemId = canonical, positionMs = position, durationMs = duration)) { it.itemId })
     }
 
     fun setLastItem(id: String?) = change { old ->
-        checkValue(id == null || old.items.any { it.id == id }, "The last source must belong to the library.")
-        old.copy(lastItem = id)
+        val canonical = id?.let { resolveId(old, it) }
+        checkValue(canonical == null || old.items.any { it.id == canonical }, "The last source must belong to the library.")
+        old.copy(lastItem = canonical)
     }
 
     fun updateAvailability(id: String, availability: Availability) = change { old ->
+        val canonical = resolveId(old, id)
         old.copy(items = old.items.map {
-            if (it.id == id) it.copy(availability = availability, observedAt = System.currentTimeMillis()) else it
+            if (it.id == canonical) it.copy(availability = availability, observedAt = System.currentTimeMillis(),
+                accessRoutes = it.accessRoutes.map { route -> route.copy(availability = availability, observedAt = System.currentTimeMillis()) }) else it
         })
     }
 
@@ -226,8 +266,14 @@ class LibraryStore(context: Context) : AutoCloseable {
     private fun change(transform: (State) -> State) {
         synchronized(lock) {
             checkValue(!closed, "The library is closed.")
-            storageError?.let { throw it }
-            val next = transform(state)
+            // Retry a transient write failure with the complete in-memory snapshot. Load failures
+            // never create a store, so this cannot overwrite an unreadable or newer library.
+            storageError?.let {
+                storageError = null
+                if (generation > persistedGeneration) scheduleWrite()
+                throw it
+            }
+            val next = consolidate(transform(state))
             validate(next)
             if (next == state) return
             state = next
@@ -309,11 +355,16 @@ class LibraryStore(context: Context) : AutoCloseable {
             val json = JSONObject(Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString())
             val version = json.getInt("schemaVersion")
-            checkValue(version == SCHEMA_VERSION, if (version > SCHEMA_VERSION) {
+            checkValue(version in 1..SCHEMA_VERSION, if (version > SCHEMA_VERSION) {
                 "This library belongs to a newer app version. Its data was retained."
             } else "The saved library schema is unsupported. Its data was retained.")
             val restored = State(
-                items = json.getJSONArray("items").objects(MAX_ITEMS) { normalize(readItem(it)) },
+                items = json.getJSONArray("items").objects(MAX_ITEMS) {
+                    val item = normalize(readItem(it))
+                    // A persisted observation is not proof that removable media is still mounted.
+                    if (item.family == MediaFamily.VIDEOS) item.copy(availability = Availability.UNKNOWN,
+                        accessRoutes = item.accessRoutes.map { route -> route.copy(availability = Availability.UNKNOWN) }) else item
+                },
                 playlists = json.getJSONArray("playlists").objects(MAX_PLAYLISTS) { readPlaylist(it) },
                 folders = json.getJSONArray("folders").objects(MAX_FOLDERS) {
                     normalize(FolderGrant(it.getString("uri"), it.getString("title"), it.getBoolean("persisted")))
@@ -322,10 +373,15 @@ class LibraryStore(context: Context) : AutoCloseable {
                 checkpoints = json.getJSONArray("checkpoints").objects(MAX_ITEMS) {
                     PlaybackCheckpoint(it.getString("itemId"), it.getLong("positionMs"), it.getLong("durationMs"))
                 },
+                migratedCheckpoints = if (json.has("migratedCheckpoints")) json.getJSONArray("migratedCheckpoints").objects(MAX_ITEMS) {
+                    PlaybackCheckpoint(it.getString("itemId"), it.getLong("positionMs"), it.getLong("durationMs"))
+                } else emptyList(),
                 lastItem = json.nullableString("lastItemId"),
             )
             validate(restored)
-            return restored
+            val migrated = consolidate(restored).also(::validate)
+            migrationRequired = version != SCHEMA_VERSION || migrated != restored
+            return migrated
         } catch (_: FileNotFoundException) {
             if (!file.baseFile.exists() && !File(file.baseFile.path + ".bak").exists()) return State()
             throw LibraryStorageException("The saved library cannot be opened. Its data was retained.")
@@ -350,6 +406,9 @@ class LibraryStore(context: Context) : AutoCloseable {
             .put("checkpoints", JSONArray(snapshot.checkpoints.map {
                 JSONObject().put("itemId", it.itemId).put("positionMs", it.positionMs).put("durationMs", it.durationMs)
             }))
+            .put("migratedCheckpoints", JSONArray(snapshot.migratedCheckpoints.map {
+                JSONObject().put("itemId", it.itemId).put("positionMs", it.positionMs).put("durationMs", it.durationMs)
+            }))
             .put("lastItemId", snapshot.lastItem ?: JSONObject.NULL)
         val bytes = json.toString().toByteArray(Charsets.UTF_8)
         checkValue(bytes.size <= MAX_BYTES, "The library exceeds the supported storage limit.")
@@ -371,6 +430,10 @@ class LibraryStore(context: Context) : AutoCloseable {
         val itemsById = value.items.associateBy { it.id }
         var estimate = 16_384L
         value.items.forEach { item ->
+            checkValue(item.accessRoutes.size <= MAX_ROUTES && item.formerIds.size <= MAX_ITEMS, "Too many document access routes or prior identifiers.")
+            item.formerIds.forEach { identifier(it) }
+            estimate += item.accessRoutes.sumOf { 256L + 6L * (it.uri.length + it.folderUri.orEmpty().length) }
+            estimate += item.formerIds.sumOf { 32L + 6L * it.length }
             estimate += 1_024 + 6L * listOf(item.id, item.title, item.uri, item.streamKind.orEmpty(), item.folderUri.orEmpty(), item.category,
                 item.country, item.city, item.timeZone, item.attribution).sumOf { it.length }
         }
@@ -391,10 +454,74 @@ class LibraryStore(context: Context) : AutoCloseable {
                 (it.durationMs == 0L || it.positionMs <= it.durationMs), "Invalid saved video position.")
             estimate += 512 + 6L * it.itemId.length
         }
+        checkValue(value.migratedCheckpoints.size <= MAX_ITEMS, "Too many retained migration positions.")
+        value.migratedCheckpoints.forEach {
+            checkValue(itemsById[resolveId(value, it.itemId)]?.family == MediaFamily.VIDEOS && it.positionMs >= 0 && it.durationMs >= 0 &&
+                (it.durationMs == 0L || it.positionMs <= it.durationMs), "Invalid retained migration position.")
+            estimate += 512 + 6L * it.itemId.length
+        }
         checkValue(value.lastItem == null || value.lastItem in itemsById, "Invalid last source record.")
         val fallback = value.settings.fallbackPlaylistId
         checkValue(fallback == null || value.playlists.any { it.id == fallback && it.family == MediaFamily.VIDEOS }, "Fallback must be a saved video playlist.")
         checkValue(estimate <= MAX_BYTES, "The library has reached its storage limit.")
+    }
+
+    private fun detached(item: LibraryItem): LibraryItem = item.copy(accessRoutes = item.accessRoutes.toList(), formerIds = item.formerIds.toList())
+
+    private fun identity(item: LibraryItem): Pair<MediaFamily, String> = item.family to
+        (if (item.family == MediaFamily.VIDEOS) SafDocumentIdentity.key(item.uri) else item.uri)
+
+    private fun resolveId(value: State, id: String): String = value.items.find { it.id == id || id in it.formerIds }?.id ?: id
+
+    private fun mergeRoutes(first: List<VideoAccessRoute>, second: List<VideoAccessRoute>): List<VideoAccessRoute> =
+        (first + second).groupBy { it.uri to it.folderUri }.values.map { routes ->
+            routes.reduce { previous, next -> if (next.observedAt >= previous.observedAt) next else previous }
+        }
+
+    private fun withRoutes(item: LibraryItem, routes: List<VideoAccessRoute>): LibraryItem {
+        if (item.family != MediaFamily.VIDEOS || routes.isEmpty()) return item
+        val selected = routes.filter { it.availability == Availability.AVAILABLE }.maxByOrNull { it.observedAt }
+            ?: routes.filter { it.availability == Availability.UNKNOWN }.maxByOrNull { it.observedAt }
+            ?: routes.maxBy { it.observedAt }
+        return item.copy(uri = selected.uri, folderUri = selected.folderUri, availability = selected.availability,
+            observedAt = selected.observedAt, accessRoutes = routes.toList())
+    }
+
+    /** Stable first ID wins; all internal references and IDs held by active callers remain usable. */
+    private fun consolidate(value: State): State {
+        value.items.groupBy { it.id }.values.filter { it.size > 1 }.forEach { duplicates ->
+            checkValue(duplicates.all { it.family == MediaFamily.VIDEOS } && duplicates.map(::identity).distinct().size == 1,
+                "Duplicate source identifiers in the library.")
+        }
+        val merged = linkedMapOf<Pair<MediaFamily, String>, LibraryItem>()
+        value.items.forEach { item ->
+            val key = identity(item)
+            val existing = merged[key]
+            if (existing == null || item.family != MediaFamily.VIDEOS) {
+                // Camera duplicates retain their existing independent source identities.
+                if (item.family == MediaFamily.CAMERAS) merged[item.family to item.id] = item else merged[key] = item
+            } else {
+                merged[key] = withRoutes(existing.copy(favorite = existing.favorite || item.favorite,
+                    formerIds = (existing.formerIds + item.id + item.formerIds).filterNot { it == existing.id }.distinct()),
+                    mergeRoutes(existing.accessRoutes, item.accessRoutes))
+            }
+        }
+        val items = merged.values.toList()
+        val ids = hashMapOf<String, String>()
+        items.forEach { item -> (item.formerIds + item.id).forEach { id ->
+            checkValue(ids.put(id, item.id)?.let { it == item.id } ?: true, "Conflicting prior source identifiers.")
+        } }
+        val checkpointGroups = value.checkpoints.groupBy { ids[it.itemId] ?: it.itemId }
+        val checkpoints = checkpointGroups.map { (id, records) ->
+            // Prefer the active scene's resume point, then the surviving record, then the furthest point.
+            (records.find { it.itemId == value.lastItem } ?: records.find { it.itemId == id }
+                ?: records.maxBy { it.positionMs }).copy(itemId = id)
+        }
+        return value.copy(items = items, playlists = value.playlists.map {
+            it.copy(itemIds = it.itemIds.map { id -> ids[id] ?: id }.distinct())
+        }, checkpoints = checkpoints,
+            migratedCheckpoints = (value.migratedCheckpoints + checkpointGroups.values.filter { it.size > 1 }.flatten()).distinct(),
+            lastItem = value.lastItem?.let { ids[it] ?: it })
     }
 
     private fun normalize(item: LibraryItem): LibraryItem {
@@ -404,6 +531,7 @@ class LibraryStore(context: Context) : AutoCloseable {
                 catch (_: IllegalArgumentException) { throw LibraryStorageException("Select HLS or DASH for a camera source.") }
             checkValue(UserSourceParser().manualUrl(uri, kind, item.title) != null, "The camera URL is invalid or unsupported.")
             checkValue(item.folderUri == null, "A camera source cannot belong to a video folder.")
+            checkValue(item.accessRoutes.isEmpty() && item.formerIds.isEmpty(), "Camera sources cannot have document grants or prior video identifiers.")
             kind.name
         } else {
             contentUri(uri)
@@ -413,12 +541,23 @@ class LibraryStore(context: Context) : AutoCloseable {
         checkValue((item.latitude == null) == (item.longitude == null), "Latitude and longitude must be supplied together.")
         coordinate(item.latitude, -90.0, 90.0)
         coordinate(item.longitude, -180.0, 180.0)
-        return item.copy(
+        val routes = if (item.family == MediaFamily.VIDEOS) {
+            checkValue(item.accessRoutes.size <= MAX_ROUTES, "Too many access routes for this video.")
+            val provided = item.accessRoutes.ifEmpty { listOf(VideoAccessRoute(uri, item.folderUri, item.availability, item.observedAt)) }
+            provided.map { route ->
+                contentUri(route.uri)
+                route.folderUri?.let(::contentUri)
+                checkValue(SafDocumentIdentity.key(route.uri) == SafDocumentIdentity.key(uri), "A video access route identifies a different document.")
+                route.copy(observedAt = route.observedAt.coerceIn(0, System.currentTimeMillis()))
+            }.distinctBy { it.uri to it.folderUri }
+        } else emptyList()
+        return withRoutes(item.copy(
             id = identifier(item.id), title = text(item.title, 120).ifBlank { "Source" }, uri = uri,
             streamKind = kind, category = text(item.category, 120), country = text(item.country, 120),
             city = text(item.city, 120), timeZone = zone(item.timeZone), attribution = text(item.attribution, 1_024),
             observedAt = item.observedAt.coerceIn(0, System.currentTimeMillis()),
-        )
+            accessRoutes = routes, formerIds = item.formerIds.map(::identifier).filterNot { it == item.id }.distinct(),
+        ), routes)
     }
 
     private fun normalize(folder: FolderGrant): FolderGrant {
@@ -476,12 +615,23 @@ class LibraryStore(context: Context) : AutoCloseable {
         .put("city", i.city).put("latitude", i.latitude ?: JSONObject.NULL).put("longitude", i.longitude ?: JSONObject.NULL)
         .put("timeZone", i.timeZone).put("attribution", i.attribution).put("favorite", i.favorite)
         .put("availability", i.availability.name).put("observedAt", i.observedAt)
+        .put("accessRoutes", JSONArray(i.accessRoutes.map {
+            JSONObject().put("uri", it.uri).put("folderUri", it.folderUri ?: JSONObject.NULL)
+                .put("availability", it.availability.name).put("observedAt", it.observedAt)
+        })).put("formerIds", JSONArray(i.formerIds))
 
     private fun readItem(j: JSONObject) = LibraryItem(
         j.getString("id"), j.getString("title"), j.getString("uri"), MediaFamily.valueOf(j.getString("family")),
         j.nullableString("streamKind"), j.nullableString("folderUri"), j.getString("category"), j.getString("country"),
         j.getString("city"), j.nullableDouble("latitude"), j.nullableDouble("longitude"), j.getString("timeZone"),
         j.getString("attribution"), j.getBoolean("favorite"), Availability.valueOf(j.getString("availability")), j.getLong("observedAt"),
+        if (j.has("accessRoutes")) j.getJSONArray("accessRoutes").objects(MAX_ROUTES) {
+            VideoAccessRoute(it.getString("uri"), it.nullableString("folderUri"), Availability.valueOf(it.getString("availability")), it.getLong("observedAt"))
+        } else emptyList(),
+        if (j.has("formerIds")) j.getJSONArray("formerIds").let { ids ->
+            checkValue(ids.length() <= MAX_ITEMS, "Too many prior video identifiers.")
+            List(ids.length()) { ids.getString(it) }
+        } else emptyList(),
     )
 
     private fun readPlaylist(j: JSONObject): SavedPlaylist {
@@ -548,7 +698,8 @@ class LibraryStore(context: Context) : AutoCloseable {
         const val MAX_PLAYLISTS = 100
         const val MAX_FOLDERS = 32
         private const val MAX_BYTES = 8 * 1_024 * 1_024
-        private const val SCHEMA_VERSION = 1
+        private const val SCHEMA_VERSION = 2
+        private const val MAX_ROUTES = 64
         private val TIME_ZONES = TimeZone.getAvailableIDs().toSet()
     }
 }

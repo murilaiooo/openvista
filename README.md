@@ -39,7 +39,7 @@ OpenVista is for the moments when a television should feel like a window, not a 
 | System screensaver | Optional Android DreamService implementation | Fire OS idle activation / OEM compatibility not approved |
 | Pairing and updates | Security-gated phone input and verified-update implementation | **Disabled** pending security, release channel and Android installer validation |
 
-See [the dated verification ledger](docs/STATUS.md) and [Hisense device matrix](docs/testing/compatibility.md). A feature being coded does **not** mean it has passed stable-release acceptance.
+See [the dated verification ledger](docs/STATUS.md), [the independent Codex QA candidate report](docs/testing/independent-codex-qa-2026-10-26.md), and [Hisense device matrix](docs/testing/compatibility.md). The additional QA candidate is not merged or release-certified. A feature being coded does **not** mean it has passed stable-release acceptance.
 
 ## Run it locally
 

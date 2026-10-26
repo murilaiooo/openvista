@@ -26,6 +26,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private val date = TextView(context)
     private val location = TextView(context)
     private val weather = TextView(context)
+    private val credit = TextView(context)
     private var item: LibraryItem? = null
     private var interactionAt = SystemClock.elapsedRealtime()
     private var running = false
@@ -44,10 +45,14 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         setPadding(margin, margin, margin, margin)
         box.setPadding(margin / 2, margin / 3, margin / 2, margin / 3)
         box.setBackgroundColor(0x66000000)
-        listOf(clock, date, location, weather).forEach { view ->
+        listOf(clock, date, location, weather, credit).forEach { view ->
             view.setShadowLayer(3f, 1f, 1f, 0xFF000000.toInt()); box.addView(view)
         }
         clock.setTypeface(clock.typeface, Typeface.NORMAL)
+        credit.textSize = 12f
+        credit.setTextColor(android.graphics.Color.WHITE)
+        credit.maxWidth = (420 * resources.displayMetrics.density).toInt()
+        credit.visibility = View.GONE
         addView(box, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
 
@@ -77,6 +82,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         date.visibility = if (settings.showDate) View.VISIBLE else View.GONE
         location.visibility = if (settings.showLocation && location.text.isNotBlank()) View.VISIBLE else View.GONE
         weather.visibility = if (settings.showWeather) View.VISIBLE else View.GONE
+        credit.visibility = if (settings.showWeather && forecast?.requiresVisibleAttribution == true) View.VISIBLE else View.GONE
         listOf(clock, date, location, weather).forEach {
             it.textSize = settings.overlaySize.coerceIn(14, 40).toFloat()
             it.setTextColor(settings.overlayColor)
@@ -105,6 +111,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             locationKey = target; weatherAt = SystemClock.elapsedRealtime()
             weatherRepository.load(target) { state ->
                 forecast = (state as? WeatherState.Ready)?.forecast
+                credit.text = forecast?.attribution.orEmpty()
+                credit.visibility = if (settings.showWeather && forecast?.requiresVisibleAttribution == true) View.VISIBLE else View.GONE
                 weather.text = when (state) {
                     WeatherState.Loading -> context.getString(R.string.weather_loading)
                     WeatherState.NoLocation -> context.getString(R.string.weather_no_location)
@@ -114,7 +122,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                             (settings.temperatureUnit == "system" && context.applicationContext.resources.configuration.locales[0].country == "US")
                         val temperatureLabel = String.format(resources.configuration.locales[0], "%.0f°%s", if (fahrenheit) temperature * 9 / 5 + 32 else temperature,
                             if (fahrenheit) "F" else "C")
-                        temperatureLabel + " " + state.forecast.current?.description.orEmpty() +
+                        temperatureLabel + " " + state.forecast.current?.let { WeatherText.description(context, it) }.orEmpty() +
                             (if (state.stale) " · ${context.getString(R.string.weather_cached)}" else "")
                     } ?: context.getString(R.string.weather_unavailable)
                     WeatherState.Unavailable -> context.getString(R.string.weather_unavailable)
