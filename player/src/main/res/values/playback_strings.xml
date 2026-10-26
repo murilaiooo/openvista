@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_empty">No media selected. Add a camera or choose a video folder in OpenVista.</string>
+    <string name="playback_connecting">Opening your media…</string>
+    <string name="playback_playing">Playing</string>
+    <string name="playback_paused">Paused</string>
+    <string name="playback_engine_unavailable">Playback could not start. Press OK and choose Try again, or exit the screensaver.</string>
+    <string name="playback_camera_unavailable">Camera unavailable or unsupported. Trying the next camera.</string>
+    <string name="playback_video_unavailable">Video unreadable or unsupported. Check the drive and folder access. Trying the next video.</string>
+    <string name="playback_all_unavailable">None of these sources could play. Choose another source or try again.</string>
+    <string name="playback_using_fallback">Cameras unavailable. Playing your configured video playlist.</string>
+    <string name="playback_checking_camera">Video finished. Checking whether a camera can play…</string>
+    <string name="playback_recovery_wait">Camera still unavailable. Continuing your videos.</string>
+    <string name="playback_staying_local">Staying on your videos. Choose Cameras to return.</string>
+    <string name="playback_unknown">Unknown</string>
+    <string name="playback_storage_error">Changes could not be saved. Your previous saved library is preserved.</string>
+    <string name="playback_diagnostics_released">Playback is inactive.</string>
+    <string name="playback_diagnostics">Resolution: %1$s\nVideo format: %2$s\nBuffered: %3$d%%\nLast error code: %4$s</string>
+    <string name="dream_name">OpenVista</string>
+    <string name="dream_hint">Press OK for controls. Press Back to exit.</string>
+    <string name="dream_cameras">Cameras</string>
+    <string name="dream_videos">My Videos</string>
+    <string name="dream_pause">Play / Pause</string>
+    <string name="dream_sound">Sound on / off</string>
+    <string name="dream_audio">Next audio track</string>
+    <string name="dream_no_audio">No supported audio tracks are available.</string>
+    <string name="dream_audio_selected">Audio %1$d of %2$d: %3$s</string>
+    <string name="dream_retry">Try again</string>
+    <string name="dream_stay_local">Stay on videos</string>
+    <string name="dream_exit">Exit screensaver</string>
+    <string name="dream_schedule_inactive">Outside your chosen schedule.</string>
+    <string name="dream_no_saved_scene">No saved scene. Open OpenVista to add and select your media.</string>
+    <string name="dream_library_error">The saved library could not be read. It has been preserved. Press Back to exit.</string>
+</resources>

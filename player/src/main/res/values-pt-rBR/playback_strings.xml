@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_empty">Nenhuma mídia selecionada. Adicione uma câmera ou escolha uma pasta de vídeos no OpenVista.</string>
+    <string name="playback_connecting">Abrindo sua mídia…</string>
+    <string name="playback_playing">Reproduzindo</string>
+    <string name="playback_paused">Pausado</string>
+    <string name="playback_engine_unavailable">Não foi possível iniciar a reprodução. Pressione OK e escolha Tentar novamente ou saia do protetor de tela.</string>
+    <string name="playback_camera_unavailable">Câmera indisponível ou incompatível. Tentando a próxima câmera.</string>
+    <string name="playback_video_unavailable">Vídeo ilegível ou incompatível. Verifique a unidade e o acesso à pasta. Tentando o próximo vídeo.</string>
+    <string name="playback_all_unavailable">Nenhuma destas fontes foi reproduzida. Escolha outra fonte ou tente novamente.</string>
+    <string name="playback_using_fallback">Câmeras indisponíveis. Reproduzindo sua lista de vídeos configurada.</string>
+    <string name="playback_checking_camera">Vídeo concluído. Verificando se uma câmera pode ser reproduzida…</string>
+    <string name="playback_recovery_wait">Câmera ainda indisponível. Continuando seus vídeos.</string>
+    <string name="playback_staying_local">Continuando seus vídeos. Escolha Câmeras para voltar.</string>
+    <string name="playback_unknown">Desconhecido</string>
+    <string name="playback_storage_error">Não foi possível salvar as alterações. Sua biblioteca salva anteriormente foi preservada.</string>
+    <string name="playback_diagnostics_released">Reprodução inativa.</string>
+    <string name="playback_diagnostics">Resolução: %1$s\nFormato de vídeo: %2$s\nEm buffer: %3$d%%\nÚltimo código de erro: %4$s</string>
+    <string name="dream_name">OpenVista</string>
+    <string name="dream_hint">Pressione OK para ver os controles. Pressione Voltar para sair.</string>
+    <string name="dream_cameras">Câmeras</string>
+    <string name="dream_videos">Meus vídeos</string>
+    <string name="dream_pause">Reproduzir / Pausar</string>
+    <string name="dream_sound">Ativar / Silenciar áudio</string>
+    <string name="dream_audio">Próxima faixa de áudio</string>
+    <string name="dream_no_audio">Nenhuma faixa de áudio compatível está disponível.</string>
+    <string name="dream_audio_selected">Áudio %1$d de %2$d: %3$s</string>
+    <string name="dream_retry">Tentar novamente</string>
+    <string name="dream_stay_local">Continuar nos vídeos</string>
+    <string name="dream_exit">Sair do protetor de tela</string>
+    <string name="dream_schedule_inactive">Fora do horário escolhido.</string>
+    <string name="dream_no_saved_scene">Nenhuma cena salva. Abra o OpenVista para adicionar e selecionar sua mídia.</string>
+    <string name="dream_library_error">Não foi possível ler a biblioteca salva. Ela foi preservada. Pressione Voltar para sair.</string>
+</resources>
