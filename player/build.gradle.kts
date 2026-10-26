@@ -13,8 +13,8 @@ android {
         applicationId = "com.openvista.prototype"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0-player-prototype"
+        versionCode = 2
+        versionName = "0.2.0-implementation-preview"
     }
 
     buildTypes {
@@ -51,6 +51,7 @@ kotlin {
 dependencies {
     implementation(project(":source-core"))
     implementation("androidx.activity:activity:1.11.0")
+    implementation("com.google.zxing:core:3.5.3")
     val media3 = "1.11.1"
     implementation("androidx.media3:media3-exoplayer:$media3")
     implementation("androidx.media3:media3-exoplayer-hls:$media3")

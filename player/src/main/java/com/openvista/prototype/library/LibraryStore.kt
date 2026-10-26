@@ -13,10 +13,13 @@ import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.TimeZone
+import java.util.UUID
 import java.util.concurrent.Executors
 
 /** Messages deliberately exclude private source URIs and provider exception messages. */
 class LibraryStorageException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
+data class ImportedCameraList(val added: Int, val duplicateCount: Int, val playlistId: String)
 
 /**
  * App-private, versioned library. Reads use memory; one worker coalesces atomic writes.
@@ -72,6 +75,34 @@ class LibraryStore(context: Context) : AutoCloseable {
         // change validates the complete result before updating memory or scheduling a write.
         change { old -> old.copy(items = old.items + additions) }
         additions.size
+    }
+
+    /** Commits the imported collection and its ordered camera playlist together. */
+    fun importCameraList(name: String, items: List<LibraryItem>): ImportedCameraList = synchronized(lock) {
+        checkValue(items.isNotEmpty() && items.size <= MAX_ITEMS, "The source import is empty or exceeds the library item limit.")
+        checkValue(items.all { it.family == MediaFamily.CAMERAS }, "A camera list can contain only camera sources.")
+        val normalized = items.map(::normalize)
+        val known = linkedMapOf<String, LibraryItem>()
+        state.items.filter { it.family == MediaFamily.CAMERAS }.forEach { known.putIfAbsent(it.uri, it) }
+        val additions = mutableListOf<LibraryItem>()
+        val orderedIds = linkedSetOf<String>()
+        normalized.forEach { imported ->
+            val existing = known[imported.uri]
+            if (existing != null) {
+                orderedIds.add(existing.id)
+            } else {
+                additions.add(imported)
+                known[imported.uri] = imported
+                orderedIds.add(imported.id)
+            }
+        }
+        val playlist = SavedPlaylist(
+            id = UUID.randomUUID().toString(), name = text(name, 120).ifBlank { "Playlist" },
+            family = MediaFamily.CAMERAS, itemIds = orderedIds.toList(), shuffle = true,
+        )
+        // All item, identifier, playlist and byte-budget checks precede the state swap.
+        change { old -> old.copy(items = old.items + additions, playlists = old.playlists + playlist) }
+        ImportedCameraList(additions.size, items.size - additions.size, playlist.id)
     }
 
     fun removeItem(id: String) = change { old ->

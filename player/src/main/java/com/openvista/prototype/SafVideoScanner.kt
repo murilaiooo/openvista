@@ -85,8 +85,8 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
     }
 
     companion object {
-        const val MAX_VIDEOS = 100
-        const val MAX_ENTRIES = 500
+        const val MAX_VIDEOS = 2_000
+        const val MAX_ENTRIES = 20_000
         private val PROJECTION = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_MIME_TYPE,
