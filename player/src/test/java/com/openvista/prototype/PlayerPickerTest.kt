@@ -75,6 +75,24 @@ class PlayerPickerTest {
         }
     }
 
+    @Test fun soundCanBeEnabledAndDisabledOnlyByTheViewer() {
+        val controller = Robolectric.buildActivity(PlayerPrototypeActivity::class.java).setup()
+        try {
+            val activity = controller.get()
+            val root = activity.window.decorView
+            val enable = button(root, "Sound: Off")
+            assertTrue(enable.isEnabled)
+            enable.performClick()
+            val disable = button(root, "Sound: On")
+            assertTrue(disable.isEnabled)
+            disable.performClick()
+            assertTrue(button(root, "Sound: Off").isEnabled)
+            assertNull(Shadows.shadowOf(activity).peekNextStartedActivityForResult())
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
     private fun button(view: View, title: String): Button {
         if (view is Button && view.text.toString() == title) return view
         if (view is ViewGroup) {

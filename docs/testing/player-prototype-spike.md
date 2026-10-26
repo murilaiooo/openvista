@@ -57,9 +57,15 @@ The two system picker routes now use AndroidX `ActivityResultContracts.StartActi
 
 The app only uses the transient read grant needed for the current in-memory session. It does **not** retain folder grants or source lists across device restarts yet, so the owner must select a folder again after restarting. Grant persistence and revocation remain unverified work under issue #9. No broad storage permission was added.
 
-The implementation compiled and passed local Android Lint and regression suites after this migration. An Android 9 (API 28) Robolectric harness with **4/4 local Activity tests** verifies that importing a list and selecting a folder require user interaction, request **read-only** document access, keep an empty library disabled for playback, and do not launch a picker for an invalid direct URL. Robolectric is a simulated Android environment; physical Fire OS picker completion and return behavior are still unverified on this upgraded code.
+The implementation compiled and passed local Android Lint and regression suites after this migration. An Android 9 (API 28) Robolectric harness with **5/5 local Activity tests and 2/2 SAF scanner tests** verifies that importing a list and selecting a folder require user interaction, request **read-only** document access, keep an empty library disabled for playback, and do not launch a picker for an invalid direct URL. Robolectric is a simulated Android environment; physical Fire OS picker completion and return behavior are still unverified on this upgraded code.
 
 Commands to reproduce: `./gradlew :player:testDebugUnitTest :source-core:test :player:assembleDebug :player:lintDebug --no-daemon`. Test instrumentation remains local; no GitHub Actions were used.
+
+## User-controlled sound and scoped folder regression tests
+
+Decision **D-06** requires playback to begin muted while allowing viewers to enable audio. The prototype now has an explicit TV-focusable **Sound: Off / Sound: On** action. The initial session volume remains zero, enabling sound sets ExoPlayer volume to 1, and switching it off sets volume back to zero without connecting to a new source. A Robolectric user-interaction regression test first failed with the missing control and then passed after implementation.
+
+The Android 9 JVM harness also exercises the SAF folder scanner against a synthetic `ContentProvider`: a user-selected tree contains two recognized videos, an excluded image, and a nested folder. The scan returns only the two videos and the URI authority from the granted fixture tree. A cancelled scan returns without reading content. **These are simulated provider tests, not evidence of physical Fire OS USB compatibility or successful media decoding.**
 
 ## Testing and rollback
 

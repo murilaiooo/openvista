@@ -41,6 +41,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private val parser = UserSourceParser()
     private var mediaPlayer: ExoPlayer? = null
     private var currentKind = StreamKind.HLS
+    private var muted = true
     private var imported = emptyList<UserSource>()
     private var localVideos = emptyList<SafVideoScanner.Video>()
     private var scanGeneration = 0
@@ -50,6 +51,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
     private lateinit var video: PlayerView
     private lateinit var playImportedButton: Button
     private lateinit var playVideoButton: Button
+    private lateinit var soundButton: Button
 
     // Register unconditionally so the result is delivered after Activity recreation.
     private val listPicker = registerForActivityResult(
@@ -118,6 +120,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
         action("HLS", sourceActions) { currentKind = StreamKind.HLS; setStatus("HLS selected. Press Play URL to connect.") }
         action("DASH", sourceActions) { currentKind = StreamKind.DASH; setStatus("DASH selected. Press Play URL to connect.") }
         action("Play URL", sourceActions) { playEnteredUrl() }
+        soundButton = action("Sound: Off", sourceActions) { toggleSound() }
 
         status = label("No sources. Add a URL, import an M3U file, or select a video folder.", 15f, 0xFFE2EBF3.toInt())
         status.setPadding(dp(8), dp(8), dp(8), dp(8))
@@ -148,7 +151,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         val player = ExoPlayer.Builder(this).build().apply {
-            volume = 0f
+            volume = if (muted) 0f else 1f
             addListener(object : Player.Listener {
                 override fun onPlayerError(error: PlaybackException) {
                     setStatus("Playback failed. The source may be offline, unsupported or unavailable.")
@@ -157,7 +160,7 @@ class PlayerPrototypeActivity : ComponentActivity() {
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     when (playbackState) {
                         Player.STATE_BUFFERING -> setStatus("Connecting to the selected source...")
-                        Player.STATE_READY -> setStatus("Playing selected source (muted). Back or Stop returns to controls.")
+                        Player.STATE_READY -> setStatus(if (muted) "Playing selected source (muted). Back or Stop returns to controls." else "Playing selected source with sound. Back or Stop returns to controls.")
                         Player.STATE_ENDED -> setStatus("Playback ended.")
                         Player.STATE_IDLE -> setStatus("Ready to play.")
                     }
@@ -176,6 +179,13 @@ class PlayerPrototypeActivity : ComponentActivity() {
         mediaPlayer?.release()
         mediaPlayer = null
         super.onStop()
+    }
+
+    private fun toggleSound() {
+        muted = !muted
+        mediaPlayer?.volume = if (muted) 0f else 1f
+        soundButton.text = if (muted) "Sound: Off" else "Sound: On"
+        setStatus(if (muted) "Sound muted." else "Sound enabled for the selected source.")
     }
 
     private fun playEnteredUrl() {
