@@ -83,6 +83,8 @@ class OpenVistaDreamService : DreamService() {
         startupFailed = false
         setInteractive(true)
         setFullscreen(true)
+        // Keep the screen awake only while the dream actively plays or buffers video.
+        // Avoid clearing the system screen saver selection or overriding Power key behavior.
         setScreenBright(false)
         registerScreenOff()
         if (startupFailed) { finish(); return }
@@ -311,16 +313,21 @@ class OpenVistaDreamService : DreamService() {
         overlay?.stop()
         transition?.animate()?.cancel()
         transition?.alpha = 0f
-        window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        setScreenBright(false)
     }
 
     private fun updateKeepAwake() {
         val current = session
-        val keep = dreaming && attached && !startupFailed && current != null && !current.isReleased &&
-            store?.settings()?.keepAwake == true && current.player.playWhenReady &&
-            current.player.playbackState in setOf(Player.STATE_BUFFERING, Player.STATE_READY)
-        if (keep) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val keep = DreamScreenPolicy.shouldStayVisible(
+            dreaming = dreaming, attached = attached, startupFailed = startupFailed,
+            sessionAvailable = current != null && !current.isReleased,
+            playWhenReady = current?.player?.playWhenReady == true,
+            playbackReadyOrBuffering = current?.player?.playbackState in
+                setOf(Player.STATE_BUFFERING, Player.STATE_READY),
+        )
+        // DreamService's supported window flag. This only prevents *idle* dim/sleep
+        // during active playback, never blocks an explicit remote Power command.
+        setScreenBright(keep)
     }
 
     private fun registerScreenOff() {
