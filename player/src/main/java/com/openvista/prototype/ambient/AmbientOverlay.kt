@@ -94,10 +94,13 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         val availableY = (height - paddingTop - paddingBottom - box.height).coerceAtLeast(0)
         box.translationX = settings.overlayX.coerceIn(0, 100) / 100f * availableX * if (corner % 2 == 0) 1 else -1
         box.translationY = settings.overlayY.coerceIn(0, 100) / 100f * availableY * if (corner < 2) 1 else -1
-        val target = if (settings.weatherContext == "camera") item?.let { source ->
+        val cameraLocation = item?.let { source ->
             if (source.latitude == null || source.longitude == null) null else WeatherLocation(source.city.ifBlank { source.title }, source.latitude, source.longitude, source.timeZone)
-        } else if (settings.viewerLatitude != null && settings.viewerLongitude != null)
+        }
+        val viewerLocation = if (settings.viewerLatitude != null && settings.viewerLongitude != null)
             WeatherLocation(settings.viewerCity, settings.viewerLatitude, settings.viewerLongitude, settings.viewerTimeZone) else null
+        // Imported playlists often have no camera geotags. Use the viewer's selected city in that case.
+        val target = if (settings.weatherContext == "camera") cameraLocation ?: viewerLocation else viewerLocation
         if (settings.showWeather && (weatherAt == Long.MIN_VALUE || target != locationKey || SystemClock.elapsedRealtime() - weatherAt > 900_000)) {
             locationKey = target; weatherAt = SystemClock.elapsedRealtime()
             weatherRepository.load(target) { state ->
@@ -112,7 +115,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                         val temperatureLabel = String.format(resources.configuration.locales[0], "%.0f°%s", if (fahrenheit) temperature * 9 / 5 + 32 else temperature,
                             if (fahrenheit) "F" else "C")
                         temperatureLabel + " " + state.forecast.current?.description.orEmpty() +
-                            (if (state.stale) " · ${context.getString(R.string.weather_cached)}" else "") + "\n" + state.forecast.attribution
+                            (if (state.stale) " · ${context.getString(R.string.weather_cached)}" else "")
                     } ?: context.getString(R.string.weather_unavailable)
                     WeatherState.Unavailable -> context.getString(R.string.weather_unavailable)
                 }

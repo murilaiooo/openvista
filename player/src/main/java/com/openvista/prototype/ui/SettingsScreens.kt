@@ -137,7 +137,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
 
     private fun weatherSettings(body: LinearLayout) {
         body.addView(ui.heading(s(R.string.weather)))
-        body.addView(ui.description(s(R.string.weather_license_notice)))
+        body.addView(ui.description(s(R.string.weather_nws_notice)))
         choice(body, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)), store.settings().weatherContext) {
             store.saveSettings(store.settings().copy(weatherContext = it))
         }
@@ -185,7 +185,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         host.showDialog(AlertDialog.Builder(host).setTitle(R.string.city_search).setView(content)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.search) { _, _ ->
                 weather.searchCities(query.text.toString()) { places, attribution ->
-                    if (places == null) host.message(R.string.weather_provider_required)
+                    if (places == null) host.message(R.string.city_search_unavailable)
                     else if (places.isEmpty()) host.message(R.string.no_matches)
                     else host.showDialog(AlertDialog.Builder(host).setTitle(R.string.city_search)
                         .setItems(places.map { it.name }.toTypedArray()) { _, index ->
@@ -201,10 +201,12 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     fun forecast(item: LibraryItem? = null) {
         val settings = store.settings()
         val source = item ?: store.lastItemId()?.let(store::item)
-        val target = if (settings.weatherContext == "camera") source?.let {
+        val cameraLocation = source?.let {
             if (it.latitude == null || it.longitude == null) null else WeatherLocation(it.city.ifBlank { it.title }, it.latitude, it.longitude, it.timeZone)
-        } else if (settings.viewerLatitude != null && settings.viewerLongitude != null)
+        }
+        val viewerLocation = if (settings.viewerLatitude != null && settings.viewerLongitude != null)
             WeatherLocation(settings.viewerCity, settings.viewerLatitude, settings.viewerLongitude, settings.viewerTimeZone) else null
+        val target = if (settings.weatherContext == "camera") cameraLocation ?: viewerLocation else viewerLocation
         val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
         val status = ui.description(s(R.string.weather_loading)); body.addView(status)
         val dialog = AlertDialog.Builder(host).setTitle(R.string.forecast).setView(ui.scroll(body)).setPositiveButton(R.string.close, null).create()
@@ -214,7 +216,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             body.removeAllViews()
             body.addView(ui.description(when (state) {
                 WeatherState.NoLocation -> s(R.string.weather_no_location)
-                WeatherState.ProviderRequired -> s(R.string.weather_license_notice)
+                WeatherState.ProviderRequired -> s(R.string.weather_unavailable)
                 WeatherState.Loading -> s(R.string.weather_loading)
                 WeatherState.Unavailable -> s(R.string.weather_unavailable)
                 is WeatherState.Ready -> if (state.stale) s(R.string.stale_weather) else state.forecast.location.name
@@ -222,9 +224,9 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             if (state is WeatherState.Ready) {
                 val forecast = state.forecast
                 forecast.days.forEach { d -> body.addView(ui.description(host.getString(R.string.weather_day,
-                    d.date, temperature(d.minimumC), temperature(d.maximumC), metric(d.precipitationMm), metric(d.windKph),
-                    metric(d.humidity), d.sunrise ?: s(R.string.not_available), d.sunset ?: s(R.string.not_available)))) }
-                body.addView(ui.description(host.getString(R.string.weather_attribution, forecast.attribution)))
+                    d.date, temperature(d.minimumC), temperature(d.maximumC), metric(d.precipitationChancePct), metric(d.windKph),
+                    metric(d.humidity)))) }
+                // The owner chose an uncluttered UI. Provider identification stays in API headers and repository documentation.
             }
         }
     }

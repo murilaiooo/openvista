@@ -139,7 +139,7 @@
     <string name="device_location_notice">A localização automática precisa de um provedor compatível e permissão explícita. Por enquanto, informe uma localização manualmente.</string>
     <string name="stale_weather">Previsão salva · pode estar desatualizada</string>
     <string name="weather_attribution">Dados: %1$s</string>
-    <string name="weather_day">%1$s · %2$s / %3$s · Chuva %4$s mm · Vento %5$s km/h · Umidade %6$s%% · Nascer do sol %7$s · Pôr do sol %8$s</string>
+    <string name="weather_day">%1$s · %2$s / %3$s · Chance de chuva %4$s%% · Vento %5$s km/h · Umidade %6$s%%</string>
     <string name="not_available">Não disponível</string>
     <string name="basic">Configurações básicas</string>
     <string name="advanced">Configurações avançadas</string>
@@ -228,5 +228,7 @@
     <string name="remote_list">Importar lista de uma URL</string>
     <string name="remote_list_notice">O OpenVista baixará a lista apenas quando você confirmar. As fontes serão salvas localmente; nenhuma transmissão será reproduzida durante a importação.</string>
     <string name="sensitive_url_notice">Este editor mostra a URL privada da fonte. Ela nunca é incluída nos relatórios.</string>
+    <string name="weather_nws_notice">Previsão gratuita de sete dias nos EUA para as coordenadas salvas. Defina a cidade e as coordenadas abaixo. A busca de cidades ainda não está disponível.</string>
+    <string name="city_search_unavailable">A busca de cidades não está disponível. Informe a cidade e as coordenadas manualmente.</string>
 </resources>
 

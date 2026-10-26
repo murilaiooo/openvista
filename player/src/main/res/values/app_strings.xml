@@ -139,7 +139,7 @@
     <string name="device_location_notice">Automatic location requires a supported provider and explicit permission. Enter a location manually for now.</string>
     <string name="stale_weather">Saved forecast · may be out of date</string>
     <string name="weather_attribution">Data: %1$s</string>
-    <string name="weather_day">%1$s · %2$s / %3$s · Rain %4$s mm · Wind %5$s km/h · Humidity %6$s%% · Sunrise %7$s · Sunset %8$s</string>
+    <string name="weather_day">%1$s · %2$s / %3$s · Rain chance %4$s%% · Wind %5$s km/h · Humidity %6$s%%</string>
     <string name="not_available">Not available</string>
     <string name="basic">Basic settings</string>
     <string name="advanced">Advanced settings</string>
@@ -228,5 +228,7 @@
     <string name="remote_list">Import list from a URL</string>
     <string name="remote_list_notice">OpenVista will download this list only when you confirm. Sources will be saved locally; no stream plays during import.</string>
     <string name="sensitive_url_notice">This editor shows your private source URL. It is never included in reports.</string>
+    <string name="weather_nws_notice">Free seven-day US forecasts are available for saved coordinates. Set your city and coordinates below. City search is not yet supported.</string>
+    <string name="city_search_unavailable">City search is unavailable. Enter a city and coordinates manually.</string>
 </resources>
 

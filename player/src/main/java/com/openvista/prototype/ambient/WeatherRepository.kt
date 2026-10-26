@@ -16,7 +16,7 @@ data class CurrentWeather(val temperatureC: Double?, val description: String?, v
                           val windKph: Double?, val precipitationMm: Double?)
 data class ForecastDay(val date: String, val minimumC: Double?, val maximumC: Double?,
                        val precipitationMm: Double?, val windKph: Double?, val humidity: Double?,
-                       val sunrise: String?, val sunset: String?)
+                       val sunrise: String?, val sunset: String?, val precipitationChancePct: Double? = null)
 data class Forecast(val location: WeatherLocation, val current: CurrentWeather?, val days: List<ForecastDay>,
                     val fetchedAt: Long, val attribution: String, val providerId: String)
 
@@ -42,8 +42,8 @@ sealed interface WeatherState {
     data object Unavailable : WeatherState
 }
 
-/** No endpoint or provider is chosen by this module. Cached data never becomes invented weather. */
-class WeatherRepository(context: Context, private val provider: ForecastProvider? = null,
+/** US NWS forecast adapter by default; cached data never becomes invented weather. */
+class WeatherRepository(context: Context, private val provider: ForecastProvider? = NwsForecastProvider(),
                         private val geocoder: CitySearchProvider? = null) {
     private val cache = AtomicFile(File(context.cacheDir, "weather-v1.json"))
     private val worker = Executors.newSingleThreadExecutor()
@@ -107,7 +107,7 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
         ) }, days = value.days.distinctBy { it.date }.take(7).map { d -> d.copy(
             minimumC = bounded(d.minimumC, -100.0, 70.0), maximumC = bounded(d.maximumC, -100.0, 70.0),
             humidity = bounded(d.humidity, 0.0, 100.0), windKph = bounded(d.windKph, 0.0, 500.0),
-            precipitationMm = bounded(d.precipitationMm, 0.0, 3000.0),
+            precipitationMm = bounded(d.precipitationMm, 0.0, 3000.0), precipitationChancePct = bounded(d.precipitationChancePct, 0.0, 100.0),
             sunrise = d.sunrise?.take(40), sunset = d.sunset?.take(40), date = d.date.take(40),
         ) })
     }
@@ -131,7 +131,7 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
                     (0 until days.length().coerceAtMost(7)).map { index -> days.getJSONObject(index).let { d ->
                         ForecastDay(d.getString("date"), d.number("min"), d.number("max"), d.number("rain"),
                             d.number("wind"), d.number("humidity"), d.optString("sunrise").ifBlank { null },
-                            d.optString("sunset").ifBlank { null })
+                            d.optString("sunset").ifBlank { null }, d.number("rainChance"))
                     } }, at, adapter.attribution, adapter.id))
             }
         }
@@ -142,7 +142,8 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
             .put("latitude", forecast.location.latitude).put("longitude", forecast.location.longitude)
             .put("days", JSONArray().apply { forecast.days.forEach { d -> put(JSONObject()
                 .put("date", d.date).put("min", d.minimumC).put("max", d.maximumC).put("rain", d.precipitationMm)
-                .put("wind", d.windKph).put("humidity", d.humidity).put("sunrise", d.sunrise).put("sunset", d.sunset)) } })
+                .put("wind", d.windKph).put("humidity", d.humidity).put("sunrise", d.sunrise).put("sunset", d.sunset)
+                .put("rainChance", d.precipitationChancePct)) } })
         forecast.current?.let { c -> value.put("current", JSONObject().put("temperature", c.temperatureC)
             .put("description", c.description).put("humidity", c.humidity).put("wind", c.windKph).put("rain", c.precipitationMm)) }
         val stream = cache.startWrite()
