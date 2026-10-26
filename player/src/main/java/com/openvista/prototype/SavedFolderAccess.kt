@@ -3,6 +3,7 @@ package com.openvista.prototype
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
 
 /** Remembers only an explicitly selected SAF tree with an OS-backed read grant. */
 internal class SavedFolderAccess(private val context: Context) {
@@ -10,6 +11,10 @@ internal class SavedFolderAccess(private val context: Context) {
     private val preferences get() = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
 
     fun remember(uri: Uri): Boolean {
+        if (uri.scheme != "content" || uri.authority.isNullOrBlank() || !DocumentsContract.isTreeUri(uri)) return false
+        val alreadyGranted = try {
+            resolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }
+        } catch (_: SecurityException) { false }
         try {
             resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         } catch (_: SecurityException) {
@@ -18,7 +23,10 @@ internal class SavedFolderAccess(private val context: Context) {
             return false
         }
         val previous = preferences.getString(KEY_FOLDER, null)
-        preferences.edit().putString(KEY_FOLDER, uri.toString()).apply()
+        if (!preferences.edit().putString(KEY_FOLDER, uri.toString()).commit()) {
+            if (!alreadyGranted && previous != uri.toString()) release(uri)
+            return false
+        }
         if (previous != null && previous != uri.toString()) {
             release(Uri.parse(previous))
         }
@@ -33,13 +41,13 @@ internal class SavedFolderAccess(private val context: Context) {
         } catch (_: SecurityException) {
             false
         }
-        if (!granted) preferences.edit().remove(KEY_FOLDER).apply()
+        // A temporarily disconnected provider must not erase the saved folder selection.
         return if (granted) uri else null
     }
 
     fun forget() {
         val stored = preferences.getString(KEY_FOLDER, null)
-        preferences.edit().remove(KEY_FOLDER).apply()
+        if (!preferences.edit().remove(KEY_FOLDER).commit()) return
         if (stored != null) release(Uri.parse(stored))
     }
 

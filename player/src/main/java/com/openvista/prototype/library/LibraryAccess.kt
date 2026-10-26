@@ -12,7 +12,6 @@ import android.provider.OpenableColumns
 import com.openvista.prototype.R
 import com.openvista.prototype.SafVideoScanner
 import com.openvista.sources.LocalVideoRules
-import java.security.MessageDigest
 import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -60,22 +59,29 @@ class LibraryAccess(context: Context, private val store: LibraryStore) : AutoClo
                 }
                 SafVideoScanner.Result.Unavailable -> {
                     cancellation.throwIfCanceled()
-                    synchronized(lock) { sessionUris.remove(folder.uri) }
                     markFolderUnavailable(folder.uri)
                     unavailable++
                 }
             }
         }
-        for (item in store.items().filter { it.family == MediaFamily.VIDEOS && (it.folderUri == null || it.uri in readableUris) }) {
+        val registeredFolders = store.folders().mapTo(hashSetOf()) { it.uri }
+        val refreshedRoutes = linkedMapOf<String, List<VideoAccessRoute>>()
+        for (item in store.items().filter { it.family == MediaFamily.VIDEOS }) {
             cancellation.throwIfCanceled()
-            val readable = item.uri in readableUris && canRead(Uri.parse(item.uri), cancellation)
-            store.updateAvailability(item.id, if (readable) Availability.AVAILABLE else Availability.UNAVAILABLE)
-            if (!readable) {
-                synchronized(lock) { sessionUris.remove(item.uri) }
-                unavailable++
+            val routes = item.accessRoutes.map { route ->
+                val grant = route.folderUri ?: route.uri
+                val authorized = grant in readableUris && (route.folderUri == null || grant in registeredFolders)
+                val readable = authorized && canRead(Uri.parse(route.uri), cancellation)
+                if (readable && grant !in grants) sessionOnly = true
+                route.copy(availability = if (readable) Availability.AVAILABLE else Availability.UNAVAILABLE,
+                    observedAt = System.currentTimeMillis())
             }
-            if (readable && item.uri !in grants) sessionOnly = true
+            cancellation.throwIfCanceled()
+            refreshedRoutes[item.id] = routes
+            if (routes.none { it.availability == Availability.AVAILABLE }) unavailable++
         }
+        cancellation.throwIfCanceled()
+        store.updateAccessRoutes(refreshedRoutes)
         store.flush()
         val status = when {
             unavailable > 0 -> message(R.string.library_restored_unavailable, unavailable)
@@ -104,7 +110,6 @@ class LibraryAccess(context: Context, private val store: LibraryStore) : AutoClo
                 if (persisted) status else "$status ${message(R.string.library_session_only)}"
             }
             SafVideoScanner.Result.Unavailable -> {
-                synchronized(lock) { sessionUris.remove(uri.toString()) }
                 markFolderUnavailable(uri.toString())
                 store.flush()
                 message(R.string.library_folder_unavailable)
@@ -123,10 +128,14 @@ class LibraryAccess(context: Context, private val store: LibraryStore) : AutoClo
             return@launch message(R.string.library_video_unavailable)
         }
         cancellation.throwIfCanceled()
-        val existing = store.items().find { it.family == MediaFamily.VIDEOS && it.uri == uri.toString() }
-        store.upsert(existing?.copy(folderUri = null, availability = Availability.AVAILABLE, observedAt = System.currentTimeMillis()) ?: LibraryItem(
+        val existing = store.items().find { it.family == MediaFamily.VIDEOS && SafDocumentIdentity.key(it.uri) == SafDocumentIdentity.key(uri.toString()) }
+        val route = VideoAccessRoute(uri.toString(), availability = Availability.AVAILABLE, observedAt = System.currentTimeMillis())
+        store.upsert(existing?.copy(uri = uri.toString(), folderUri = null,
+            accessRoutes = existing.accessRoutes.filterNot { it.uri == route.uri && it.folderUri == null } + route,
+            availability = Availability.AVAILABLE, observedAt = route.observedAt) ?: LibraryItem(
             id = videoId(uri.toString()), title = title ?: message(R.string.library_video_name), uri = uri.toString(),
-            family = MediaFamily.VIDEOS, availability = Availability.AVAILABLE, observedAt = System.currentTimeMillis(),
+            family = MediaFamily.VIDEOS, availability = Availability.AVAILABLE, observedAt = route.observedAt,
+            accessRoutes = listOf(route),
         ))
         store.flush()
         if (uri.toString() in persistedReads()) message(R.string.library_video_saved)
@@ -151,13 +160,14 @@ class LibraryAccess(context: Context, private val store: LibraryStore) : AutoClo
         val removed = store.item(id)
         store.removeItem(id)
         store.flush()
-        if (removed?.family == MediaFamily.VIDEOS && removed.folderUri == null) {
-            val uri = removed.uri
+        if (removed?.family == MediaFamily.VIDEOS) {
             val legacyFolder = context.getSharedPreferences(LEGACY_PREFERENCES, Context.MODE_PRIVATE).getString(LEGACY_TREE, null)
-            if (legacyFolder != uri) {
-                store.releaseDocumentIfUnused(uri) {
-                    synchronized(lock) { sessionUris.remove(uri) }
-                    if (uri in persistedReads()) releaseRead(Uri.parse(uri))
+            removed.accessRoutes.filter { it.folderUri == null }.map { it.uri }.distinct().forEach { uri ->
+                if (legacyFolder != uri) {
+                    store.releaseDocumentIfUnused(uri) {
+                        synchronized(lock) { sessionUris.remove(uri) }
+                        if (uri in persistedReads()) releaseRead(Uri.parse(uri))
+                    }
                 }
             }
         }
@@ -217,11 +227,11 @@ class LibraryAccess(context: Context, private val store: LibraryStore) : AutoClo
         store.replaceFolderItems(uri, result.videos.map {
             LibraryItem(videoId(it.uri.toString()), it.title, it.uri.toString(), MediaFamily.VIDEOS,
                 folderUri = uri, availability = Availability.AVAILABLE, observedAt = now)
-        })
+        }, complete = !result.capped)
     }
 
     private fun markFolderUnavailable(uri: String) {
-        store.items().filter { it.folderUri == uri }.forEach { store.updateAvailability(it.id, Availability.UNAVAILABLE) }
+        store.updateFolderAvailability(uri, Availability.UNAVAILABLE)
     }
 
     private fun persistedReads(): Set<String> = try {
@@ -324,7 +334,6 @@ class LibraryAccess(context: Context, private val store: LibraryStore) : AutoClo
         private const val LEGACY_PREFERENCES = "openvista_saved_folder"
         private const val LEGACY_TREE = "tree_uri"
 
-        private fun videoId(uri: String): String = "video-" + MessageDigest.getInstance("SHA-256")
-            .digest(uri.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        private fun videoId(uri: String): String = SafDocumentIdentity.itemId(uri)
     }
 }
