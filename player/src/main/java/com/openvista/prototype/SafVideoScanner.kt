@@ -16,6 +16,9 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
     }
 
     fun scan(treeUri: Uri, cancellation: CancellationSignal): Result {
+        // An already-cancelled scan never queries the provider or raises from this API.
+        // Cancellation during a running scan still propagates to the lifecycle owner.
+        if (cancellation.isCanceled) return Result.Unavailable
         val root = try { DocumentsContract.getTreeDocumentId(treeUri) }
         catch (_: RuntimeException) { return Result.Unavailable }
         val queue = ArrayDeque<String>()
@@ -28,7 +31,7 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
         var incomplete = false
         return try {
             while (queue.isNotEmpty()) {
-                if (cancellation.isCanceled) return Result.Unavailable
+                cancellation.throwIfCanceled()
                 val parent = queue.removeFirst()
                 val children = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parent)
                 try {
@@ -39,16 +42,22 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
                         continue
                     }
                     cursor.use { rows ->
+                        if (rows.extras.getBoolean(DocumentsContract.EXTRA_LOADING, false)) incomplete = true
                         val idColumn = rows.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
                         val mimeColumn = rows.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
                         val titleColumn = rows.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                        while (!cancellation.isCanceled && rows.moveToNext()) {
+                        while (rows.moveToNext()) {
+                            cancellation.throwIfCanceled()
                             inspected++
                             if (inspected > MAX_ENTRIES) {
                                 capped = true
                                 break
                             }
-                            val id = rows.getString(idColumn) ?: continue
+                            val id = rows.getString(idColumn)?.takeIf { it.isNotEmpty() && it.length <= 4_096 && it.none { character -> character.isISOControl() } }
+                            if (id == null) {
+                                incomplete = true
+                                continue
+                            }
                             val mime = rows.getString(mimeColumn)
                             val title = rows.getString(titleColumn)
                             if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
@@ -76,7 +85,10 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
                 }
                 if (capped) break
             }
+            cancellation.throwIfCanceled()
             Result.Ready(videos, capped || incomplete)
+        } catch (cancelled: android.os.OperationCanceledException) {
+            throw cancelled
         } catch (_: SecurityException) {
             Result.Unavailable
         } catch (_: RuntimeException) {
