@@ -27,7 +27,7 @@ class TvUi(val context: Context) {
     }
     fun heading(value: String) = text(value, 30f).apply {
         setTypeface(typeface, Typeface.BOLD)
-        accessibilityHeading = true
+        setAccessibilityHeading(true)
     }
     fun description(value: String) = text(value, 17f, 0xFFC0D0DF.toInt())
     fun scroll(child: View) = ScrollView(context).apply {

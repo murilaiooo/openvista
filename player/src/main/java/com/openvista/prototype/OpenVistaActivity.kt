@@ -1,6 +1,7 @@
 package com.openvista.prototype
 
 import android.app.AlertDialog
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -190,6 +191,9 @@ class OpenVistaActivity : ComponentActivity() {
         super.onSaveInstanceState(outState)
     }
 
+    // Intercept remote keys before focused PlayerView receives them; AndroidX marks the inherited
+    // method library-restricted, but a TV Activity must handle these input events here.
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (ready && route.page == "player" && playerScreen.dispatchKey(event)) return true
         return super.dispatchKeyEvent(event)
