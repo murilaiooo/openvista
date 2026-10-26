@@ -1,8 +1,8 @@
 ## Summary
 
-<!-- What changed, why it matters, and which issue it addresses. -->
+<!-- What changed, why it matters, and a related requirement, issue or decision record if applicable. Do not imply a closed issue has passed release acceptance. -->
 
-Closes #
+Related requirement / historical issue (optional):
 
 ## Changes
 
@@ -11,7 +11,7 @@ Closes #
 ## Validation
 
 - [ ] Applicable local checks or tests pass.
-- [ ] Playback, navigation, or OS behavior was verified on a real TV where needed.
+- [ ] Playback, navigation or OS behavior was verified on a **named real TV** where needed; otherwise mark the requirement unverified.
 - [ ] No user media, camera-feed lists, research URLs, secrets, or other fixtures were bundled in the app.
 - [ ] Docs, comments, and PR text are in English.
 - [ ] Device-specific limitations and a safe rollback route are documented.

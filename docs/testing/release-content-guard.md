@@ -1,6 +1,6 @@
 # OpenVista release-artifact content isolation
 
-**Status:** Offline guard available. The first isolated **local debug diagnostics APK** was built and passed this scan on 2026-10-25. This does **not** approve any binary publication; the actual future release artifact must be scanned again after release signing and packaging.
+**Status (2026-10-26):** The offline guard has passed on the local diagnostic APK and subsequent debug builds of the integrated TV player, including the NWS integration. **No stable/public signed APK is approved**; the actual future release artifact must be scanned again after production signing and packaging. See [current status](../STATUS.md).
 
 ## Commands (Windows / Python 3.12)
 
@@ -21,7 +21,7 @@ Run the final command on the **actual package intended for distribution**, not a
 - Literal HTTP(S) HLS/DASH endpoints ending in `.m3u8` or `.mpd` in compiled resources, bytecode, native libraries and packaged data, including UTF-8, UTF-16LE and UTF-16BE strings and URLs with query strings.
 - Suspicious contents are reported **by archive entry path only**; potential private stream addresses are never printed.
 
-The documentation validator also checks these extensions and literal endpoints in expected future Android runtime source directories. These checks intentionally do **not** scan the research-only source files under `docs/research/` or `catalog/candidates/`, since those are private feasibility inputs, not runtime assets.
+The documentation validator also checks these extensions and literal endpoints in **actual player and diagnostics Android runtime source directories**. These checks intentionally do **not** scan the research-only source files under `docs/research/` or `catalog/candidates/`, since those are private feasibility inputs, not runtime assets.
 
 ## Limits and required human review
 

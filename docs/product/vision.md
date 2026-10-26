@@ -1,6 +1,6 @@
 # OpenVista: product vision
 
-**Status:** Eight interview rounds (78 historical decisions), followed by owner clarification **C-01: user-supplied content only**. Engineering research/feasibility and implementation planning are the next stage.
+**Product scope:** Eight completed interview rounds (78 historical decisions), followed by owner clarification **C-01: user-supplied content only**. The Kotlin app, Media3 player, SAF library and U.S. NWS weather provider now exist as a **development preview with partial Hisense proof**. This document describes intended product behavior, not completed release acceptance. See [current status](../STATUS.md).
 
 ## What the owner approved
 
@@ -9,7 +9,7 @@
 - **Manual Home:** **three large image-backed cards**, Cameras, My Videos and Favorites. Favorites is one hub with visually separate camera and local-video sections.
 - **Immersive viewing:** scenic video in fullscreen with an almost invisible UI and no permanent navigation chrome.
 - **Live cameras:** a **user-managed library** of compatible HLS/DASH sources and imported lists, browsable by categories and available metadata (beaches, cities, mountains, etc.). Filter favorites, country, city and availability where metadata exists. The **2D world map with marker clusters and a side list** visualizes sources with usable location information. Offline, show locally saved sources with an honest no-network notice. OpenVista does not ship or host camera feeds or playlists.
-- **Custom camera URLs and lists:** user-provided stream URLs and source playlists, entered using the TV keyboard, a future validated list-import flow, or QR-assisted input; **phone and TV must use the same local Wi-Fi/LAN with explicit pairing confirmation**, with implementation security still to be validated. HLS and MPEG-DASH are the initially approved stream protocols.
+- **Custom camera URLs and lists:** user-provided stream URLs and source playlists, entered using the TV keyboard or the implemented user-selected M3U import; optional QR-assisted input remains disabled pending a security review; **phone and TV must use the same local Wi-Fi/LAN with explicit pairing confirmation**, with implementation security still to be validated. HLS and MPEG-DASH are the initially approved stream protocols.
 - **Camera details:** optional panel for name, country, local time, resolution, verified status and source.
 - **Camera flow:** automatic scene rotation **5 minutes by default**, adjustable 1–60 minutes; new camera playlists **shuffle by default**, with sequence as an option. When a camera fails, advance immediately. If every camera fails or the internet drops, use a local video playlist **only when configured**; check restored connectivity without interrupting a playing local video. Once a camera is available, **finish the active local video and then return to live cameras**, unless user chooses to remain local. Otherwise show a clear retry notice.
 - **My Videos:** automatically scan all accessible subfolders of a selected internal/USB folder; try **MP4, MKV, WebM and MOV** where codecs permit. Maintain separate camera/video playlists with creation, renaming, reordering, duplication, deletion and **batch add, remove and free reordering of items**.
@@ -31,10 +31,10 @@
 
 ## Engineering evidence still required
 
-The eight decision rounds are complete; C-01 updates content ownership. Validate user-entered source and playlist handling, empty-library UX, weather/map licensing, device-supported HLS/DASH and local codecs, safe same-LAN QR pairing, Hisense-specific DreamService/input, update installer behavior, and the 24-hour stability/privacy gate. No bundled source inventory is required. These are research and prototype tasks, not another blanket interview.
+The eight decision rounds are complete; C-01 updates content ownership. Local Hisense tests now cover basic Home/navigation, M3U import, selected HLS/DASH and MP4 playback, folder persistence and a Tucson NWS forecast. Full source/playback recovery, 1080p/4K codec matrix, device-specific DreamService/input, USB unplug/replug, map/geocoding rights, secure same-LAN pairing, update installer behavior and the 24-hour stability/privacy gate remain. No bundled source inventory is required. See [evidence and blockers](../STATUS.md).
 
 ## Proposed validation
 
-Prove DreamService and standard app-mode separately. Test map navigation on TV D-pad and hardware limitations of smooth transitions. Validate internal/USB media access, long-running playback, stream changes, quality caps, fallback state, overlay updates, display-care settings, PT-BR/English translations and 12/24-hour/°C/°F preferences on representative Android TV / Google TV / Fire TV hardware. No APK or validated OpenVista app exists yet.
+Prove DreamService and standard app-mode separately. Test map navigation on TV D-pad and hardware limitations of smooth transitions. Validate internal/USB media access, long-running playback, stream changes, quality caps, fallback state, overlay updates, display-care settings, PT-BR/English translations and 12/24-hour/°C/°F preferences on representative Android TV / Google TV / Fire TV hardware. The locally tested Hisense preview is **not** a stable APK or proof of other-device compatibility.
 
 See [decisions](decisions.md), [v1 acceptance](v1-acceptance.md), [engineering plan](../implementation/priority-plan.md), [UX brief](experience.md), [content and weather](content-and-weather.md), [runtime/recovery](runtime-and-recovery.md), [local media and playlists](local-media-and-playlists.md), [settings and controls](settings-and-player.md), [architecture](../architecture/overview.md), [tests](../testing/compatibility.md) and [roadmap](../roadmap.md).
