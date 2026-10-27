@@ -4,7 +4,7 @@ OpenVista completed **eight product interview rounds (D-01–D-78)**, with C-01 
 
 ## Working agreements
 
-- **English-only repository:** Write all README/documentation, code comments, UI source strings, configuration descriptions, GitHub issues, pull requests, and commit messages in **English**, regardless of the language used by the owner in conversation. Preserve official proper nouns, URLs, and external identifiers.
+- **English-only repository:** Write all README/documentation, code comments, default UI strings, configuration descriptions, GitHub issues, pull requests, and commit messages in **English**. Keep explicitly named locale-specific Android translations (such as `values-pt-rBR`) for user-facing localization, regardless of the language used by the owner in conversation. Preserve official proper nouns, URLs, and external identifiers.
 
 - Treat `docs/product/decisions.md` as the **historical record of 78 owner-approved decisions**, with the later **C-01 user-managed content clarification** overriding first-party catalog assumptions. See `docs/product/user-managed-content.md` and `docs/product/v1-acceptance.md` before implementing source handling. `docs/product/vision.md` summarizes requirements; research findings and proposed architectures are not approvals.
 - Discovery interviews are complete. Research facts first; ask the owner only about proven blockers or changes in scope, using relevant `grilling` / `domain-modeling` skills. Do not reopen settled choices without an evidence-backed reason.
