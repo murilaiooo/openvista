@@ -20,7 +20,7 @@ The isolated branch starts at 24249bc on codex/remaining-development to preserve
 - [x] Implement atlas Settings, grouped controls and saved states.
 - [x] Implement separate source/viewer clocks, real weather and forecast, bounded movement and independent hiding.
 - [x] Document assets, components, limitations and independent validation steps.
-- [ ] Read the final changes, commit, push and open the PR without executing checks.
+- [x] Read the final changes, commit, push and open [draft PR #37](https://github.com/murilaiooo/openvista/pull/37) without executing checks.
 
 ## Implementation rulings
 
