@@ -23,6 +23,8 @@ import com.openvista.prototype.ambient.Forecast
 import com.openvista.prototype.ambient.WeatherLocation
 import com.openvista.prototype.ambient.WeatherRepository
 import com.openvista.prototype.ambient.WeatherState
+import com.openvista.prototype.ambient.ProviderPolicy
+import com.openvista.prototype.ambient.WeatherText
 import com.openvista.prototype.library.AppSettings
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.MediaFamily
@@ -137,7 +139,8 @@ class SettingsScreens(private val host: OpenVistaActivity) {
 
     private fun weatherSettings(body: LinearLayout) {
         body.addView(ui.heading(s(R.string.weather)))
-        body.addView(ui.description(s(R.string.weather_nws_notice)))
+        body.addView(ui.description(s(if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) R.string.weather_worldwide_notice else R.string.weather_nws_notice)))
+        if (!ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) body.addView(ui.description(s(R.string.provider_approval_required)))
         choice(body, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)), store.settings().weatherContext) {
             store.saveSettings(store.settings().copy(weatherContext = it))
         }
@@ -180,14 +183,16 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     }
 
     private fun citySearch() {
+        if (!ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) { host.message(R.string.provider_approval_required); return }
         val content = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
+        content.addView(ui.description(s(R.string.city_search_privacy)))
         val query = ui.field(content, s(R.string.city))
         host.showDialog(AlertDialog.Builder(host).setTitle(R.string.city_search).setView(content)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.search) { _, _ ->
                 weather.searchCities(query.text.toString()) { places, attribution ->
                     if (places == null) host.message(R.string.city_search_unavailable)
                     else if (places.isEmpty()) host.message(R.string.no_matches)
-                    else host.showDialog(AlertDialog.Builder(host).setTitle(R.string.city_search)
+                    else host.showDialog(AlertDialog.Builder(host).setTitle(R.string.city_search).setMessage(attribution)
                         .setItems(places.map { it.name }.toTypedArray()) { _, index ->
                             val location = places[index]
                             host.mutate { store.saveSettings(store.settings().copy(viewerCity = location.name,
@@ -211,6 +216,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         val status = ui.description(s(R.string.weather_loading)); body.addView(status)
         val dialog = AlertDialog.Builder(host).setTitle(R.string.forecast).setView(ui.scroll(body)).setPositiveButton(R.string.close, null).create()
         host.showDialog(dialog)
+        dialog.setOnCancelListener { weather.cancel() }
         weather.load(target) { state ->
             if (!dialog.isShowing) return@load
             body.removeAllViews()
@@ -223,10 +229,16 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             }))
             if (state is WeatherState.Ready) {
                 val forecast = state.forecast
+                forecast.current?.let { current ->
+                    body.addView(ui.description(listOf(temperature(current.temperatureC), WeatherText.description(host, current)).filter(String::isNotBlank).joinToString(" · ")))
+                }
                 forecast.days.forEach { d -> body.addView(ui.description(host.getString(R.string.weather_day,
                     d.date, temperature(d.minimumC), temperature(d.maximumC), metric(d.precipitationChancePct), metric(d.windKph),
-                    metric(d.humidity)))) }
-                // The owner chose an uncluttered UI. Provider identification stays in API headers and repository documentation.
+                    metric(d.humidity))))
+                    body.addView(ui.description(host.getString(R.string.weather_day_extra, metric(d.precipitationMm),
+                        localTime(d.sunrise), localTime(d.sunset))))
+                }
+                if (forecast.requiresVisibleAttribution) body.addView(ui.description(forecast.attribution))
             }
         }
     }
@@ -262,6 +274,8 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     private fun privacy(body: LinearLayout) {
         body.addView(ui.heading(s(R.string.privacy)))
         body.addView(ui.description(s(R.string.privacy_body)))
+        body.addView(ui.description(s(R.string.provider_privacy)))
+        ui.button(body, s(R.string.clear_provider_cache)) { weather.clearCache(); host.message(R.string.saved) }
         ui.button(body, s(R.string.manage_folders)) { host.open(LibraryRoute("folders")) }
         ui.button(body, s(R.string.report)) { report() }
     }
@@ -302,6 +316,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         if (!resumed && !automaticCheckDone && store.settings().automaticUpdates) { automaticCheckDone = true; updater.discover(::onUpdate) }
     }
     fun onBackground() { preview?.stop(); pairing?.close(); pairing = null; weather.cancel(); updater.pause() }
+    fun onScreenExit() { preview?.stop(); preview = null; pairing?.close(); pairing = null; weather.cancel() }
     fun close() { onBackground(); updater.close(); weather.close() }
 
     fun startPairing() {
@@ -323,7 +338,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
                 val pixels = IntArray(400 * 400) { index -> if (matrix[index % 400, index / 400]) 0xFF000000.toInt() else -1 }
                 val bitmap = Bitmap.createBitmap(pixels, 400, 400, Bitmap.Config.ARGB_8888)
                 body.addView(ImageView(host).apply { setImageBitmap(bitmap); contentDescription = s(R.string.pairing) }, LinearLayout.LayoutParams(ui.dp(240), ui.dp(240)))
-                // Do not display the bearer URL as text or put it in clipboard/logs.
+                // The QR secret is never displayed as text or put in clipboard/logs.
             }, { request ->
                 awaitingConsent = true
                 host.showDialog(AlertDialog.Builder(host).setMessage(host.getString(R.string.pairing_request, request.displayName))
@@ -410,4 +425,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         return "%.0f°%s".format(if (fahrenheit) value * 9 / 5 + 32 else value, if (fahrenheit) "F" else "C")
     }
     private fun metric(value: Double?) = value?.let { "%.1f".format(it) } ?: s(R.string.not_available)
+    private fun localTime(value: String?): String = value?.let {
+        runCatching { java.time.LocalDateTime.parse(it).toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm", host.resources.configuration.locales[0])) }.getOrNull()
+    } ?: s(R.string.not_available)
 }

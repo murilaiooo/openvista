@@ -3,6 +3,14 @@ package com.openvista.prototype.library
 enum class MediaFamily { CAMERAS, VIDEOS }
 enum class Availability { UNKNOWN, AVAILABLE, UNAVAILABLE }
 
+/** One picker-granted route to a document; a tree and a direct grant remain independent. */
+data class VideoAccessRoute(
+    val uri: String,
+    val folderUri: String? = null,
+    val availability: Availability = Availability.UNKNOWN,
+    val observedAt: Long = 0,
+)
+
 data class LibraryItem(
     val id: String,
     val title: String,
@@ -20,6 +28,8 @@ data class LibraryItem(
     val favorite: Boolean = false,
     val availability: Availability = Availability.UNKNOWN,
     val observedAt: Long = 0,
+    val accessRoutes: List<VideoAccessRoute> = emptyList(),
+    val formerIds: List<String> = emptyList(),
 )
 
 data class SavedPlaylist(

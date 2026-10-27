@@ -1,9 +1,14 @@
 package com.openvista.prototype
 
 import android.content.Context
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.os.Build
+import android.os.PowerManager
 import android.service.dreams.DreamService
 import android.view.Gravity
 import android.view.KeyEvent
@@ -13,6 +18,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.media3.common.C
+import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -45,9 +51,20 @@ class OpenVistaDreamService : DreamService() {
     private var dreaming = false
     private var loadingGeneration = 0
     private var startupFailed = false
+    private var screenReceiverRegistered = false
+    private val screenOff = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != Intent.ACTION_SCREEN_OFF) return
+            dreaming = false
+            stopPlayback()
+            handler.removeCallbacks(scheduleTick)
+            handler.removeCallbacks(hideControls)
+            finish()
+        }
+    }
     private val hideControls = Runnable {
         controls?.visibility = View.GONE
-        if (session?.player?.isPlaying == true && store?.lastStorageError() == null) {
+        if (session?.let { !it.isReleased && it.player.isPlaying } == true && store?.lastStorageError() == null) {
             feedback?.visibility = View.GONE
         }
         video?.requestFocus()
@@ -67,6 +84,8 @@ class OpenVistaDreamService : DreamService() {
         setInteractive(true)
         setFullscreen(true)
         setScreenBright(false)
+        registerScreenOff()
+        if (startupFailed) { finish(); return }
         val generation = ++loadingGeneration
         // The library can contain thousands of records; never restore it on the input thread.
         Thread {
@@ -108,7 +127,7 @@ class OpenVistaDreamService : DreamService() {
         val root = FrameLayout(context).apply { setBackgroundColor(Color.BLACK) }
         video = PlayerView(context).apply {
             useController = false
-            setKeepContentOnPlayerReset(true)
+            setKeepContentOnPlayerReset(false)
             resizeMode = if (library.settings().resizeMode == "fit")
                 AspectRatioFrameLayout.RESIZE_MODE_FIT else AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             setShutterBackgroundColor(Color.BLACK)
@@ -161,6 +180,10 @@ class OpenVistaDreamService : DreamService() {
 
     override fun onDreamingStarted() {
         super.onDreamingStarted()
+        if ((getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive == false) {
+            finish()
+            return
+        }
         dreaming = true
         handler.removeCallbacks(scheduleTick)
         handler.post(scheduleTick)
@@ -178,8 +201,6 @@ class OpenVistaDreamService : DreamService() {
     private fun updateSchedule() {
         val library = store ?: return
         val settings = library.settings()
-        if (settings.keepAwake && !startupFailed) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val now = Calendar.getInstance()
         val minute = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
         val start = settings.scheduleStartMinute.coerceIn(0, 1439)
@@ -197,8 +218,19 @@ class OpenVistaDreamService : DreamService() {
             finish()
             return
         }
-        if (session != null || startupFailed) return
+        // A manual Activity may have taken decoder ownership while this service was attached.
+        if (session?.isReleased == true) {
+            stopPlayback()
+            dreaming = false
+            finish()
+            return
+        }
+        if (session != null || startupFailed) {
+            updateKeepAwake()
+            return
+        }
         val context = ui ?: return
+        val saved = PlaybackSession.lastSnapshot()
         val created = try { PlaybackSession(context, library, { message ->
             feedback?.text = message
             feedback?.visibility = if (session?.currentItem == null || !isPlayingStatus(message)) View.VISIBLE else View.GONE
@@ -208,6 +240,18 @@ class OpenVistaDreamService : DreamService() {
                 transition?.animate()?.cancel()
                 transition?.alpha = 1f
                 transition?.animate()?.alpha(0f)?.setDuration(350)?.start()
+            }
+        }, {
+            video?.player = null
+            overlay?.stop()
+            transition?.animate()?.cancel()
+            transition?.alpha = 0f
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            if (dreaming && attached) {
+                dreaming = false
+                handler.removeCallbacks(scheduleTick)
+                handler.removeCallbacks(hideControls)
+                finish()
             }
         }) } catch (_: RuntimeException) {
             startupFailed = true
@@ -220,12 +264,20 @@ class OpenVistaDreamService : DreamService() {
         }
         session = created
         video?.player = created.player
+        created.player.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) { updateKeepAwake() }
+            override fun onIsPlayingChanged(isPlaying: Boolean) { updateKeepAwake() }
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) { updateKeepAwake() }
+        })
         overlay?.start()
         val last = library.lastItemId()?.let(library::item)
-        if (last == null) {
+        if (saved != null && saved.itemIds.any { library.item(it) != null }) {
+            created.restore(saved)
+        } else if (last == null) {
             feedback?.text = context.getString(R.string.dream_no_saved_scene)
             feedback?.visibility = View.VISIBLE
         } else playSaved(last)
+        updateKeepAwake()
     }
 
     private fun isPlayingStatus(message: String): Boolean = message == ui?.getString(R.string.playback_playing)
@@ -262,9 +314,43 @@ class OpenVistaDreamService : DreamService() {
         window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
+    private fun updateKeepAwake() {
+        val current = session
+        val keep = dreaming && attached && !startupFailed && current != null && !current.isReleased &&
+            store?.settings()?.keepAwake == true && current.player.playWhenReady &&
+            current.player.playbackState in setOf(Player.STATE_BUFFERING, Player.STATE_READY)
+        if (keep) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun registerScreenOff() {
+        if (screenReceiverRegistered) return
+        try {
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF), Context.RECEIVER_NOT_EXPORTED)
+            else {
+                @Suppress("DEPRECATION")
+                registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
+            }
+            screenReceiverRegistered = true
+        } catch (_: RuntimeException) {
+            // If the OEM rejects lifecycle observation, leave the ordinary app available.
+            startupFailed = true
+        }
+    }
+
+    private fun unregisterScreenOff() {
+        if (!screenReceiverRegistered) return
+        screenReceiverRegistered = false
+        try { unregisterReceiver(screenOff) } catch (_: IllegalArgumentException) { }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Preserve OS Back, wake and reserved-key handling, including on OEM builds.
-        if (event.keyCode == KeyEvent.KEYCODE_BACK || event.action != KeyEvent.ACTION_DOWN) {
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) finish()
+            return true
+        }
+        // Preserve wake and reserved-key handling, including on OEM builds.
+        if (event.action != KeyEvent.ACTION_DOWN) {
             return super.dispatchKeyEvent(event)
         }
         overlay?.userInteraction()
@@ -285,8 +371,8 @@ class OpenVistaDreamService : DreamService() {
                 session?.let { if (it.player.playWhenReady) it.togglePause() }
                 return true
             }
-            KeyEvent.KEYCODE_MEDIA_NEXT -> { session?.next(); return true }
-            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { session?.previous(); return true }
+            KeyEvent.KEYCODE_MEDIA_NEXT -> { if (event.repeatCount == 0) session?.next(); return true }
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { if (event.repeatCount == 0) session?.previous(); return true }
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> { session?.seekBy(10_000); return true }
             KeyEvent.KEYCODE_MEDIA_REWIND -> { session?.seekBy(-10_000); return true }
         }
@@ -295,17 +381,17 @@ class OpenVistaDreamService : DreamService() {
         }
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                showMenu()
+                if (event.repeatCount == 0) showMenu()
                 true
             }
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (session?.currentItem?.family == MediaFamily.VIDEOS) session?.seekBy(-10_000)
-                else session?.previous()
+                else if (event.repeatCount == 0) session?.previous()
                 true
             }
             KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP -> {
                 if (session?.currentItem?.family == MediaFamily.VIDEOS) session?.seekBy(10_000)
-                else session?.next()
+                else if (event.repeatCount == 0) session?.next()
                 true
             }
             else -> super.dispatchKeyEvent(event)
@@ -358,6 +444,7 @@ class OpenVistaDreamService : DreamService() {
     }
 
     override fun onDetachedFromWindow() {
+        unregisterScreenOff()
         attached = false
         dreaming = false
         loadingGeneration++
@@ -375,6 +462,7 @@ class OpenVistaDreamService : DreamService() {
     }
 
     override fun onDestroy() {
+        unregisterScreenOff()
         dreaming = false
         attached = false
         loadingGeneration++

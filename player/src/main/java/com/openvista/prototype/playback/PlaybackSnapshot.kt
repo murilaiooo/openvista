@@ -14,6 +14,7 @@ data class PlaybackSnapshot(
     val recoveryDelayMs: Long,
     val stayOnVideos: Boolean,
     val recoveryCursor: Int = 0,
+    val playWhenReady: Boolean = true,
 ) {
     fun toJson(): String {
         val items = itemIds.filter(::validId).distinct().take(MAX_IDS)
@@ -27,6 +28,7 @@ data class PlaybackSnapshot(
             .put("attempts", recoveryAttempts.coerceIn(0, MAX_ATTEMPTS))
             .put("delay", recoveryDelayMs.coerceIn(0, MAX_DELAY_MS))
             .put("stayLocal", stayOnVideos).put("cursor", recoveryCursor.coerceIn(0, MAX_IDS))
+            .put("playWhenReady", playWhenReady)
             .toString()
     }
 
@@ -56,7 +58,8 @@ data class PlaybackSnapshot(
                 val fallback = json.get("fallback").also { require(it is Boolean) } as Boolean
                 val stay = json.get("stayLocal").also { require(it is Boolean) } as Boolean
                 require(failed.all { it in items })
-                PlaybackSnapshot(items, cameras, selected, fallback, failed, attempts, delay, stay, cursor)
+                val playing = if (json.has("playWhenReady")) json.get("playWhenReady").also { require(it is Boolean) } as Boolean else true
+                PlaybackSnapshot(items, cameras, selected, fallback, failed, attempts, delay, stay, cursor, playing)
             } catch (_: Exception) { null }
         }
 

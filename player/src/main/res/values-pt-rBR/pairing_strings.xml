@@ -8,12 +8,12 @@
     <string name="pairing_expired">A sessão de pareamento terminou. Inicie novamente para obter outro código.</string>
     <string name="pairing_default_title">Minha transmissão</string>
     <string name="pairing_page_title">Enviar uma fonte ao OpenVista</string>
-    <string name="pairing_http_warning">Esta conexão local usa HTTP. Quem monitora sua rede pode ler a URL da fonte. Use uma rede privada confiável e evite URLs que contenham segredos.</string>
+    <string name="pairing_http_warning">A entrada segura pelo celular exige um cliente HTTPS aprovado. O HTTP da rede local não protege a página contra alterações, por isso a entrada fica desativada. Use a TV ou importe uma lista.</string>
     <string name="pairing_title_label">Nome da fonte</string>
     <string name="pairing_url_label">URL da fonte</string>
     <string name="pairing_kind_label">Formato da transmissão</string>
     <string name="pairing_send">Enviar à TV para revisão</string>
-    <string name="pairing_phone_failed">Não foi possível enviar a solicitação. Inicie uma nova sessão de pareamento na TV.</string>
+    <string name="pairing_phone_failed">O pareamento seguro está indisponível ou a sessão expirou. Use o cliente seguro aprovado com um novo código da TV ou informe a fonte na TV.</string>
     <string name="pairing_approve">Salvar fonte</string>
     <string name="pairing_deny">Rejeitar fonte</string>
     <string name="pairing_start">Parear um celular</string>
