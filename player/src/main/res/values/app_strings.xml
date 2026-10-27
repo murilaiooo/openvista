@@ -230,5 +230,14 @@
     <string name="sensitive_url_notice">This editor shows your private source URL. It is never included in reports.</string>
     <string name="weather_nws_notice">Free seven-day US forecasts are available for saved coordinates. Set your city and coordinates below. City search is not yet supported.</string>
     <string name="city_search_unavailable">City search is unavailable. Enter a city and coordinates manually.</string>
+    <string name="youtube_test_title">YouTube Live (experimental)</string>
+    <string name="youtube_test_description">Test a public YouTube livestream using the official embedded player. Paste a watch, live or short link with a video ID.</string>
+    <string name="youtube_test_url">YouTube video link</string>
+    <string name="youtube_test_warning">Compatibility test only. YouTube may show ads, branding or playback interruptions. This source is not part of the screensaver or automatic rotation.</string>
+    <string name="youtube_test_play">Test live playback</string>
+    <string name="youtube_test_invalid">Enter a valid HTTPS YouTube video URL. Channel pages and playlists are not supported.</string>
+    <string name="youtube_test_back_hint">Press Back on the remote to stop playback. Video pauses when the app leaves the foreground.</string>
+    <string name="youtube_test_web_error">The YouTube player could not load in this TV WebView.</string>
+    <string name="youtube_test_session_ended">Playback stopped when the app left the foreground.</string>
 </resources>
 

@@ -24,6 +24,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".PlayerPrototypeActivity" android:exported="false" />
+        <activity
+            android:name=".youtube.YouTubeLiveTestActivity"
+            android:screenOrientation="landscape"
+            android:exported="false" />
         <receiver android:name=".update.UpdateInstallReceiver" android:exported="false" />
         <!-- Android alone selects and binds the optional screensaver. No device settings are written. -->
         <service

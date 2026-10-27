@@ -29,6 +29,7 @@ import com.openvista.prototype.library.MediaFamily
 import com.openvista.prototype.pairing.PairingCoordinator
 import com.openvista.prototype.update.UpdateCoordinator
 import com.openvista.prototype.update.UpdateState
+import com.openvista.prototype.youtube.YouTubeLiveTestActivity
 import java.util.TimeZone
 
 @UnstableApi
@@ -70,6 +71,9 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             host.recreate()
         }
         destination(body, R.string.screensaver, "screensaver")
+        ui.button(body, s(R.string.youtube_test_title), "youtube_live_test") {
+            host.startActivity(Intent(host, YouTubeLiveTestActivity::class.java))
+        }
         ui.button(body, s(R.string.setup)) { host.open(LibraryRoute("setup")) }
         ui.button(body, s(R.string.pairing)) { startPairing() }
         destination(body, R.string.advanced, "advanced")
