@@ -240,5 +240,6 @@
     <string name="weather_viewer_label">CLIMA · LOCALIZAÇÃO DO USUÁRIO</string>
     <string name="overlay_location_unknown">Localização não informada</string>
     <string name="camera_metadata_hint">Informe cidade, país, fuso horário IANA (por exemplo America/New_York) e latitude/longitude para mostrar hora e clima locais. O aplicativo não adivinha a localização pela URL da câmera.</string>
+    <string name="viewer_forecast_days">Previsão do tempo local (dias)</string>
 </resources>
 

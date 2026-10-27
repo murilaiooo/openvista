@@ -146,6 +146,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         choice(body, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)), store.settings().weatherContext) {
             store.saveSettings(store.settings().copy(weatherContext = it))
         }
+        number(body, R.string.viewer_forecast_days, store.settings().viewerForecastDays, 3..7) { settings, value -> settings.copy(viewerForecastDays = value) }
         choice(body, R.string.temperature, listOf("system", "celsius", "fahrenheit"), listOf(s(R.string.system_default), "°C", "°F"), store.settings().temperatureUnit) {
             store.saveSettings(store.settings().copy(temperatureUnit = it))
         }

@@ -579,6 +579,7 @@ class LibraryStore(context: Context) : AutoCloseable {
                 "f", "fahrenheit" -> "fahrenheit"
                 else -> "system"
             },
+            viewerForecastDays = s.viewerForecastDays.coerceIn(3, 7),
             moveOverlay = true, // Display-care movement stays active; only the pattern is configurable.
             overlayCorner = s.overlayCorner.coerceIn(0, 3), overlaySize = s.overlaySize.coerceIn(12, 64),
             overlayOpacity = s.overlayOpacity.coerceIn(10, 100), overlayX = s.overlayX.coerceIn(-4_096, 4_096),
@@ -648,7 +649,8 @@ class LibraryStore(context: Context) : AutoCloseable {
         .put("maxVideoHeight", s.maxVideoHeight).put("resizeMode", s.resizeMode).put("smoothTransitions", s.smoothTransitions)
         .put("keepAwake", s.keepAwake).put("fallbackPlaylistId", s.fallbackPlaylistId ?: JSONObject.NULL)
         .put("stayLocal", s.stayLocal).put("showClock", s.showClock).put("showDate", s.showDate)
-        .put("showWeather", s.showWeather).put("showLocation", s.showLocation).put("clockFormat", s.clockFormat)
+        .put("showWeather", s.showWeather).put("viewerForecastDays", s.viewerForecastDays)
+        .put("showLocation", s.showLocation).put("clockFormat", s.clockFormat)
         .put("temperatureUnit", s.temperatureUnit).put("overlayCorner", s.overlayCorner).put("overlaySize", s.overlaySize)
         .put("overlayOpacity", s.overlayOpacity).put("overlayColor", s.overlayColor).put("overlayX", s.overlayX)
         .put("overlayY", s.overlayY).put("moveOverlay", s.moveOverlay).put("randomOverlayPosition", s.randomOverlayPosition)
@@ -667,6 +669,7 @@ class LibraryStore(context: Context) : AutoCloseable {
         maxVideoHeight = j.getInt("maxVideoHeight"), resizeMode = j.getString("resizeMode"), smoothTransitions = j.getBoolean("smoothTransitions"),
         keepAwake = j.getBoolean("keepAwake"), fallbackPlaylistId = j.nullableString("fallbackPlaylistId"), stayLocal = j.getBoolean("stayLocal"),
         showClock = j.getBoolean("showClock"), showDate = j.getBoolean("showDate"), showWeather = j.getBoolean("showWeather"),
+        viewerForecastDays = j.optInt("viewerForecastDays", 5),
         showLocation = if (j.has("randomOverlayPosition")) j.getBoolean("showLocation") else true,
         clockFormat = j.getString("clockFormat"), temperatureUnit = j.getString("temperatureUnit"),
         overlayCorner = j.getInt("overlayCorner"), overlaySize = j.getInt("overlaySize"), overlayOpacity = j.getInt("overlayOpacity"),
