@@ -240,5 +240,6 @@
     <string name="weather_viewer_label">WEATHER · VIEWER LOCATION</string>
     <string name="overlay_location_unknown">Location not provided</string>
     <string name="camera_metadata_hint">Set the camera city, country, IANA time zone (for example America/New_York), and latitude/longitude for accurate local time and weather. Unspecified camera locations are never guessed from stream URLs.</string>
+    <string name="viewer_forecast_days">Viewer weather forecast (days)</string>
 </resources>
 

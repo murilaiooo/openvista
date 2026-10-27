@@ -40,6 +40,7 @@ class LibraryStoreContractTest {
         assertFalse(store.settings().onboardingComplete)
         assertEquals(1, store.settings().rotationMinutes)
         assertEquals(5, store.settings().videoRotationMinutes)
+        assertEquals(5, store.settings().viewerForecastDays)
         assertTrue(store.settings().moveOverlay)
         assertTrue(store.settings().randomOverlayPosition)
         assertTrue(store.settings().showLocation)
@@ -113,6 +114,17 @@ class LibraryStoreContractTest {
         assertEquals("tree-clip", restored.item("direct-clip")?.id)
         assertEquals(2, restored.items().single().accessRoutes.size)
         assertEquals(listOf("tree-clip"), restored.playlists().single().itemIds)
+    }
+
+    @Test fun viewerForecastDaysPersistAndStayWithinThreeToSeven() {
+        val store = open()
+        store.saveSettings(store.settings().copy(viewerForecastDays = 7))
+        store.flush()
+        assertEquals(7, open().settings().viewerForecastDays)
+        store.saveSettings(store.settings().copy(viewerForecastDays = 100))
+        assertEquals(7, store.settings().viewerForecastDays)
+        store.saveSettings(store.settings().copy(viewerForecastDays = 1))
+        assertEquals(3, store.settings().viewerForecastDays)
     }
 
     @Test fun staticInformationPanelsCannotBeSavedAsAlwaysStationary() {

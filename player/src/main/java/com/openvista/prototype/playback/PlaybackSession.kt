@@ -37,6 +37,7 @@ class PlaybackSession(
     private val onStatus: (String) -> Unit,
     private val onItem: (LibraryItem?) -> Unit,
     private val onReleased: () -> Unit = {},
+    private val screensaverSilent: Boolean = false,
 ) {
     val player: ExoPlayer
     private val trackSelector = DefaultTrackSelector(context)
@@ -333,7 +334,7 @@ class PlaybackSession(
     }
 
     fun setMuted(muted: Boolean) {
-        if (released) return
+        if (released || screensaverSilent) return
         storeWrite { store.saveSettings(store.settings().copy(muted = muted)) }
         player.volume = if (muted) 0f else 1f
     }
@@ -341,8 +342,11 @@ class PlaybackSession(
     fun applySettings() {
         if (released) return
         val settings = store.settings()
-        player.volume = if (settings.muted) 0f else 1f
+        // DreamService sessions never emit audio and never change the user's
+        // normal-player sound preference, even after a stream/playlist switch.
+        player.volume = PlaybackAudioPolicy.volume(settings.muted, screensaverSilent)
         val tracks = player.trackSelectionParameters.buildUpon()
+        if (screensaverSilent) tracks.setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
             .clearVideoSizeConstraints()
         if (settings.maxVideoHeight > 0) {

@@ -17,9 +17,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.media3.common.C
 import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -32,7 +30,6 @@ import com.openvista.prototype.playback.PlaybackSession
 import com.openvista.prototype.ui.AppLocale
 import com.openvista.prototype.ui.TvUi
 import java.util.Calendar
-import java.util.Locale
 
 /** Optional OS-selected screensaver. It never changes the device's dream or power settings. */
 @UnstableApi
@@ -165,10 +162,7 @@ class OpenVistaDreamService : DreamService() {
             firstControl = addControl(top, R.string.dream_cameras) { chooseFamily(MediaFamily.CAMERAS) }
             addControl(top, R.string.dream_videos) { chooseFamily(MediaFamily.VIDEOS) }
             addControl(top, R.string.dream_pause) { session?.togglePause() }
-            addControl(top, R.string.dream_sound) {
-                session?.let { it.setMuted(it.player.volume > 0f) }
-            }
-            addControl(bottom, R.string.dream_audio) { cycleAudioTrack() }
+            // The screensaver is always silent; audio controls remain in normal playback.
             addControl(bottom, R.string.dream_retry) {
                 if (startupFailed) { startupFailed = false; updateSchedule() } else session?.retry()
             }
@@ -255,7 +249,7 @@ class OpenVistaDreamService : DreamService() {
                 handler.removeCallbacks(hideControls)
                 finish()
             }
-        }) } catch (_: RuntimeException) {
+        }, screensaverSilent = true) } catch (_: RuntimeException) {
             startupFailed = true
             video?.player = null
             overlay?.stop()
@@ -424,31 +418,6 @@ class OpenVistaDreamService : DreamService() {
             handler.removeCallbacks(hideControls)
             if (controls?.visibility == View.VISIBLE) handler.postDelayed(hideControls, 5_000)
         }
-
-    private fun cycleAudioTrack() {
-        val current = session ?: return
-        val context = ui ?: return
-        val groups = current.player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-        val options = groups.flatMap { group ->
-            (0 until group.length).filter { group.isTrackSupported(it) }.map { group to it }
-        }
-        if (options.isEmpty()) {
-            feedback?.text = context.getString(R.string.dream_no_audio)
-        } else {
-            val selected = options.indexOfFirst { (group, track) -> group.isTrackSelected(track) }
-            val next = (selected + 1) % options.size
-            val (group, track) = options[next]
-            current.player.trackSelectionParameters = current.player.trackSelectionParameters.buildUpon()
-                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
-                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, track))
-                .build()
-            val language = group.getTrackFormat(track).language?.let {
-                Locale.forLanguageTag(it).getDisplayLanguage(context.resources.configuration.locales[0])
-            }?.takeIf { it.isNotBlank() } ?: context.getString(R.string.playback_unknown)
-            feedback?.text = context.getString(R.string.dream_audio_selected, next + 1, options.size, language)
-        }
-        feedback?.visibility = View.VISIBLE
-    }
 
     override fun onDetachedFromWindow() {
         unregisterScreenOff()

@@ -8,7 +8,7 @@
 
 An open-source ambient video player built in Kotlin for Android TV, Fire TV, and potentially Google TV.
 
-Play your own live cameras and local videos with a minimal, background-free city/time/temperature overlay, configurable source rotation, and one-minute display-care movement.
+Play your own live cameras and local videos with two minimal, background-free groups: camera city/country/time and viewer location/time/temperature with a configurable 3–7-day forecast. Both groups move every minute to reduce static UI exposure.
 
 [![Status](https://img.shields.io/badge/status-development%20preview-4DDBC4?style=flat-square)](docs/STATUS.md)
 [![Platform](https://img.shields.io/badge/tested-Hisense%20Fire%20OS%207-84C7FF?style=flat-square)](docs/testing/compatibility.md)
@@ -33,10 +33,10 @@ OpenVista is for the moments when a television should feel like a window, not a 
 | TV experience | Three-card Home, Cameras, My Videos, Favorites, onboarding, remote-first menus, EN/PT-BR | Home, library and basic D-pad/picker flows observed on Hisense; full accessibility pass pending |
 | Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Original HLS/DASH 720p and M3U import observed; an independent unmerged QA candidate also rendered controlled HLS 1080p and DASH/HEVC 4K test patterns on Hisense. Sustained decoding remains unverified |
 | Local videos | Scoped Android file/folder picker, recursive scan, persistence, playlists, player resume | MP4 and selected-folder restoration observed; physical USB removal/revocation and full codec matrix pending |
-| Ambient playback | Fullscreen Media3; independent 1-minute live and 5-minute local-video rotation; text-only online city/local-time/temperature overlay with one-minute movement | The minimalist overlay is in a separate QA branch. Real-TV visual approval, exact rotation timing and endurance are pending |
+| Ambient playback | Fullscreen Media3; 1-minute camera and 5-minute local-video rotation; two transparent, independently moving scene and viewer weather groups, with configurable 3–7-day viewer forecast | Automated margin/non-overlap tests at 1080p and 4K pass; physical two-group visual approval and 24-hour stability are pending |
 | Weather | NWS-first U.S. forecasts; owner-requested noncommercial preview of Open-Meteo global geocoding/weather with caching and visible GeoNames/Open-Meteo credit | Tucson NWS tested; global online camera auto-location requires physical validation and provider/license review before public release |
 | Maps | Local metadata coordinates, schematic map and source list | A licensed map-tile provider is not active |
-| System screensaver | Owner-selected OpenVista DreamService on Hisense | Automatic non-test Dream entry and on-screen video/clock/weather observed on Fire OS 7; broader lifecycle tests pending |
+| System screensaver | Owner-selected OpenVista DreamService on Hisense; video/audio permanently muted only in Dream mode; regular player sound unaffected | Automatic entry and visuals observed; screensaver-only audio change awaits final physical speaker check; broader lifecycle pending |
 | Pairing and updates | Security-gated phone input and verified-update implementation | **Disabled** pending security, release channel and Android installer validation |
 
 See [the dated verification ledger](docs/STATUS.md), [the smart-ambient QA record](docs/testing/smart-ambient-rotation-2026-10-26.md), [the independent Codex QA candidate report](docs/testing/independent-codex-qa-2026-10-26.md), and [Hisense device matrix](docs/testing/compatibility.md). The additional QA candidate is not merged or release-certified. A feature being coded does **not** mean it has passed stable-release acceptance.
@@ -67,7 +67,7 @@ Do not install a separate diagnostic app alongside OpenVista on the owner's test
 1. Open **Cameras** to add an HLS/DASH URL or import your own M3U playlist with Android's file picker.
 2. Open **My Videos** to select an accessible video or folder from the device or attached storage.
 3. Choose a source, set Favorites or playlists, and play it fullscreen.
-4. Configure separate live-camera and local-video rotation intervals in **Settings > Playback** (defaults 1 and 5 minutes), and configure random or ordered one-minute panel movement in **Settings > Clock and overlays**.
+4. Configure separate live-camera and local-video rotation intervals in **Settings > Playback** (defaults 1 and 5 minutes), random or ordered one-minute overlay movement in **Settings > Clock and overlays**, and **3–7 local forecast days** (5 by default) in **Settings > Weather**.
 5. The preview can resolve a likely city from a safe prefix of a camera title using the internet. For accuracy, edit a saved source to specify its actual city, country, time zone and coordinates. The media filename/title never appears in the overlay. An unresolved source may show a clearly labeled viewer location or hide the overlay.
 
 The owner-requested private preview uses Open-Meteo/GeoNames for worldwide name lookup and worldwide weather; NWS remains preferred for supported U.S. locations. Provider attribution is visible in small type without a background. The keyless Open-Meteo endpoint is noncommercial and must not be enabled in a public/commercial APK without a separate license, privacy and request-budget review. [Implementation and limitations](docs/testing/minimal-online-overlay-2026-10-26.md). No location permission is required.
