@@ -190,7 +190,7 @@ private class SettingsAtlasDrawable : Drawable() {
         canvas.translate(bounds.left.toFloat(), bounds.top.toFloat())
         canvas.scale(width, height)
         paint.style = Paint.Style.FILL
-        paint.color = 0x183F718A
+        paint.color = 0x354B839B
         land.forEach { canvas.drawPath(it, paint) }
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1f / width

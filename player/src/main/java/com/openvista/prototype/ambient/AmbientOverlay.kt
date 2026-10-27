@@ -126,7 +126,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private fun schedule() {
         main.removeCallbacks(tick)
         val now = SystemClock.elapsedRealtime()
-        var delay = 60_000 - System.currentTimeMillis().mod(60_000)
+        var delay = 60_000L - (System.currentTimeMillis() % 60_000L)
         if (settings.moveOverlay) delay = minOf(delay,
             (movementAt + settings.overlayMoveMinutes * 60_000L - now).coerceAtLeast(50))
         if (settings.hideOverlay && !hidden) delay = minOf(delay,
@@ -430,9 +430,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             symbol.bind(value.weatherCode, value.description)
             symbol.tint(settings.overlayColor)
             listOf(day, temperatures, rain).forEach { it.setTextColor(settings.overlayColor) }
-            background = if (divider) android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(0x22FFFFFF, 0x00FFFFFF)) else null
+            // Forecast icons and labels float over the scene without opaque day cards.
+            background = null
             contentDescription = listOf(day.text, value.description.orEmpty(), temperatures.text,
                 context.getString(R.string.ambient_rain_chance, rain.text)).joinToString(", ")
         }

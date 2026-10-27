@@ -166,10 +166,10 @@ class HomeScreen(private val host: OpenVistaActivity) : AutoCloseable {
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(4) })
         copy.addView(label(description, 16f, TvDesign.text).apply { setLineSpacing(dp(3).toFloat(), 1f) },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(16) })
-        copy.addView(label(host.getString(R.string.home_action_arrow, action), 15f, TvDesign.accent).apply {
+        val actionLabel = label(host.getString(R.string.home_action_arrow, action), 15f, TvDesign.accent).apply {
             typeface = TvDesign.medium
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(24) })
-        return HomePanel(FittedCopy(copy)).apply {
+        }
+        return HomePanel(FittedCopy(copy, actionLabel)).apply {
             id = View.generateViewId()
             tag = definition.page
             isFocusable = true
@@ -354,7 +354,7 @@ class HomeScreen(private val host: OpenVistaActivity) : AutoCloseable {
     }
 
     /** Reduce decorative gaps first, then fit complete text without removing its accessible label. */
-    private inner class FittedCopy(private val content: LinearLayout) : FrameLayout(host) {
+    private inner class FittedCopy(private val content: LinearLayout, private val action: TextView) : FrameLayout(host) {
         private val margins = List(content.childCount) { index ->
             (content.getChildAt(index).layoutParams as LinearLayout.LayoutParams).let { it.topMargin to it.bottomMargin }
         }
@@ -366,13 +366,15 @@ class HomeScreen(private val host: OpenVistaActivity) : AutoCloseable {
             clipChildren = true
             clipToPadding = true
             addView(content)
+            addView(action)
         }
 
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             val width = View.MeasureSpec.getSize(widthMeasureSpec)
             val height = View.MeasureSpec.getSize(heightMeasureSpec)
             val availableWidth = (width - paddingLeft - paddingRight).coerceAtLeast(1)
-            val availableHeight = (height - paddingTop - paddingBottom).coerceAtLeast(0)
+            action.measure(exact(availableWidth), atMost(dp(72)))
+            val availableHeight = (height - paddingTop - paddingBottom - action.measuredHeight - dp(28)).coerceAtLeast(0)
             fun measureAt(scale: Float) {
                 val logicalWidth = (availableWidth / scale).toInt().coerceIn(1, dp(8192))
                 content.measure(exact(logicalWidth), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
@@ -413,9 +415,13 @@ class HomeScreen(private val host: OpenVistaActivity) : AutoCloseable {
         }
 
         override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+            val height = bottom - top
             val scaledHeight = (content.measuredHeight * fitScale).roundToInt()
-            val contentTop = ((bottom - top) - paddingBottom - scaledHeight).coerceAtLeast(paddingTop)
+            val actionTop = (height - paddingBottom - action.measuredHeight).coerceAtLeast(paddingTop)
+            val maxContentTop = (actionTop - dp(28) - scaledHeight).coerceAtLeast(paddingTop)
+            val contentTop = (height * .20f).roundToInt().coerceIn(paddingTop, maxContentTop)
             content.layout(paddingLeft, contentTop, paddingLeft + content.measuredWidth, contentTop + content.measuredHeight)
+            action.layout(paddingLeft, actionTop, paddingLeft + action.measuredWidth, actionTop + action.measuredHeight)
         }
     }
 

@@ -351,6 +351,11 @@ class OpenVistaActivity : ComponentActivity() {
         if (::feedback.isInitialized && route.page != "player") {
             ui.announce(feedback, value)
             feedback.visibility = if (value.isBlank()) View.GONE else View.VISIBLE
+            if (value == getString(R.string.library_restored)) {
+                feedback.postDelayed({
+                    if (!isDestroyed && pendingMessage == value) message("")
+                }, 3_000L)
+            }
         }
     }
 
