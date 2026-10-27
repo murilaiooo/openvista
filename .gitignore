@@ -47,9 +47,12 @@ __pycache__/
 *.m3u8
 # Keep TypeScript source files trackable; ignore media transport streams only in media folders.
 **/media/*.ts
-# Private owner-provided streams and local playback fixtures
+# Private owner-provided streams, offline media and local research fixtures
 *.m3u
+*.mpd
+*.m4s
 docs/research/minhas listas para revisar/
+catalog/candidates/
 openvista-fixtures/
 
 # Local signed distribution artifacts; upload through GitHub Releases, never source control

@@ -8,7 +8,6 @@ From the repository root:
 
 ```powershell
 python scripts/validate_discovery_docs.py
-python scripts/import_live_camera_candidates.py --check
 python -m unittest discover -s scripts -p "test_*.py" -v
 python scripts/release_content_guard.py "PATH_TO_ACTUAL_SIGNED_OPENVISTA.apk"
 ```
@@ -21,7 +20,7 @@ Run the final command on the **actual package intended for distribution**, not a
 - Literal HTTP(S) HLS/DASH endpoints ending in `.m3u8` or `.mpd` in compiled resources, bytecode, native libraries and packaged data, including UTF-8, UTF-16LE and UTF-16BE strings and URLs with query strings.
 - Suspicious contents are reported **by archive entry path only**; potential private stream addresses are never printed.
 
-The documentation validator also checks these extensions and literal endpoints in **actual player and diagnostics Android runtime source directories**. These checks intentionally do **not** scan the research-only source files under `docs/research/` or `catalog/candidates/`, since those are private feasibility inputs, not runtime assets.
+The documentation validator also checks these extensions and literal endpoints in **actual player and diagnostics Android runtime source directories**. Owner-managed camera research and media are excluded from the public repository. The validator separately rejects known historical public research catalogs and playlists.
 
 ## Limits and required human review
 
