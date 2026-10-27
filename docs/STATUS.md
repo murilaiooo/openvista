@@ -45,6 +45,10 @@ The updated isolated QA branch replaces opaque scene/weather cards with **one ba
 
 The current isolated QA branch retains the approved no-background typography and adds the camera's **country** next to its city. A second group displays the saved **viewer location** (Tucson), its local clock, actual current temperature and a **3–7-day weather outlook** (five days by default). The display uses safe margins of at least 5% in both axes and moves both groups to opposite corners every minute. Automated Full HD/4K margin and collision tests passed. This is a separate development preview, not public or stable-v1 release acceptance. See [the dated verification record](testing/dual-location-forecast-safe-area-2026-10-26.md).
 
+### Screensaver-only silent playback (owner-requested, 2026-10-26)
+
+DreamService media playback forces ExoPlayer volume to zero and disables audio tracks, regardless of the regular player's sound preference, without changing the saved `muted` setting. Dream audio controls were removed; ordinary in-app playback retains audio controls. Local Gradle tests, debug compilation and lint pass. [Implementation and remaining hardware audio acceptance](testing/screensaver-silent-only-2026-10-26.md).
+
 ## Known issues and unverified paths
 
 1. **Local video deduplication:** the canonical tree/direct SAF identity correction was merged as PR #25 after local verification and a physical schema migration of the existing library. The real USB/provider revocation matrix is still pending.
