@@ -64,6 +64,7 @@ class OpenVistaDreamService : DreamService() {
     }
     private val hideControls = Runnable {
         controls?.visibility = View.GONE
+        overlay?.setControlsVisible(false)
         if (session?.let { !it.isReleased && it.player.isPlaying } == true && store?.lastStorageError() == null) {
             feedback?.visibility = View.GONE
         }
@@ -253,7 +254,7 @@ class OpenVistaDreamService : DreamService() {
                 handler.removeCallbacks(hideControls)
                 finish()
             }
-        }) } catch (_: RuntimeException) {
+        }, dreamMode = true) } catch (_: RuntimeException) {
             startupFailed = true
             video?.player = null
             overlay?.stop()
@@ -265,6 +266,12 @@ class OpenVistaDreamService : DreamService() {
         session = created
         video?.player = created.player
         created.player.addListener(object : Player.Listener {
+            override fun onEvents(player: Player, events: Player.Events) {
+                if (session !== created || created.isReleased) return
+                val current = player.currentMediaItem?.mediaId == created.currentItem?.id
+                overlay?.updatePlayback(current && player.isCurrentMediaItemLive,
+                    current && player.isPlaying, player.playbackState == Player.STATE_BUFFERING)
+            }
             override fun onPlaybackStateChanged(playbackState: Int) { updateKeepAwake() }
             override fun onIsPlayingChanged(isPlaying: Boolean) { updateKeepAwake() }
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) { updateKeepAwake() }
@@ -400,6 +407,7 @@ class OpenVistaDreamService : DreamService() {
 
     private fun showMenu() {
         controls?.visibility = View.VISIBLE
+        overlay?.setControlsVisible(true)
         firstControl?.requestFocus()
         handler.removeCallbacks(hideControls)
         handler.postDelayed(hideControls, 5_000)
@@ -408,6 +416,7 @@ class OpenVistaDreamService : DreamService() {
     private fun hideMenu() {
         handler.removeCallbacks(hideControls)
         controls?.visibility = View.GONE
+        overlay?.setControlsVisible(false)
         video?.requestFocus()
     }
 

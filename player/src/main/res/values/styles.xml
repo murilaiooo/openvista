@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="PlayerPrototypeTheme" parent="android:style/Theme.Material.NoActionBar">
-        <item name="android:colorAccent">#80D6F0</item>
+        <item name="android:colorAccent">#91DFEA</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">#07121F</item>
+        <item name="android:colorBackground">#07121F</item>
+        <item name="android:textColorPrimary">#F3F6F8</item>
+        <item name="android:textColorSecondary">#B9C8D5</item>
+        <item name="android:colorControlHighlight">#3391DFEA</item>
+        <item name="android:statusBarColor">#07121F</item>
+        <item name="android:navigationBarColor">#07121F</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

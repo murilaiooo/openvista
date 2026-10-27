@@ -37,6 +37,7 @@ class PlaybackSession(
     private val onStatus: (String) -> Unit,
     private val onItem: (LibraryItem?) -> Unit,
     private val onReleased: () -> Unit = {},
+    private val dreamMode: Boolean = false,
 ) {
     val player: ExoPlayer
     private val trackSelector = DefaultTrackSelector(context)
@@ -71,6 +72,7 @@ class PlaybackSession(
     private var completedCurrent = false
     private val rejectedVideoFormats = mutableSetOf<Format>()
     private var rotationDueAt = 0L
+    private var dreamMuted = true
 
     val isReleased get() = released
 
@@ -326,14 +328,15 @@ class PlaybackSession(
 
     fun setMuted(muted: Boolean) {
         if (released) return
-        storeWrite { store.saveSettings(store.settings().copy(muted = muted)) }
+        if (dreamMode) dreamMuted = muted
+        else storeWrite { store.saveSettings(store.settings().copy(muted = muted)) }
         player.volume = if (muted) 0f else 1f
     }
 
     fun applySettings() {
         if (released) return
         val settings = store.settings()
-        player.volume = if (settings.muted) 0f else 1f
+        player.volume = if (if (dreamMode) dreamMuted else settings.muted) 0f else 1f
         val tracks = player.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
             .clearVideoSizeConstraints()

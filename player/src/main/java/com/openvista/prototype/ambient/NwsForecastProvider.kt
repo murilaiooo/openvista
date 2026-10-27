@@ -47,7 +47,11 @@ class NwsForecastProvider(
         val now = clock()
         val days = parseDays(daily, hourly, now)
         require(days.isNotEmpty()) { "NWS did not provide valid forecast periods." }
-        return Forecast(location, parseCurrent(hourly, now), days, now.toEpochMilli(), attribution, id)
+        val providerZone = point.optString("timeZone").takeIf { zone ->
+            zone.length <= 128 && runCatching { java.time.ZoneId.of(zone) }.isSuccess
+        }
+        return Forecast(location.copy(timeZone = providerZone ?: location.timeZone),
+            parseCurrent(hourly, now), days, now.toEpochMilli(), attribution, id)
     }
 
     private fun parseCurrent(periods: JSONArray, now: Instant): CurrentWeather? {
@@ -70,7 +74,7 @@ class NwsForecastProvider(
 
     private fun parseDays(periods: JSONArray, hourly: JSONArray, now: Instant): List<ForecastDay> {
         data class Day(var min: Double? = null, var max: Double? = null,
-                       var wind: Double? = null, var chance: Double? = null)
+                       var wind: Double? = null, var chance: Double? = null, var description: String? = null)
         val dates = linkedMapOf<String, Day>()
         val today = now.atOffset(java.time.ZoneOffset.UTC).toLocalDate().minusDays(1)
         for (i in 0 until periods.length().coerceAtMost(20)) {
@@ -82,6 +86,8 @@ class NwsForecastProvider(
             val temperature = temperatureC(p)
             if (p.optBoolean("isDaytime")) day.max = temperature ?: day.max
             else day.min = temperature ?: day.min
+            val description = p.optString("shortForecast").takeIf(String::isNotBlank)?.take(120)
+            if (day.description == null || p.optBoolean("isDaytime")) day.description = description ?: day.description
             day.wind = listOfNotNull(day.wind, windKph(p.optString("windSpeed"))).maxOrNull()
             val chance = p.optJSONObject("probabilityOfPrecipitation")?.optNumber("value")
                 ?.takeIf { it in 0.0..100.0 }
@@ -99,7 +105,7 @@ class NwsForecastProvider(
 
         return dates.toSortedMap().entries.take(7).map { (date, values) ->
             val humidity = hourlyHumidity[date]?.takeIf { it.isNotEmpty() }?.average()
-            ForecastDay(date, values.min, values.max, null, values.wind, humidity, null, null, values.chance)
+            ForecastDay(date, values.min, values.max, null, values.wind, humidity, null, null, values.chance, values.description)
         }
     }
 

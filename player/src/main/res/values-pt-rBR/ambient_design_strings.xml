@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ambient_your_location">Sua localização</string>
+    <string name="ambient_device_time">Horário do dispositivo</string>
+    <string name="ambient_source">Fonte</string>
+    <string name="ambient_camera">Câmera</string>
+    <string name="ambient_local_video">Vídeo local</string>
+    <string name="ambient_live">AO VIVO</string>
+    <string name="ambient_playing">Reproduzindo</string>
+    <string name="ambient_paused">Pausado</string>
+    <string name="ambient_forecast_for">Previsão · %1$s</string>
+    <string name="ambient_forecast_days">Previsão de %1$d dias</string>
+    <string name="ambient_today">Hoje</string>
+    <string name="ambient_rain_chance">%1$s de precipitação</string>
+    <string name="ambient_humidity">Umidade %1$s</string>
+    <string name="ambient_wind">Vento %1$s</string>
+    <string name="ambient_unknown">—</string>
+    <string name="ambient_metric_kph">%1$s km/h</string>
+    <string name="ambient_metric_mph">%1$s mph</string>
+    <string name="ambient_condition_unavailable">Condições indisponíveis</string>
+    <string name="ambient_time_unknown">Fuso horário da fonte não informado</string>
+</resources>

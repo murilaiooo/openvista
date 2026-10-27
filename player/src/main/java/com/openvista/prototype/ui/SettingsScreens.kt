@@ -9,6 +9,9 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.provider.Settings
 import android.text.InputType
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.media3.common.util.UnstableApi
@@ -19,7 +22,6 @@ import com.openvista.prototype.OpenVistaActivity
 import com.openvista.prototype.R
 import com.openvista.prototype.diagnostics.DiagnosticJournal
 import com.openvista.prototype.ambient.AmbientOverlay
-import com.openvista.prototype.ambient.Forecast
 import com.openvista.prototype.ambient.WeatherLocation
 import com.openvista.prototype.ambient.WeatherRepository
 import com.openvista.prototype.ambient.WeatherState
@@ -29,6 +31,8 @@ import com.openvista.prototype.library.AppSettings
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.MediaFamily
 import com.openvista.prototype.pairing.PairingCoordinator
+import com.openvista.prototype.pairing.PairingSecurity
+import com.openvista.prototype.update.UpdateChannel
 import com.openvista.prototype.update.UpdateCoordinator
 import com.openvista.prototype.update.UpdateState
 import java.util.TimeZone
@@ -45,6 +49,11 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     private var preview: AmbientOverlay? = null
     private fun s(id: Int) = host.getString(id)
 
+    fun ownsPage(page: String) = page in setOf("settings", "playback_settings", "overlays", "overlay_editor",
+        "weather_settings", "advanced", "schedule", "privacy", "updates", "screensaver", "appearance", "library_settings", "about")
+
+    fun createShell(page: String): View = SettingsShell(host).create(page, ::render)
+
     fun render(body: LinearLayout, page: String) {
         preview?.stop(); preview = null
         when (page) {
@@ -56,103 +65,173 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             "privacy" -> privacy(body)
             "updates" -> updates(body)
             "screensaver" -> screensaver(body)
-            else -> basic(body)
+            "appearance" -> appearance(body)
+            "library_settings" -> librarySettings(body)
+            "about" -> about(body)
+            else -> playback(body)
         }
     }
 
-    private fun basic(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.basic)))
-        destination(body, R.string.playback, "playback_settings")
-        destination(body, R.string.clock_overlays, "overlays")
-        destination(body, R.string.weather, "weather_settings")
-        choice(body, R.string.language, listOf("system", "en", "pt-BR"),
+    private fun appearance(body: LinearLayout) {
+        pageHeading(body, R.string.settings_category_appearance, R.string.settings_appearance_description)
+        val language = group(body, R.string.language)
+        choice(language, R.string.language, listOf("system", "en", "pt-BR"),
             listOf(s(R.string.system_default), s(R.string.language_english), s(R.string.language_portuguese)), store.settings().language) { language ->
             store.saveSettings(store.settings().copy(language = language))
             AppLocale.save(host, language)
             host.recreate()
         }
-        destination(body, R.string.screensaver, "screensaver")
-        ui.button(body, s(R.string.setup)) { host.open(LibraryRoute("setup")) }
-        ui.button(body, s(R.string.pairing)) { startPairing() }
-        destination(body, R.string.advanced, "advanced")
+        val information = group(body, R.string.settings_group_information)
+        destination(information, R.string.clock_overlays, "overlays")
+        destination(information, R.string.overlay_editor, "overlay_editor")
+        destination(information, R.string.settings_category_weather_clock, "weather_settings")
     }
 
     private fun playback(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.playback)))
-        toggle(body, R.string.sound, !store.settings().muted) { it.copy(muted = !it.muted) }
-        number(body, R.string.rotation, store.settings().rotationMinutes, 1..60) { settings, value -> settings.copy(rotationMinutes = value) }
-        choice(body, R.string.quality, listOf(0, 720, 1080, 2160), listOf(s(R.string.automatic), "720p", "1080p", "2160p"),
+        pageHeading(body, R.string.playback, R.string.settings_playback_description)
+        val video = group(body, R.string.settings_group_video)
+        number(video, R.string.rotation, store.settings().rotationMinutes, 1..60) { settings, value -> settings.copy(rotationMinutes = value) }
+        choice(video, R.string.quality, listOf(0, 720, 1080, 2160), listOf(s(R.string.automatic), "720p", "1080p", "2160p"),
             store.settings().maxVideoHeight) { value -> store.saveSettings(store.settings().copy(maxVideoHeight = value)) }
-        choice(body, R.string.aspect_ratio, listOf("crop", "fit"), listOf(s(R.string.crop), s(R.string.fit)), store.settings().resizeMode) {
+        choice(video, R.string.aspect_ratio, listOf("crop", "fit"), listOf(s(R.string.crop), s(R.string.fit)), store.settings().resizeMode) {
             store.saveSettings(store.settings().copy(resizeMode = it))
         }
-        choice(body, R.string.transitions, listOf(false, true), listOf(s(R.string.instant), s(R.string.smooth)), store.settings().smoothTransitions) {
+        choice(video, R.string.transitions, listOf(false, true), listOf(s(R.string.instant), s(R.string.smooth)), store.settings().smoothTransitions) {
             store.saveSettings(store.settings().copy(smoothTransitions = it))
         }
-        toggle(body, R.string.keep_awake, store.settings().keepAwake) { it.copy(keepAwake = !it.keepAwake) }
-        body.addView(ui.description(s(R.string.power_notice)))
-        body.addView(ui.description(s(R.string.fallback_notice)))
+        val sound = group(body, R.string.settings_group_sound_power)
+        toggle(sound, R.string.sound, !store.settings().muted) { it.copy(muted = !it.muted) }
+        toggle(sound, R.string.keep_awake, store.settings().keepAwake) { it.copy(keepAwake = !it.keepAwake) }
+        sound.addView(ui.description(s(R.string.power_notice)))
+        val fallback = group(body, R.string.settings_group_fallback)
+        fallback.addView(ui.description(s(R.string.fallback_notice)))
         val playlists = store.playlists().filter { it.family == MediaFamily.VIDEOS }
-        choice(body, R.string.fallback_set, listOf<String?>(null) + playlists.map { it.id },
+        choice(fallback, R.string.fallback_set, listOf<String?>(null) + playlists.map { it.id },
             listOf(s(R.string.off)) + playlists.map { it.name }, store.settings().fallbackPlaylistId) {
             store.saveSettings(store.settings().copy(fallbackPlaylistId = it))
         }
-        toggle(body, R.string.stay_local, store.settings().stayLocal) { it.copy(stayLocal = !it.stayLocal) }
+        toggle(fallback, R.string.stay_local, store.settings().stayLocal) { it.copy(stayLocal = !it.stayLocal) }
     }
 
     private fun overlays(body: LinearLayout, editor: Boolean) {
-        body.addView(ui.heading(s(if (editor) R.string.overlay_editor else R.string.clock_overlays)))
-        choice(body, R.string.overlay_preset, listOf(0, 1, 2), listOf(s(R.string.preset_minimal), s(R.string.preset_weather), s(R.string.preset_none)), -1) { preset ->
-            store.saveSettings(store.settings().copy(showClock = preset != 2, showWeather = preset == 1, showDate = false, showLocation = false))
+        pageHeading(body, if (editor) R.string.overlay_editor else R.string.clock_overlays, R.string.settings_overlay_description)
+        if (editor) overlayPreview(body)
+        val settings = store.settings()
+        val composition = group(body, R.string.settings_group_composition)
+        choice(composition, R.string.settings_overlay_layout, listOf("cinematic", "compact"),
+            listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact)), settings.overlayLayout) {
+            store.saveSettings(store.settings().copy(overlayLayout = it))
         }
-        toggle(body, R.string.clock, store.settings().showClock) { it.copy(showClock = !it.showClock) }
-        toggle(body, R.string.date, store.settings().showDate) { it.copy(showDate = !it.showDate) }
-        toggle(body, R.string.weather, store.settings().showWeather) { it.copy(showWeather = !it.showWeather) }
-        toggle(body, R.string.location, store.settings().showLocation) { it.copy(showLocation = !it.showLocation) }
-        choice(body, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"), store.settings().clockFormat) {
+        val preset = when {
+            !settings.showClock && !settings.showWeather && !settings.showDate && !settings.showLocation &&
+                !settings.showBrand && !settings.showSourceInfo && !settings.showViewerInfo && !settings.showForecast -> "none"
+            settings.showClock && !settings.showWeather && !settings.showDate && !settings.showLocation &&
+                !settings.showBrand && !settings.showSourceInfo && settings.showViewerInfo && !settings.showForecast -> "clock"
+            settings.showClock && settings.showWeather && !settings.showDate && settings.showLocation &&
+                settings.showBrand && settings.showSourceInfo && settings.showViewerInfo &&
+                settings.showForecast && settings.overlayLayout == "cinematic" -> "cinematic"
+            settings.showClock && settings.showWeather && !settings.showDate && settings.showLocation &&
+                settings.showBrand && settings.showSourceInfo && settings.showViewerInfo &&
+                !settings.showForecast && settings.overlayLayout == "compact" -> "compact"
+            else -> "custom"
+        }
+        choice(composition, R.string.overlay_preset, listOf("cinematic", "compact", "clock", "none"),
+            listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact), s(R.string.preset_minimal), s(R.string.preset_none)), preset) { selected ->
+            val all = selected == "cinematic" || selected == "compact"
+            store.saveSettings(store.settings().copy(overlayLayout = if (selected == "compact") "compact" else "cinematic",
+                showClock = selected != "none", showWeather = all, showDate = false, showLocation = all,
+                showBrand = all, showSourceInfo = all, showViewerInfo = selected != "none", showForecast = selected == "cinematic"))
+        }
+        val visibility = group(body, R.string.settings_group_visibility)
+        toggle(visibility, R.string.settings_show_brand, settings.showBrand) { it.copy(showBrand = !it.showBrand) }
+        toggle(visibility, R.string.settings_show_source, settings.showSourceInfo) { it.copy(showSourceInfo = !it.showSourceInfo) }
+        toggle(visibility, R.string.settings_show_viewer, settings.showViewerInfo) { it.copy(showViewerInfo = !it.showViewerInfo) }
+        toggle(visibility, R.string.settings_show_forecast, settings.showForecast) { it.copy(showForecast = !it.showForecast) }
+        choice(visibility, R.string.settings_forecast_days, listOf(3, 4, 5, 6, 7), listOf("3", "4", "5", "6", "7"), settings.viewerForecastDays) {
+            store.saveSettings(store.settings().copy(viewerForecastDays = it))
+        }
+        toggle(visibility, R.string.clock, settings.showClock) { it.copy(showClock = !it.showClock) }
+        toggle(visibility, R.string.date, settings.showDate) { it.copy(showDate = !it.showDate) }
+        toggle(visibility, R.string.weather, settings.showWeather) { it.copy(showWeather = !it.showWeather) }
+        toggle(visibility, R.string.location, settings.showLocation) { it.copy(showLocation = !it.showLocation) }
+        choice(visibility, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"), settings.clockFormat) {
             store.saveSettings(store.settings().copy(clockFormat = it))
         }
         if (editor) {
-            val overlay = AmbientOverlay(host, store)
-            preview = overlay
-            overlay.setBackgroundColor(0xFF173044.toInt())
-            store.lastItemId()?.let(store::item)?.let(overlay::updateItem)
-            body.addView(overlay, LinearLayout.LayoutParams(-1, ui.dp(200)))
-            overlay.start()
-            choice(body, R.string.overlay_corner, listOf(0, 1, 2, 3), listOf(s(R.string.top_left), s(R.string.top_right), s(R.string.bottom_left), s(R.string.bottom_right)), store.settings().overlayCorner) {
+            val position = group(body, R.string.settings_group_position)
+            choice(position, R.string.overlay_corner, listOf(0, 1, 2, 3), listOf(s(R.string.top_left), s(R.string.top_right), s(R.string.bottom_left), s(R.string.bottom_right)), store.settings().overlayCorner) {
                 store.saveSettings(store.settings().copy(overlayCorner = it))
             }
-            number(body, R.string.overlay_size, store.settings().overlaySize, 14..40) { settings, value -> settings.copy(overlaySize = value) }
-            number(body, R.string.overlay_opacity, store.settings().overlayOpacity, 20..100) { settings, value -> settings.copy(overlayOpacity = value) }
-            number(body, R.string.overlay_x, store.settings().overlayX, 0..100) { settings, value -> settings.copy(overlayX = value) }
-            number(body, R.string.overlay_y, store.settings().overlayY, 0..100) { settings, value -> settings.copy(overlayY = value) }
-            choice(body, R.string.overlay_color, listOf(-1, 0xFFFFE4B5.toInt(), 0xFFB5EBFF.toInt()),
+            number(position, R.string.overlay_size, store.settings().overlaySize, 14..40) { settings, value -> settings.copy(overlaySize = value) }
+            number(position, R.string.overlay_x, store.settings().overlayX, 0..100) { settings, value -> settings.copy(overlayX = value) }
+            number(position, R.string.overlay_y, store.settings().overlayY, 0..100) { settings, value -> settings.copy(overlayY = value) }
+            choice(position, R.string.overlay_color, listOf(-1, 0xFFFFE4B5.toInt(), 0xFFB5EBFF.toInt()),
                 listOf(s(R.string.white), s(R.string.warm), s(R.string.cool)), store.settings().overlayColor) {
                 store.saveSettings(store.settings().copy(overlayColor = it))
             }
-            toggle(body, R.string.overlay_movement, store.settings().moveOverlay) { it.copy(moveOverlay = !it.moveOverlay) }
-            toggle(body, R.string.overlay_hiding, store.settings().hideOverlay) { it.copy(hideOverlay = !it.hideOverlay) }
-            number(body, R.string.overlay_hide_delay, store.settings().overlayHideSeconds, 10..3600) { settings, value -> settings.copy(overlayHideSeconds = value) }
-            body.addView(ui.description(s(R.string.overlay_notice)))
+            val opacity = group(body, R.string.settings_group_opacity)
+            number(opacity, R.string.overlay_opacity, store.settings().overlayOpacity, 20..100) { settings, value -> settings.copy(overlayOpacity = value) }
+            number(opacity, R.string.settings_source_opacity, settings.sourceOpacity, 20..100) { value, number -> value.copy(sourceOpacity = number) }
+            number(opacity, R.string.settings_viewer_opacity, settings.viewerOpacity, 20..100) { value, number -> value.copy(viewerOpacity = number) }
+            number(opacity, R.string.settings_forecast_opacity, settings.forecastOpacity, 20..100) { value, number -> value.copy(forecastOpacity = number) }
+            number(opacity, R.string.settings_brand_opacity, settings.brandOpacity, 20..100) { value, number -> value.copy(brandOpacity = number) }
+            val behavior = group(body, R.string.settings_group_behavior)
+            toggle(behavior, R.string.overlay_movement, settings.moveOverlay) { it.copy(moveOverlay = !it.moveOverlay) }
+            number(behavior, R.string.settings_move_interval, settings.overlayMoveMinutes, 1..30) { value, number -> value.copy(overlayMoveMinutes = number) }
+            toggle(behavior, R.string.overlay_hiding, settings.hideOverlay) { it.copy(hideOverlay = !it.hideOverlay) }
+            number(behavior, R.string.overlay_hide_delay, settings.overlayHideSeconds, 10..3600) { settings, value -> settings.copy(overlayHideSeconds = value) }
+            behavior.addView(ui.description(s(R.string.overlay_notice)))
         } else destination(body, R.string.overlay_editor, "overlay_editor")
     }
 
+    private fun overlayPreview(body: LinearLayout) {
+        val livePreview = group(body, R.string.settings_live_preview)
+        livePreview.addView(ui.description(s(R.string.settings_preview_description)))
+        val overlay = AmbientOverlay(host, store)
+        preview = overlay
+        overlay.setBackgroundColor(0xFF173044.toInt())
+        store.lastItemId()?.let(store::item)?.let(overlay::updateItem)
+        val frame = object : FrameLayout(host) {
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                val width = View.MeasureSpec.getSize(widthMeasureSpec)
+                super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(width * 9 / 16, View.MeasureSpec.EXACTLY))
+            }
+        }.apply {
+            isFocusable = false
+            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+            addView(overlay, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+        livePreview.addView(frame, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        overlay.start()
+    }
+
     private fun weatherSettings(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.weather)))
+        pageHeading(body, R.string.settings_category_weather_clock, R.string.settings_weather_description)
         body.addView(ui.description(s(if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) R.string.weather_worldwide_notice else R.string.weather_nws_notice)))
         if (!ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) body.addView(ui.description(s(R.string.provider_approval_required)))
-        choice(body, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)), store.settings().weatherContext) {
+        val location = group(body, R.string.settings_group_weather_location)
+        choice(location, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)), store.settings().weatherContext) {
             store.saveSettings(store.settings().copy(weatherContext = it))
         }
-        choice(body, R.string.temperature, listOf("system", "celsius", "fahrenheit"), listOf(s(R.string.system_default), "°C", "°F"), store.settings().temperatureUnit) {
+        choice(location, R.string.temperature, listOf("system", "celsius", "fahrenheit"), listOf(s(R.string.system_default), "°C", "°F"), store.settings().temperatureUnit) {
             store.saveSettings(store.settings().copy(temperatureUnit = it))
         }
-        ui.button(body, s(R.string.viewer_location_edit)) { editLocation() }
-        ui.button(body, s(R.string.city_search)) { citySearch() }
-        ui.button(body, s(R.string.device_location)) {
-            host.showDialog(AlertDialog.Builder(host).setMessage(R.string.device_location_notice).setPositiveButton(R.string.close, null).create())
+        ui.settingRow(location, s(R.string.viewer_location_edit), store.settings().viewerCity.ifBlank { s(R.string.settings_not_set) },
+            "viewer_location_edit") { editLocation() }
+        ui.settingRow(location, s(R.string.city_search), if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) "" else s(R.string.settings_unavailable),
+            "city_search", if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) null else s(R.string.provider_approval_required),
+            ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) { citySearch() }
+        ui.settingRow(location, s(R.string.device_location), s(R.string.settings_unavailable), "device_location",
+            s(R.string.device_location_notice), false) {}
+        ui.settingRow(location, s(R.string.forecast), key = "forecast") { forecast() }
+        val clock = group(body, R.string.clock)
+        toggle(clock, R.string.clock, store.settings().showClock) { it.copy(showClock = !it.showClock) }
+        toggle(clock, R.string.date, store.settings().showDate) { it.copy(showDate = !it.showDate) }
+        choice(clock, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"), store.settings().clockFormat) {
+            store.saveSettings(store.settings().copy(clockFormat = it))
         }
-        ui.button(body, s(R.string.forecast)) { forecast() }
+        destination(clock, R.string.clock_overlays, "overlays")
     }
 
     private fun editLocation() {
@@ -211,7 +290,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         }
         val viewerLocation = if (settings.viewerLatitude != null && settings.viewerLongitude != null)
             WeatherLocation(settings.viewerCity, settings.viewerLatitude, settings.viewerLongitude, settings.viewerTimeZone) else null
-        val target = if (settings.weatherContext == "camera") cameraLocation ?: viewerLocation else viewerLocation
+        val target = if (settings.weatherContext == "camera") cameraLocation else viewerLocation
         val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
         val status = ui.description(s(R.string.weather_loading)); body.addView(status)
         val dialog = AlertDialog.Builder(host).setTitle(R.string.forecast).setView(ui.scroll(body)).setPositiveButton(R.string.close, null).create()
@@ -244,46 +323,118 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     }
 
     private fun advanced(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.advanced)))
-        toggle(body, R.string.diagnostics_enable, store.settings().diagnosticsEnabled) { it.copy(diagnosticsEnabled = !it.diagnosticsEnabled) }
-        ui.button(body, s(R.string.report)) { report() }
-        destination(body, R.string.schedule, "schedule")
-        destination(body, R.string.updates, "updates")
-        destination(body, R.string.privacy, "privacy")
+        pageHeading(body, R.string.settings_category_advanced, R.string.settings_advanced_description)
+        val diagnostics = group(body, R.string.diagnostics)
+        toggle(diagnostics, R.string.diagnostics_enable, store.settings().diagnosticsEnabled) { it.copy(diagnosticsEnabled = !it.diagnosticsEnabled) }
+        ui.settingRow(diagnostics, s(R.string.report), key = "report") { report() }
+        val data = group(body, R.string.settings_group_local_data)
+        destination(data, R.string.privacy, "privacy")
+        destination(data, R.string.schedule, "schedule")
+        val availability = group(body, R.string.settings_group_availability)
+        destination(availability, R.string.updates, "updates")
+        ui.settingRow(availability, s(R.string.pairing), s(if (PairingSecurity.REVIEWED) R.string.settings_available else R.string.settings_disabled),
+            "pairing", s(R.string.pairing_review_pending), PairingSecurity.REVIEWED) { startPairing() }
+        ui.settingRow(availability, s(R.string.setup), key = "setup") { host.open(LibraryRoute("setup")) }
+    }
+
+    private fun librarySettings(body: LinearLayout) {
+        pageHeading(body, R.string.settings_category_library, R.string.settings_library_description)
+        val sources = group(body, R.string.settings_group_add_sources)
+        ui.settingRow(sources, s(R.string.add_stream), key = "library_add_stream") { host.editSource() }
+        ui.settingRow(sources, s(R.string.import_list), s(R.string.settings_import_m3u), "library_import_list") { host.pickList() }
+        ui.settingRow(sources, s(R.string.choose_folder), key = "library_choose_folder") { host.pickFolder() }
+        ui.settingRow(sources, s(R.string.choose_video), key = "library_choose_video") { host.pickVideo() }
+        val library = group(body, R.string.settings_group_organize)
+        ui.settingRow(library, s(R.string.cameras), store.items().count { it.family == MediaFamily.CAMERAS }.toString(), "library_cameras") {
+            host.open(LibraryRoute("cameras"))
+        }
+        ui.settingRow(library, s(R.string.my_videos), store.items().count { it.family == MediaFamily.VIDEOS }.toString(), "library_videos") {
+            host.open(LibraryRoute("videos"))
+        }
+        ui.settingRow(library, s(R.string.favorites), store.items().count { it.favorite }.toString(), "library_favorites") {
+            host.open(LibraryRoute("favorites"))
+        }
+        ui.settingRow(library, s(R.string.settings_camera_playlists), store.playlists().count { it.family == MediaFamily.CAMERAS }.toString(), "library_camera_playlists") {
+            host.open(LibraryRoute("playlists", family = MediaFamily.CAMERAS))
+        }
+        ui.settingRow(library, s(R.string.settings_video_playlists), store.playlists().count { it.family == MediaFamily.VIDEOS }.toString(), "library_video_playlists") {
+            host.open(LibraryRoute("playlists", family = MediaFamily.VIDEOS))
+        }
+        val folders = group(body, R.string.manage_folders)
+        ui.settingRow(folders, s(R.string.manage_folders), store.folders().size.toString(), "library_folders") { host.open(LibraryRoute("folders")) }
+        ui.settingRow(folders, s(R.string.settings_rescan), key = "library_rescan", summary = s(R.string.settings_rescan_description)) { host.rescan() }
+        folders.addView(ui.description(s(R.string.local_only)))
+    }
+
+    private fun about(body: LinearLayout) {
+        pageHeading(body, R.string.settings_category_about, R.string.settings_about_description)
+        val application = group(body, R.string.app_name)
+        val info = try { host.packageManager.getPackageInfo(host.packageName, 0) } catch (_: Exception) { null }
+        val version = info?.let { "${it.versionName.orEmpty()} (${it.longVersionCode})" } ?: s(R.string.not_available)
+        application.addView(ui.description(host.getString(R.string.settings_version, version)))
+        application.addView(ui.description(s(R.string.app_unverified)))
+        application.addView(ui.description(s(R.string.settings_development_preview)))
+        val support = group(body, R.string.settings_group_support)
+        destination(support, R.string.privacy, "privacy")
+        ui.settingRow(support, s(R.string.report), key = "about_report") { report() }
+        destination(support, R.string.updates, "updates")
+        destination(support, R.string.screensaver, "screensaver")
+        ui.settingRow(support, s(R.string.setup), key = "about_setup") { host.open(LibraryRoute("setup")) }
     }
 
     private fun schedule(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.schedule)))
-        body.addView(ui.description(s(R.string.schedule_notice)))
-        toggle(body, R.string.schedule_enable, store.settings().scheduleEnabled) { it.copy(scheduleEnabled = !it.scheduleEnabled) }
-        time(body, R.string.schedule_start, store.settings().scheduleStartMinute) { settings, minute -> settings.copy(scheduleStartMinute = minute) }
-        time(body, R.string.schedule_end, store.settings().scheduleEndMinute) { settings, minute -> settings.copy(scheduleEndMinute = minute) }
+        pageHeading(body, R.string.schedule, R.string.schedule_notice)
+        body.addView(ui.description(s(R.string.settings_screensaver_hold)))
+        val window = group(body, R.string.settings_group_schedule)
+        toggle(window, R.string.schedule_enable, store.settings().scheduleEnabled) { it.copy(scheduleEnabled = !it.scheduleEnabled) }
+        time(window, R.string.schedule_start, store.settings().scheduleStartMinute) { settings, minute -> settings.copy(scheduleStartMinute = minute) }
+        time(window, R.string.schedule_end, store.settings().scheduleEndMinute) { settings, minute -> settings.copy(scheduleEndMinute = minute) }
     }
 
     private fun screensaver(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.screensaver)))
-        body.addView(ui.description(s(R.string.screensaver_notice)))
-        body.addView(ui.description(s(R.string.power_notice)))
-        ui.button(body, s(R.string.open_screensaver_settings)) {
-            try { host.startActivity(Intent(Settings.ACTION_DREAM_SETTINGS)) }
-            catch (_: RuntimeException) { host.message(R.string.system_settings_unavailable) }
+        pageHeading(body, R.string.settings_category_screensaver, R.string.settings_screensaver_description)
+        val status = group(body, R.string.settings_group_system_status)
+        ui.settingRow(status, s(R.string.screensaver), s(R.string.settings_kept_disabled), "screensaver_status",
+            s(R.string.settings_screensaver_hold), false) {}
+        status.addView(ui.description(s(R.string.power_notice)))
+        val behavior = group(body, R.string.settings_group_behavior)
+        destination(behavior, R.string.schedule, "schedule")
+        destination(behavior, R.string.clock_overlays, "overlays")
+        val help = group(body, R.string.settings_group_help)
+        help.addView(ui.description(s(R.string.screensaver_notice)))
+        ui.settingRow(help, s(R.string.open_screensaver_settings), key = "open_screensaver_settings") {
+            host.showDialog(AlertDialog.Builder(host).setTitle(R.string.open_screensaver_settings)
+                .setMessage(R.string.settings_system_settings_confirmation)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.settings_open_system_settings) { _, _ ->
+                    try { host.startActivity(Intent(Settings.ACTION_DREAM_SETTINGS)) }
+                    catch (_: RuntimeException) { host.message(R.string.system_settings_unavailable) }
+                }.create())
         }
-        destination(body, R.string.schedule, "schedule")
     }
 
     private fun privacy(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.privacy)))
-        body.addView(ui.description(s(R.string.privacy_body)))
-        body.addView(ui.description(s(R.string.provider_privacy)))
-        ui.button(body, s(R.string.clear_provider_cache)) { weather.clearCache(); host.message(R.string.saved) }
-        ui.button(body, s(R.string.manage_folders)) { host.open(LibraryRoute("folders")) }
-        ui.button(body, s(R.string.report)) { report() }
+        pageHeading(body, R.string.privacy, R.string.privacy_body)
+        val providers = group(body, R.string.settings_group_weather_data)
+        providers.addView(ui.description(s(R.string.provider_privacy)))
+        ui.settingRow(providers, s(R.string.clear_provider_cache), key = "clear_provider_cache") { weather.clearCache(); host.message(R.string.saved) }
+        val local = group(body, R.string.settings_group_local_data)
+        ui.settingRow(local, s(R.string.manage_folders), key = "manage_folders") { host.open(LibraryRoute("folders")) }
+        ui.settingRow(local, s(R.string.report), key = "privacy_report") { report() }
     }
 
     private fun updates(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.updates)))
-        body.addView(ui.description(s(R.string.update_notice)))
-        body.addView(ui.description(updateState.message(host)))
+        pageHeading(body, R.string.updates, R.string.update_notice)
+        val availability = group(body, R.string.settings_group_availability)
+        if (!UpdateChannel.APPROVED) {
+            ui.settingRow(availability, s(R.string.check_updates), s(R.string.settings_disabled), "check_updates",
+                s(R.string.settings_updates_disabled), false) {}
+            ui.toggleRow(availability, s(R.string.automatic_updates), store.settings().automaticUpdates, "setting_${R.string.automatic_updates}",
+                s(R.string.settings_updates_disabled), false) {}
+            destination(body, R.string.settings_category_about, "about")
+            return
+        }
+        availability.addView(ui.description(updateState.message(host)))
         ui.button(body, s(R.string.check_updates)) { updater.discover(::onUpdate) }
         toggle(body, R.string.automatic_updates, store.settings().automaticUpdates) { it.copy(automaticUpdates = !it.automaticUpdates) }
         when (val state = updateState) {
@@ -312,6 +463,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         }
     }
     fun onForeground() {
+        if (!UpdateChannel.APPROVED) return
         val resumed = updater.resumeInstallation(::onUpdate)
         if (!resumed && !automaticCheckDone && store.settings().automaticUpdates) { automaticCheckDone = true; updater.discover(::onUpdate) }
     }
@@ -320,6 +472,11 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     fun close() { onBackground(); updater.close(); weather.close() }
 
     fun startPairing() {
+        if (!PairingSecurity.REVIEWED) {
+            host.showDialog(AlertDialog.Builder(host).setTitle(R.string.pairing).setMessage(R.string.pairing_review_pending)
+                .setPositiveButton(R.string.close, null).create())
+            return
+        }
         pairing?.close()
         val coordinator = PairingCoordinator(host)
         pairing = coordinator
@@ -378,18 +535,18 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     }
 
     private fun toggle(body: LinearLayout, title: Int, value: Boolean, transform: (AppSettings) -> AppSettings) {
-        ui.button(body, "${s(title)}: ${s(if (value) R.string.on else R.string.off)}", "setting_$title") { host.mutate { store.saveSettings(transform(store.settings())) } }
+        ui.toggleRow(body, s(title), value, "setting_$title") { host.mutate { store.saveSettings(transform(store.settings())) } }
     }
     private fun <T> choice(body: LinearLayout, title: Int, values: List<T>, labels: List<String>, selected: T, action: (T) -> Unit) {
         val index = values.indexOf(selected)
-        ui.button(body, s(title) + if (index >= 0) ": ${labels[index]}" else "", "setting_$title") {
+        ui.settingRow(body, s(title), if (index >= 0) labels[index] else s(R.string.settings_custom), "setting_$title") {
             host.showDialog(AlertDialog.Builder(host).setTitle(title).setSingleChoiceItems(labels.toTypedArray(), index) { dialog, which ->
                 dialog.dismiss(); host.mutate { action(values[which]) }
             }.setNegativeButton(R.string.cancel, null).create())
         }
     }
     private fun number(body: LinearLayout, title: Int, value: Int, range: IntRange, change: (AppSettings, Int) -> AppSettings) {
-        ui.button(body, "${s(title)}: $value", "setting_$title") {
+        ui.settingRow(body, s(title), value.toString(), "setting_$title") {
             val fields = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
             val input = ui.field(fields, "${s(title)} (${range.first}–${range.last})", value.toString(), 5, InputType.TYPE_CLASS_NUMBER)
             val error = ui.description(""); fields.addView(error)
@@ -403,7 +560,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         }
     }
     private fun time(body: LinearLayout, title: Int, value: Int, change: (AppSettings, Int) -> AppSettings) {
-        ui.button(body, "${s(title)}: %02d:%02d".format(value / 60, value % 60), "setting_$title") {
+        ui.settingRow(body, s(title), "%02d:%02d".format(value / 60, value % 60), "setting_$title") {
             val fields = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
             val input = ui.field(fields, s(title), "%02d:%02d".format(value / 60, value % 60), 5)
             val error = ui.description(""); fields.addView(error)
@@ -417,7 +574,29 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             }
         }
     }
-    private fun destination(body: LinearLayout, label: Int, page: String) { ui.button(body, s(label), "destination_$page") { host.open(LibraryRoute(page)) } }
+    private fun destination(body: LinearLayout, label: Int, page: String) {
+        ui.settingRow(body, s(label), key = "destination_$page") { host.open(LibraryRoute(page)) }
+    }
+    private fun pageHeading(body: LinearLayout, title: Int, description: Int) {
+        body.addView(ui.heading(s(title)).apply { setPadding(ui.dp(4), 0, ui.dp(4), ui.dp(6)) })
+        body.addView(ui.description(s(description)).apply { textSize = 14f })
+    }
+    private fun group(body: LinearLayout, title: Int): LinearLayout {
+        val group = ui.column().apply {
+            setPadding(ui.dp(10), ui.dp(10), ui.dp(10), ui.dp(10))
+            background = TvDesign.panel(host, 0x77182D3E)
+        }
+        group.addView(ui.text(s(title), 13f, TvDesign.accent).apply {
+            typeface = TvDesign.medium
+            letterSpacing = .04f
+            setPadding(ui.dp(8), ui.dp(2), ui.dp(8), ui.dp(8))
+            setAccessibilityHeading(true)
+        })
+        body.addView(group, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(0, ui.dp(12), 0, 0)
+        })
+        return group
+    }
     private fun temperature(value: Double?): String {
         if (value == null) return s(R.string.not_available)
         val fahrenheit = store.settings().temperatureUnit == "fahrenheit" ||

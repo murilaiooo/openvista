@@ -17,7 +17,8 @@ data class CurrentWeather(val temperatureC: Double?, val description: String?, v
                           val windKph: Double?, val precipitationMm: Double?, val weatherCode: Int? = null)
 data class ForecastDay(val date: String, val minimumC: Double?, val maximumC: Double?,
                        val precipitationMm: Double?, val windKph: Double?, val humidity: Double?,
-                       val sunrise: String?, val sunset: String?, val precipitationChancePct: Double? = null)
+                       val sunrise: String?, val sunset: String?, val precipitationChancePct: Double? = null,
+                       val description: String? = null, val weatherCode: Int? = null)
 data class Forecast(val location: WeatherLocation, val current: CurrentWeather?, val days: List<ForecastDay>,
                     val fetchedAt: Long, val attribution: String, val providerId: String,
                     val requiresVisibleAttribution: Boolean = false)
@@ -126,6 +127,8 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
             humidity = bounded(d.humidity, 0.0, 100.0), windKph = bounded(d.windKph, 0.0, 500.0),
             precipitationMm = bounded(d.precipitationMm, 0.0, 3000.0), precipitationChancePct = bounded(d.precipitationChancePct, 0.0, 100.0),
             sunrise = d.sunrise?.take(40), sunset = d.sunset?.take(40), date = d.date.take(40),
+            description = d.description?.filterNot(Char::isISOControl)?.take(120),
+            weatherCode = d.weatherCode?.takeIf { it in 0..99 },
         ) })
     }
 
@@ -143,13 +146,14 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
             else {
                 val current = value.optJSONObject("current")
                 val days = value.getJSONArray("days")
-                sanitize(Forecast(location,
+                sanitize(Forecast(location.copy(timeZone = value.optString("timeZone", location.timeZone)),
                     current?.let { c -> CurrentWeather(c.number("temperature"), c.optString("description").ifBlank { null },
                         c.number("humidity"), c.number("wind"), c.number("rain"), c.number("code")?.toInt()) },
                     (0 until days.length().coerceAtMost(7)).map { index -> days.getJSONObject(index).let { d ->
                         ForecastDay(d.getString("date"), d.number("min"), d.number("max"), d.number("rain"),
                             d.number("wind"), d.number("humidity"), d.optString("sunrise").ifBlank { null },
-                            d.optString("sunset").ifBlank { null }, d.number("rainChance"))
+                            d.optString("sunset").ifBlank { null }, d.number("rainChance"),
+                            d.optString("description").ifBlank { null }, d.number("code")?.toInt())
                     } }, at, value.optString("attribution", adapter.attribution).take(1000), adapter.id, value.optBoolean("visibleCredit")))
             }
         }
@@ -157,12 +161,13 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
 
     private fun writeCache(forecast: Forecast) = synchronized(CACHE_LOCK) {
         val value = JSONObject().put("provider", forecast.providerId).put("fetchedAt", forecast.fetchedAt)
+            .put("timeZone", forecast.location.timeZone)
             .put("attribution", forecast.attribution).put("visibleCredit", forecast.requiresVisibleAttribution)
             .put("latitude", forecast.location.latitude).put("longitude", forecast.location.longitude)
             .put("days", JSONArray().apply { forecast.days.forEach { d -> put(JSONObject()
                 .put("date", d.date).put("min", d.minimumC).put("max", d.maximumC).put("rain", d.precipitationMm)
                 .put("wind", d.windKph).put("humidity", d.humidity).put("sunrise", d.sunrise).put("sunset", d.sunset)
-                .put("rainChance", d.precipitationChancePct)) } })
+                .put("rainChance", d.precipitationChancePct).put("description", d.description).put("code", d.weatherCode)) } })
         forecast.current?.let { c -> value.put("current", JSONObject().put("temperature", c.temperatureC)
             .put("description", c.description).put("humidity", c.humidity).put("wind", c.windKph).put("rain", c.precipitationMm).put("code", c.weatherCode)) }
         val entries = try {

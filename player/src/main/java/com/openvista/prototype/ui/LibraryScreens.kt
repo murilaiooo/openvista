@@ -1,15 +1,10 @@
 package com.openvista.prototype.ui
 
 import android.app.AlertDialog
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.InputType
-import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.media3.common.util.UnstableApi
 import com.openvista.prototype.LibraryRoute
 import com.openvista.prototype.OpenVistaActivity
@@ -49,35 +44,6 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         city = state.getString("filterCity").orEmpty().take(100)
         category = state.getString("filterCategory").orEmpty().take(100)
         favoriteOnly = state.getBoolean("filterFavorite"); availableOnly = state.getBoolean("filterAvailable")
-    }
-
-    fun home(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.app_name)))
-        body.addView(ui.description(s(R.string.library_empty)))
-        val cards = ui.row()
-        listOf(Triple(R.string.cameras, "cameras", R.drawable.home_cameras),
-            Triple(R.string.my_videos, "videos", R.drawable.home_videos),
-            Triple(R.string.favorites, "favorites", R.drawable.home_favorites)).forEach { (title, page, artwork) ->
-            val card = ui.column().apply {
-                background = GradientDrawable().apply { setColor(0xFF142A3C.toInt()); cornerRadius = ui.dp(16).toFloat() }
-            }
-            card.addView(ImageView(host).apply {
-                setImageResource(artwork); scaleType = ImageView.ScaleType.CENTER_CROP
-                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(145)))
-            ui.button(card, s(title), page) { host.open(LibraryRoute(page)) }
-            cards.addView(card, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                setMargins(ui.dp(8), ui.dp(12), ui.dp(8), ui.dp(16))
-            })
-        }
-        body.addView(cards)
-        store.lastItemId()?.let(store::item)?.let { item ->
-            ui.button(body, s(R.string.resume_last), "resume_last") {
-                host.play(store.items().filter { it.family == item.family }, item.id, item.family == MediaFamily.CAMERAS)
-            }
-        }
-        body.addView(ui.description(s(R.string.local_only)))
-        body.addView(ui.description(s(R.string.app_unverified)))
     }
 
     fun onboarding(body: LinearLayout, revisit: Boolean) {

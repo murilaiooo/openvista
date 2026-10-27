@@ -21,7 +21,7 @@ class OpenMeteoForecastProvider : ForecastProvider {
         val coordinates = String.format(Locale.US, "latitude=%.4f&longitude=%.4f", location.latitude, location.longitude)
         val url = URL("https://api.open-meteo.com/v1/forecast?$coordinates&timezone=auto&forecast_days=7" +
             "&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m" +
-            "&daily=temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset" +
+            "&daily=weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset" +
             "&hourly=relative_humidity_2m&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm")
         val json = JSONObject(ProviderHttp.bytes(url, "api.open-meteo.com", 524_288, "application/json").toString(Charsets.UTF_8))
         require(!json.optBoolean("error"))
@@ -65,7 +65,8 @@ class OpenMeteoForecastProvider : ForecastProvider {
             }
             ForecastDay(date.toString(), field("temperature_2m_min", i, "°C"), field("temperature_2m_max", i, "°C"),
                 field("precipitation_sum", i, "mm"), field("wind_speed_10m_max", i, "km/h"),
-                humidity[date.toString()]?.average(), sun("sunrise"), sun("sunset"), field("precipitation_probability_max", i, "%"))
+                humidity[date.toString()]?.average(), sun("sunrise"), sun("sunset"), field("precipitation_probability_max", i, "%"),
+                weatherCode = daily.optJSONArray("weather_code")?.number(i)?.toInt())
         }
         require(days.isNotEmpty()) { "No valid forecast periods." }
         return Forecast(location.copy(timeZone = zone.id), current, days, now.toEpochMilli(), attribution, id, true)

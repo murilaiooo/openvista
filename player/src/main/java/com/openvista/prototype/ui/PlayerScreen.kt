@@ -68,7 +68,7 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         }.also { frame.addView(it, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_VERTICAL or Gravity.END)) }
         val panel = ui.column().apply {
             setPadding(ui.dp(24), ui.dp(8), ui.dp(24), ui.dp(12))
-            setBackgroundColor(0xEE0B1929.toInt()); visibility = View.GONE
+            background = TvDesign.panel(host, 0xF007121F.toInt()); visibility = View.GONE
         }
         menu = panel
         val transport = ui.row()
@@ -113,6 +113,12 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         session = created
         video?.player = created.player
         created.player.addListener(object : Player.Listener {
+            override fun onEvents(player: Player, events: Player.Events) {
+                if (session !== created || created.isReleased) return
+                val current = player.currentMediaItem?.mediaId == created.currentItem?.id
+                ambient?.updatePlayback(current && player.isCurrentMediaItemLive,
+                    current && player.isPlaying, player.playbackState == Player.STATE_BUFFERING)
+            }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (session !== created || created.isReleased) return
                 updateDiagnostics()
@@ -182,8 +188,8 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
     }
     fun dialogOpened() { dialog = true; main.removeCallbacks(hide) }
     fun dialogClosed() { dialog = false; interaction() }
-    private fun showMenu() { menu?.visibility = View.VISIBLE; (menu?.getChildAt(0) as? LinearLayout)?.getChildAt(0)?.requestFocus(); interaction() }
-    private fun dismissMenu() { main.removeCallbacks(hide); menu?.visibility = View.GONE; diagnostics?.visibility = View.GONE; video?.requestFocus() }
+    private fun showMenu() { menu?.visibility = View.VISIBLE; ambient?.setControlsVisible(true); (menu?.getChildAt(0) as? LinearLayout)?.getChildAt(0)?.requestFocus(); interaction() }
+    private fun dismissMenu() { main.removeCallbacks(hide); menu?.visibility = View.GONE; ambient?.setControlsVisible(false); diagnostics?.visibility = View.GONE; video?.requestFocus() }
     private fun interaction() { ambient?.userInteraction(); main.removeCallbacks(hide); if (!dialog) main.postDelayed(hide, 5000); updateDiagnostics() }
     private fun switchFamily(family: MediaFamily) {
         val items = store.items().filter { it.family == family }
