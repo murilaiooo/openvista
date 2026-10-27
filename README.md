@@ -24,7 +24,7 @@ Play your own live cameras and local videos, with a minimal clock and optional w
 
 OpenVista is for the moments when a television should feel like a window, not a wall of menus. Pick a live beach camera, a city skyline, or a video from your own collection. Let it play with only the information you want to see.
 
-**You bring the content.** The app ships with **no camera streams, M3U playlists, videos, or hosted catalog**. Add a compatible HLS/MPEG-DASH URL, import your own M3U list, or select media from internal/USB storage. Research-only streams in this repository are **not** part of the APK.
+**You bring the content.** The app ships with **no camera streams, M3U playlists, videos, or hosted catalog**. Add a compatible HLS/MPEG-DASH URL, import your own M3U list, or select media from internal/USB storage. Private camera research and personal playlists are **not stored in the public source tree or bundled with the APK**.
 
 ## What's in the development build?
 
@@ -90,7 +90,7 @@ There is no public stable release, no owner-approved signing/update channel and 
 | Privacy, safe content handling | [Security and media rights](docs/SECURITY_AND_CONTENT.md) |
 | How to help | [Contributing](CONTRIBUTING.md) |
 
-The research and October 25 planning notes are retained as **dated engineering history**, not current status. The canonical summary is [docs/STATUS.md](docs/STATUS.md).
+Selected platform research and October 25 planning notes are retained as **dated engineering history**. Private camera lists and direct streaming URLs are kept outside the public repository. The canonical summary is [docs/STATUS.md](docs/STATUS.md).
 
 ## Contribute
 

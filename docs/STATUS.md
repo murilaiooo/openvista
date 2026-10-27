@@ -9,10 +9,10 @@
 | Is there Android app source? | **Yes.** Native Kotlin player, UI, user library, SAF access, Media3, ambient overlays and tests are in the mainline development source. |
 | Can it run on a TV? | **Yes, as a development preview.** Individual app flows were exercised on the owner's Hisense 58U6HF / Fire OS 7 (Android 9 / API 28). |
 | Is there a public APK or stable release? | **No.** Only locally built debug/test APKs; no signed public release or owner authorization to publish. |
-| Does OpenVista bundle live-camera links, M3U lists or videos? | **No.** Users import their own. Research-only media/playlist fixtures are excluded from runtime artifacts. |
+| Does OpenVista bundle live-camera links, M3U lists or videos? | **No.** Users import their own. Personal camera inventories and research playlists are excluded from source control and runtime artifacts. |
 | Does weather work? | **Yes, for NWS-covered U.S. coordinates.** Tucson hourly conditions and seven-day forecast were exercised physically. Worldwide geocoding is not implemented. |
 | Are all original v1 requirements finished? | **No.** Hisense DreamService entry was observed, but its full remote/lifecycle/endurance acceptance, USB edge cases, 24-hour soak, maps, pairing security, updater and final release gates remain. |
-| Are there open GitHub issues/PRs? | **No, as of this review.** The owner closed the prior backlog administratively, not as proof every feature passed acceptance. Closed records and branches remain available. |
+| Are there open GitHub issues/PRs? | **Yes, development drafts may be open.** Check the live GitHub pull request and issue lists. Closed records are not evidence of feature acceptance. |
 
 ## Evidence actually collected
 

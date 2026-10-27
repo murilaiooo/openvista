@@ -6,7 +6,6 @@ Usage on the development PC:
 Scope: markdown and structural consistency only; never claim this runs Android tests.
 """
 from pathlib import Path
-import json
 import re
 import sys
 
@@ -52,7 +51,7 @@ if {gate for _, gate in trace_rows} != allowed_gates:
     errors.append("Every G01..G10 gate must own at least one D-ID.")
 
 # All repo docs + root-facing Markdown; skills are separately owned external copies.
-docs = sorted((ROOT / "docs").rglob("*.md"))
+docs = sorted(p for p in (ROOT / "docs").rglob("*.md") if "minhas listas para revisar" not in p.parts)
 files = docs + [ROOT / n for n in ("README.md", "AGENTS.md", "CONTRIBUTING.md", "GLOSSARY.md")]
 for file in files:
     body = file.read_text(encoding="utf-8")
@@ -66,22 +65,14 @@ for file in files:
         if not (file.parent / target).exists():
             errors.append(f"Missing relative link: {file.relative_to(ROOT)} -> {target}")
 
-# Quarantined camera candidates are reference material, not a licensed catalog.
-candidate_path = ROOT / "catalog/candidates/live-cameras-2026-10-25.json"
-if candidate_path.exists():
-    candidates = json.loads(candidate_path.read_text(encoding="utf-8"))
-    cameras = candidates.get("cameras", [])
-    feeds = [f for cam in cameras for f in cam.get("feeds", [])]
-    if len(cameras) != 59 or len(feeds) != 60:
-        errors.append("Staged camera catalog must contain 59 cameras / 60 feeds.")
-    if candidates.get("approvedForPublicCatalog") != 0 or any(cam.get("publishEnabled") is not False for cam in cameras):
-        errors.append("Camera candidates cannot be published before permission is verified.")
-    if any(cam.get("onDevicePlayback") != "not_tested" for cam in cameras):
-        errors.append("Device verification status changed without evidence.")
-    if len({f.get("url") for f in feeds}) != len(feeds):
-        errors.append("Duplicate staged feed URLs.")
-    if not all(cam.get("rightsReview") and cam.get("sourceRows") for cam in cameras):
-        errors.append("Provenance or rights-review status missing.")
+# Obsolete research-only source catalogs and playlists must not be committed.
+# The personal research folder is deliberately ignored and may exist locally.
+for path in (
+    ROOT / "catalog/candidates/live-cameras-2026-10-25.json",
+    ROOT / "docs/research/scenic-fullhd-test-only-2026-10-25.m3u",
+):
+    if path.exists():
+        errors.append(f"Private camera research must not be in the public tree: {path.relative_to(ROOT)}")
 
 # Guard the English-only repository language requirement without flagging real place names.
 portuguese_prose = [

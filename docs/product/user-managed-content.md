@@ -6,7 +6,7 @@
 
 OpenVista is a **media player, organizer, and ambient TV experience**. Users bring their own streams, playlists, and local video files. The OpenVista app and its public builds **do not bundle, curate, sell, host, fetch, or distribute camera feeds, streaming playlists, or downloadable video assets**.
 
-Research-only HLS/DASH stream lists in `docs/research/` and `catalog/candidates/` are **non-runtime test fixtures**, kept out of APK build assets and release artifacts. They are not an OpenVista service or first-party catalog.
+Camera link research, source playlists, downloaded videos, and playback fixtures are kept in **owner-controlled, ignored local directories**, outside the public Git tree and all APK/release assets. They are not an OpenVista service or first-party catalog.
 
 ### Source entry and library
 

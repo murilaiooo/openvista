@@ -37,7 +37,7 @@ Run the Android check on the exact code under review. Use a **local** workstatio
 ## Non-negotiable product boundaries
 
 - **No bundled or hosted live streams, M3U source lists or video wallpapers.** Users provide their own content.
-- No passwords, API tokens, user locations, private stream URLs, local media files or personally identifying logs in source control.
+- No passwords, API tokens, user locations, private stream URLs, live-feed research tables, M3U playlists, local media files or personally identifying logs in source control.
 - Avoid broad storage permissions and external uploads; stick to user-authorized Android SAF paths.
 - No root, boot auto-launch, silent system setting changes, forced screensaver selection or unauthorized app deletion.
 - Do not enable LAN pairing or the public updater while their security/distribution gates remain disabled.

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def copy_fixture(destination: Path):
-    for folder in ("docs", "scripts", "catalog"):
+    for folder in ("docs", "scripts"):
         shutil.copytree(
             ROOT / folder, destination / folder,
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
