@@ -230,5 +230,14 @@
     <string name="sensitive_url_notice">Este editor mostra a URL privada da fonte. Ela nunca é incluída nos relatórios.</string>
     <string name="weather_nws_notice">Previsão gratuita de sete dias nos EUA para as coordenadas salvas. Defina a cidade e as coordenadas abaixo. A busca de cidades ainda não está disponível.</string>
     <string name="city_search_unavailable">A busca de cidades não está disponível. Informe a cidade e as coordenadas manualmente.</string>
+    <string name="youtube_test_title">YouTube ao vivo (experimental)</string>
+    <string name="youtube_test_description">Teste uma transmissão pública do YouTube usando o player oficial. Cole um link de vídeo ou live com identificador.</string>
+    <string name="youtube_test_url">Link do vídeo no YouTube</string>
+    <string name="youtube_test_warning">Apenas teste de compatibilidade. O YouTube pode exibir anúncios, marca e interrupções. Esta fonte não faz parte do protetor de tela nem da rotação automática.</string>
+    <string name="youtube_test_play">Testar transmissão ao vivo</string>
+    <string name="youtube_test_invalid">Informe um link HTTPS válido de vídeo do YouTube. Páginas de canais e playlists não são compatíveis.</string>
+    <string name="youtube_test_back_hint">Pressione Voltar no controle para interromper. O vídeo pausa ao sair do app.</string>
+    <string name="youtube_test_web_error">O player do YouTube não carregou no WebView desta TV.</string>
+    <string name="youtube_test_session_ended">A reprodução parou porque o aplicativo saiu do primeiro plano.</string>
 </resources>
 
