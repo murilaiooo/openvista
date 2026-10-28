@@ -21,7 +21,7 @@ def copy_fixture(destination: Path):
             ROOT / folder, destination / folder,
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
         )
-    for item in ("AGENTS.md", "README.md", "CONTRIBUTING.md", "GLOSSARY.md", "LICENSE"):
+    for item in ("AGENTS.md", "README.md", "README.pt-BR.md", "CONTRIBUTING.md", "GLOSSARY.md", "LICENSE"):
         shutil.copy2(ROOT / item, destination / item)
 
 

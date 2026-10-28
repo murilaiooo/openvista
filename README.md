@@ -156,6 +156,6 @@ OpenVista is currently a **development preview**, not a public stable release. T
 
 **Bring your own scenery. Make the screen yours.**
 
-[Project status](docs/STATUS.md) · [Roadmap](docs/roadmap.md) · [Contribute](CONTRIBUTING.md) · [MIT License](LICENSE)
+[Product decisions](docs/product/decisions.md) · [Project status](docs/STATUS.md) · [Roadmap](docs/roadmap.md) · [Contribute](CONTRIBUTING.md) · [MIT License](LICENSE)
 
 </div>

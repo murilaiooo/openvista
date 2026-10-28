@@ -1,15 +1,15 @@
 # OpenVista: current engineering status
 
-**Reviewed October 27, 2026; October 28 pass summarized below.** This is the live status for the active Android TV development work. Read [the Claude release handoff](implementation/claude-release-handoff-2026-10-27.md) for the full history and [the owner-approved acceptance criteria](product/v1-acceptance.md). Historical PR bodies and dated plans can be stale.
+**Reviewed October 28, 2026; final source integration documented below.** This is the live status for the active Android TV development work. Read [the Claude release handoff](implementation/claude-release-handoff-2026-10-27.md) for the full history and [the owner-approved acceptance criteria](product/v1-acceptance.md). Historical PR bodies and dated plans can be stale.
 
 ## At a glance
 
 | Question | Current answer |
 | --- | --- |
 | Is the Android TV application implemented? | **Yes, development preview.** Native Kotlin/Media3 with user-managed HLS/DASH/M3U, local videos/SAF, playlists, favorites, Home, a unified Settings design and ambient overlays. |
-| What branch contains the newest integrated code? | **`codex/ui-redesign-36`**: UI/redesign/weather/playback recovery changes plus the latest `main` SAF, DreamService evidence and README screenshot commits. The review remains [draft PR #37](https://github.com/murilaiooo/openvista/pull/37), not a certified release. |
-| Is `main` itself the latest app? | **No.** It has separately merged verified SAF and Dream documentation updates and real screenshot assets, but does not yet contain the entire UI redesign. |
-| Is the TV on the latest tested APK? | **Yes, relative to the previous October 27 debug APK.** On the owner's Hisense 58U6HF / Fire OS 7 / API 28, the installed APK and the earlier local build were pulled and SHA-256 matched byte for byte. **The newer integrated Git source has not thereby been installed or tested on-device.** |
+| Where is the integrated source? | The latest owner-TV-matched local overlay, PR #40, and the updated English/Portuguese READMEs are consolidated for mainline integration. See [integration QA](testing/integrated-tv-snapshot-2026-10-28.md) and [PR #37](https://github.com/murilaiooo/openvista/pull/37). |
+| Is this ready for a public release? | **No.** The source is consolidated for mainline; historical stream URLs and other distribution gates still need review. |
+| Does the TV match the integrated APK? | **Yes, byte for byte.** The installed October 27 debug APK and the current local build share the same SHA-256. This is not a 24-hour stability certification. See [QA record](testing/integrated-tv-snapshot-2026-10-28.md). |
 | Is this a public, signed or stable release? | **No.** GitHub repository remains private; no approved production APK release or supported cross-device matrix. |
 | Does the APK contain a camera catalog, playlists or bundled videos? | **It must not.** Under owner decision C-01, all live URLs, M3Us and local videos are user-managed, not shipped. Run the actual final-artifact guard before any release. |
 | Is weather global? | **Camera weather is now implemented outside the US** through Open-Meteo, while NWS remains preferred within its US coverage. A missing same-day high after sunset is supplemented only for that exact date. Location geocoding and all international failure/terms cases remain subject to review. |
@@ -35,6 +35,11 @@ Implemented on top of `codex/ui-redesign-36`. Evidence is labeled per item; noth
 - **Camera country, flag and location** (`521486f`, `5ef7a1e`): the root cause of missing countries was that M3U import dropped every `#EXTINF` attribute and cut titles at their last comma. The parser now keeps `group-title`/`#EXTGRP`, `tvg-country`, city, region time zone and paired coordinates. Countries resolve from ISO codes, names in common languages, aliases or the camera time zone, and are shown localized with their flag. Cameras that name a city but lack country, coordinates or time zone are completed from Open-Meteo geocoding (only the city and known country are sent, never stream URLs; unambiguous results only; blank fields only; rate-limited, bounded and remembered for a week). The source editor has *Find location*. The location label now defaults to on for new installs. *Parser, resolver and matching logic: 28 JVM tests passing. Android integration: see PR validation.*
 - Cameras with no city at all (title and URL only, e.g. from the phone pairing page) still need *Find location* or a list that declares metadata; nothing is inferred from titles, because a wrong country or local time is worse than none.
 
+## October 28 source synchronization and QA
+
+The local live overlay was reconciled with PR #40 and the newest English/Portuguese README commits. The selected overlay has a 32-position display-care cycle (four compositions, eight drift offsets) with independent hiding; its earlier historical four-position description remains a baseline, not an exhaustive account of current behavior. The source editor height and camera header visibility fixes are included. All 32 physical timed phases still need real-device evidence.
+
+The integrated debug source passed 51 player tests, 4 diagnostic tests, 2 source-core test suites, 23 Python tests, Android build and Lint, document checks and the static packaged-stream guard. The installed TV APK and the local integrated debug APK were SHA-256-identical. These facts do not establish public-release readiness. See [integration details](testing/integrated-tv-snapshot-2026-10-28.md).
 ## Release blockers and risks
 
 1. Precisely compare Home, Settings and Live Camera Playback against all three original reference images. Reconcile typography/spacing/blur treatment, focus, correct labels/real data, all secondary screens and the **single** Settings navigation structure.
@@ -48,7 +53,7 @@ Implemented on top of `codex/ui-redesign-36`. Evidence is labeled per item; noth
 
 ## Active issue/PR tracking
 
-- [#36](https://github.com/murilaiooo/openvista/issues/36): unified TV design and precise mockup fidelity. Active draft [PR #37](https://github.com/murilaiooo/openvista/pull/37).
+- [#36](https://github.com/murilaiooo/openvista/issues/36): unified TV design and precise mockup fidelity. Integration record [PR #37](https://github.com/murilaiooo/openvista/pull/37).
 - [#34](https://github.com/murilaiooo/openvista/issues/34): consistent, nonintrusive loading/error states.
 - [#33](https://github.com/murilaiooo/openvista/issues/33): visual saved-camera selection preview.
 - Other open draft PRs are independent proposals or historical overlaps. Do not merge them blindly or claim a closed issue proves its requirements passed.
