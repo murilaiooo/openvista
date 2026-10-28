@@ -1,6 +1,6 @@
 # OpenVista: current engineering status
 
-**Reviewed October 27, 2026.** This is the live status for the active Android TV development work. Read [the Claude release handoff](implementation/claude-release-handoff-2026-10-27.md) for the full history and [the owner-approved acceptance criteria](product/v1-acceptance.md). Historical PR bodies and dated plans can be stale.
+**Reviewed October 27, 2026; October 28 pass summarized below.** This is the live status for the active Android TV development work. Read [the Claude release handoff](implementation/claude-release-handoff-2026-10-27.md) for the full history and [the owner-approved acceptance criteria](product/v1-acceptance.md). Historical PR bodies and dated plans can be stale.
 
 ## At a glance
 
@@ -25,6 +25,15 @@
 - [Player freeze recovery](testing/live-video-freeze-regression-2026-10-27.md): a PixelCopy hold overlay caused stale/frozen moving footage and was removed by `d90c535`. Ten-second physical TV recording around a camera switch showed 21/21 changed frame pairs; short decoder gaps are still possible.
 - [Missing current-day high](testing/missing-today-high-weather-qa-2026-10-27.md): after sunset, NWS high absence is supplemented using same-date Open-Meteo daily high while preserving original provider values and credit; focused tests and physical Tucson display passed.
 - Three genuine 3840x2160 physical TV screenshots are in `assets/screenshots/` and linked from README. **These are not the three original owner design mockups**, which must be provided to the implementation agent separately.
+
+## October 28 release-quality pass (branch `claude/project-thread-xcksji`)
+
+Implemented on top of `codex/ui-redesign-36`. Evidence is labeled per item; nothing here is release acceptance.
+
+- **Playback recovery** (`9490c31`): a live stream that falls behind its live window resyncs instead of being marked unavailable; a network outage no longer marks every camera unavailable (the session waits for connectivity, plays the fallback playlist when configured and resumes after the network settles); when all cameras fail while online, retries back off at 1, 2, 4, 8 and then 15 minutes. Notices are typed (quiet, brief, persistent) instead of string-matched. The stored *Scene transition: fade through black* setting is now implemented by a shared `SceneView` used by the player and the screensaver; persistent failures darken the surface so a frozen last frame is not left on screen. No PixelCopy or still-frame overlay was reintroduced. Library lookups are indexed. *Unit tests for the retry policy and notice mapping; device evidence is listed in PR notes.*
+- **Home and unified Settings** (`58d90cb`, built and checked on the Hisense): a shared 960x540 dp design canvas, Inter (OFL-1.1, license in `licenses/`), one logo for Home, launcher icon and banner (owner decision 2026-10-28), one Settings menu that maps legacy routes.
+- **Camera country, flag and location** (`521486f`, `5ef7a1e`): the root cause of missing countries was that M3U import dropped every `#EXTINF` attribute and cut titles at their last comma. The parser now keeps `group-title`/`#EXTGRP`, `tvg-country`, city, region time zone and paired coordinates. Countries resolve from ISO codes, names in common languages, aliases or the camera time zone, and are shown localized with their flag. Cameras that name a city but lack country, coordinates or time zone are completed from Open-Meteo geocoding (only the city and known country are sent, never stream URLs; unambiguous results only; blank fields only; rate-limited, bounded and remembered for a week). The source editor has *Find location*. The location label now defaults to on for new installs. *Parser, resolver and matching logic: 28 JVM tests passing. Android integration: see PR validation.*
+- Cameras with no city at all (title and URL only, e.g. from the phone pairing page) still need *Find location* or a list that declares metadata; nothing is inferred from titles, because a wrong country or local time is worse than none.
 
 ## Release blockers and risks
 
