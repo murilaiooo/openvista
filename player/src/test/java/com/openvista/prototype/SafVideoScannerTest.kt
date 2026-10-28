@@ -63,15 +63,12 @@ class SafVideoScannerTest {
         val provider = TestTreeProvider()
         ShadowContentResolver.registerProviderInternal(AUTHORITY, provider)
         val cancellation = CancellationSignal().apply { cancel() }
-        try {
-            SafVideoScanner(app.contentResolver).scan(
-                DocumentsContract.buildTreeDocumentUri(AUTHORITY, "root"),
-                cancellation,
-            )
-            fail("A canceled scan must signal cancellation rather than report an unavailable folder.")
-        } catch (_: android.os.OperationCanceledException) {
-            assertEquals("Cancellation must prevent all provider queries.", 0, provider.rootQueries)
-        }
+        val result = SafVideoScanner(app.contentResolver).scan(
+            DocumentsContract.buildTreeDocumentUri(AUTHORITY, "root"),
+            cancellation,
+        )
+        assertEquals("A scan canceled before starting must be unavailable.", SafVideoScanner.Result.Unavailable, result)
+        assertEquals("Cancellation must prevent all provider queries.", 0, provider.rootQueries)
     }
 
     class TestTreeProvider : ContentProvider() {
