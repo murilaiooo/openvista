@@ -16,7 +16,7 @@ internal class AmbientPresentation(private val context: Context) {
     private val locale get() = context.resources.configuration.locales[0]
     private var formatKey = ""
     private var time = SimpleDateFormat("HH:mm", locale)
-    private var date = SimpleDateFormat("EEE, MMM d", locale)
+    private var date = SimpleDateFormat("EEE, MMM d, yyyy", locale)
 
     fun zone(value: String): TimeZone? = runCatching {
         value.takeIf(String::isNotBlank)?.let { TimeZone.getTimeZone(ZoneId.of(it)) }
@@ -44,7 +44,7 @@ internal class AmbientPresentation(private val context: Context) {
         if (formatKey == key) return
         formatKey = key
         time = SimpleDateFormat(pattern, locale)
-        date = SimpleDateFormat("EEE, MMM d", locale)
+        date = SimpleDateFormat("EEE, MMM d, yyyy", locale)
     }
 
     fun fahrenheit(settings: AppSettings) = settings.temperatureUnit == "fahrenheit" ||

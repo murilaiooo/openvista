@@ -24,17 +24,26 @@ import kotlin.math.roundToInt
 class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameLayout(context) {
     private val main = Handler(Looper.getMainLooper())
     private val presentation = AmbientPresentation(context)
-    private val brand = label("openvista", 21f).apply { typeface = TvDesign.light; letterSpacing = .08f }
-    private val source = LocationGroup()
-    private val viewer = LocationGroup()
+    private val brand = label("openvista", 29f).apply {
+        typeface = android.graphics.Typeface.create("sans-serif-thin", android.graphics.Typeface.NORMAL)
+        letterSpacing = -.016f
+    }
+    private val source = LocationGroup(false)
+    private val viewer = LocationGroup(true)
+    private val sceneContrast = View(context).apply {
+        background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP,
+            intArrayOf(0x71090E17, 0x19090E17, 0x00000000))
+    }
     private val forecastPanel = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        background = subtleAmbientScrim()
-        setPadding(dp(8), dp(5), dp(8), dp(5))
+        background = null
+        setPadding(0, 0, 0, 0)
     }
     private val forecastTitle = label("", 11f)
     private val forecastState = label("", 13f)
-    private val forecastRow = LinearLayout(context)
+    private val forecastRow = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+    private val forecastDividers = List(6) { View(context).apply { setBackgroundColor(0x55FFFFFF) } }
     private val forecastCredit = label("", 10f)
     private val cells = List(7) { ForecastCell() }
     private val sourceWeather = WeatherSlot()
@@ -71,9 +80,14 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         forecastPanel.addView(forecastTitle)
         forecastPanel.addView(forecastState)
-        cells.forEach { forecastRow.addView(it, LinearLayout.LayoutParams(0, -2, 1f)) }
+        cells.forEachIndexed { index, cell ->
+            if (index > 0) forecastRow.addView(forecastDividers[index - 1],
+                LinearLayout.LayoutParams(dp(1), dp(88)))
+            forecastRow.addView(cell, LinearLayout.LayoutParams(0, -2, 1f))
+        }
         forecastPanel.addView(forecastRow)
         forecastPanel.addView(forecastCredit)
+        addView(sceneContrast, FrameLayout.LayoutParams(-1, -1))
         addView(brand)
         addView(source)
         addView(viewer)
@@ -188,15 +202,15 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             }?.location?.timeZone?.let(presentation::zone)
         val viewerZone = presentation.zone(settings.viewerTimeZone) ?: TimeZone.getDefault()
         val sourcePlace = item?.let { listOf(it.city, it.country).filter(String::isNotBlank).joinToString(", ") }.orEmpty()
-        val sourceMode = context.getString(if (item?.family == MediaFamily.VIDEOS) R.string.ambient_local_video else R.string.ambient_camera)
         val sourceStatus = context.getString(when {
             live && playing && item?.family == MediaFamily.CAMERAS -> R.string.ambient_live
             playing -> R.string.ambient_playing
             buffering -> R.string.playback_connecting
             else -> R.string.ambient_paused
         })
-        source.bind(sourceMode + " · " + sourceStatus,
-            if (settings.showLocation) sourcePlace else "",
+        val liveStatus = live && playing && item?.family == MediaFamily.CAMERAS
+        source.bind(if (liveStatus) "● " + sourceStatus else sourceStatus,
+            if (settings.showLocation) sourcePlace + flagForCountry(item?.country.orEmpty()) else "",
             sourceZone, current, sourceSlot, settings.showSourceInfo && item != null)
         val viewerConfigured = settings.viewerCity.isNotBlank() || viewerLocation != null || settings.viewerTimeZone.isNotBlank()
         val deviceClockOnly = settings.showClock && !settings.showSourceInfo && !viewerConfigured
@@ -222,11 +236,19 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private fun bindForecast(slot: WeatherSlot, zone: TimeZone?, locationName: String?) {
         forecastPanel.visibility = if (settings.showForecast) View.VISIBLE else View.GONE
         val timeZone = zone ?: slot.forecast?.location?.timeZone?.let(presentation::zone) ?: TimeZone.getDefault()
-        val days = presentation.days(slot.forecast, settings.viewerForecastDays, timeZone)
+        val candidates = presentation.days(slot.forecast,
+            (settings.viewerForecastDays + 1).coerceAtMost(7), timeZone)
+        val today = java.time.LocalDate.now(timeZone.toZoneId())
+        val days = (if (candidates.firstOrNull()?.date == today.toString())
+            candidates.drop(1) else candidates).take(settings.viewerForecastDays)
         val title = locationName?.takeIf { settings.showLocation && it.isNotBlank() }?.let { context.getString(R.string.ambient_forecast_for, it) }
             ?: context.getString(R.string.ambient_forecast_days, settings.viewerForecastDays)
-        forecastTitle.put(title + if (slot.stale) " · " + context.getString(R.string.weather_cached) else "")
+        forecastTitle.put(if (days.isEmpty()) title else if (slot.stale)
+            context.getString(R.string.weather_cached) else "")
         forecastState.put(if (days.isEmpty()) slot.message() else "")
+        forecastDividers.forEachIndexed { index, divider ->
+            divider.visibility = if (index + 1 < days.size) View.VISIBLE else View.GONE
+        }
         val key = days.hashCode().toString() + "/" + timeZone.id + "/" + settings.temperatureUnit + "/" +
             settings.overlayColor + "/" + java.time.LocalDate.now(timeZone.toZoneId())
         if (forecastKey != key) {
@@ -241,49 +263,51 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         listOf(forecastTitle, forecastState, forecastCredit).forEach { it.setTextColor(settings.overlayColor) }
     }
 
-    /**
-     * Measure each widget within one of two non-overlapping rows. In the cinematic
-     * layout the forecast is a compact 62%-width panel, not a permanent full-width
-     * footer. Measuring before positioning preserves all seven days and attribution.
-     */
+    /** Reference canvas: original positions scale with 16:9 safe space. */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val w = MeasureSpec.getSize(widthMeasureSpec)
         val h = MeasureSpec.getSize(heightMeasureSpec)
         setMeasuredDimension(w, h)
+        sceneContrast.measure(
+            MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
         val preview = h < dp(320)
-        safeX = maxOf(dp(if (preview) 12 else 32), (w * .05f).roundToInt())
-        safeY = maxOf(dp(if (preview) 10 else 22), (h * .05f).roundToInt())
-        travel = dp(if (preview) 2 else 8)
+        safeX = maxOf(dp(if (preview) 14 else 36), (w * .043f).roundToInt())
+        safeY = maxOf(dp(if (preview) 10 else 26), (h * .041f).roundToInt())
+        travel = dp(if (preview) 1 else 2)
         compositionWidth = (w - 2 * (safeX + travel)).coerceAtLeast(0)
         compositionHeight = (h - 2 * (safeY + travel)).coerceAtLeast(0)
         val scale = settings.overlaySize.coerceIn(14, 40) / 20f *
             (h.toFloat() / dp(540)).coerceIn(if (preview) .45f else .7f, 1f)
         source.size(scale)
-        viewer.size(scale * .82f)
-        cells.forEach { it.size(if (preview) .7f else if (settings.viewerForecastDays >= 6) .84f else 1f) }
+        viewer.size(scale)
+        cells.forEach { it.size((if (preview) .68f else 1f) * scale.coerceIn(.8f, 1.25f)) }
         fun atMost(fraction: Float) = MeasureSpec.makeMeasureSpec(
             (compositionWidth * fraction).roundToInt(), MeasureSpec.AT_MOST)
-        fun measure(view: View, widthSpec: Int, maxHeight: Int) {
+        fun fit(view: View, widthSpec: Int, height: Int) {
             if (view.visibility == View.GONE) view.measure(
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY))
             else view.measure(widthSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
-            val fit = if (view.measuredHeight == 0) 1f else
-                (maxHeight.coerceAtLeast(0).toFloat() / view.measuredHeight).coerceAtMost(1f)
+            val xFit = if (view.measuredWidth == 0) 1f else
+                (MeasureSpec.getSize(widthSpec).toFloat() / view.measuredWidth).coerceAtMost(1f)
+            val yFit = if (view.measuredHeight == 0) 1f else
+                (height.coerceAtLeast(0).toFloat() / view.measuredHeight).coerceAtMost(1f)
             view.pivotX = 0f
             view.pivotY = 0f
-            view.scaleX = fit
-            view.scaleY = fit
+            view.scaleX = minOf(xFit, yFit)
+            view.scaleY = minOf(xFit, yFit)
         }
-        measure(source, atMost(.42f), (compositionHeight * .42f).toInt())
-        measure(brand, atMost(.30f), (compositionHeight * .12f).toInt())
-        measure(viewer, atMost(.32f), (compositionHeight * .38f).toInt())
-        measure(forecastPanel, MeasureSpec.makeMeasureSpec(
-            (compositionWidth * .62f).roundToInt(), MeasureSpec.EXACTLY),
-            (compositionHeight * .38f).toInt())
+        fit(source, atMost(.34f), (compositionHeight * .45f).toInt())
+        fit(brand, atMost(.28f), (compositionHeight * .11f).toInt())
+        fit(viewer, atMost(.475f), (compositionHeight * .39f).toInt())
+        fit(forecastPanel, MeasureSpec.makeMeasureSpec(
+            (compositionWidth * .515f).roundToInt(), MeasureSpec.EXACTLY),
+            (compositionHeight * .31f).toInt())
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        sceneContrast.layout(0, 0, measuredWidth, measuredHeight)
         val positions = AmbientPlacement.calculate(
             left = safeX + travel,
             top = safeY + travel,
@@ -296,16 +320,27 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             phase = if (settings.moveOverlay) phase else 0,
             corner = settings.overlayCorner,
             controlsVisible = controlsVisible,
-            insetX = (dp(32) * settings.overlayX.coerceIn(0, 100) / 100f).roundToInt(),
-            insetY = (dp(32) * settings.overlayY.coerceIn(0, 100) / 100f).roundToInt(),
+            insetX = (dp(18) * settings.overlayX.coerceIn(0, 100) / 100f).roundToInt(),
+            insetY = (dp(18) * settings.overlayY.coerceIn(0, 100) / 100f).roundToInt(),
         )
         fun place(view: View, origin: OverlayOrigin) {
             view.layout(origin.x, origin.y, origin.x + view.measuredWidth, origin.y + view.measuredHeight)
         }
         place(brand, positions.brand)
         place(source, positions.source)
-        place(viewer, positions.viewer)
-        place(forecastPanel, positions.forecast)
+        val movementPhase = if (settings.moveOverlay) phase else 0
+        val sourceBottom = !controlsVisible &&
+            ((settings.overlayCorner >= 2) != (movementPhase >= 2))
+        val infoOffset = if (sourceBottom) dp(9) else -dp(9)
+        place(viewer, OverlayOrigin(positions.viewer.x, positions.viewer.y + infoOffset))
+        // Complete information blocks mirror and rotate; upper-row tweaks stay inset.
+        val sourceOnRight = (settings.overlayCorner % 2 == 0) !=
+            (movementPhase % 2 == 1)
+        val inwardForecast = if (sourceOnRight) -dp(45) else dp(45)
+        val forecastOffset = if (sourceBottom) dp(8) else -dp(8)
+        val adjustedForecast = OverlayOrigin(positions.forecast.x + inwardForecast,
+            positions.forecast.y + forecastOffset)
+        place(forecastPanel, adjustedForecast)
     }
 
     override fun onDetachedFromWindow() {
@@ -353,81 +388,203 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         })
     }
 
-    private inner class LocationGroup : LinearLayout(context) {
-        private val eyebrow = label("", 11f)
-        private val place = label("", 19f).apply { typeface = TvDesign.medium; maxLines = 2 }
-        private val clock = label("", 70f).apply { typeface = TvDesign.light; letterSpacing = -.025f }
-        private val date = label("", 12f)
-        private val conditions = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+    /** The viewer owns a horizontal baseline composition; the source owns a vertical one. */
+    private inner class LocationGroup(private val viewerMode: Boolean) : LinearLayout(context) {
+        private val eyebrow = label("", if (viewerMode) 13f else 15f)
+        private val place = label("", 24f).apply { typeface = TvDesign.light; maxLines = 1 }
+        private val clock = label("", if (viewerMode) 70f else 92f).apply {
+            typeface = android.graphics.Typeface.create("sans-serif-thin", android.graphics.Typeface.NORMAL)
+            letterSpacing = -.035f
+            maxLines = 1
+        }
+        private val date = label("", 15f).apply { setTextColor(0xFFDEE1E6.toInt()); maxLines = 1 }
         private val symbol = WeatherSymbol(context)
-        private val weather = label("", 14f).apply { maxLines = 2 }
-        private val metrics = label("", 11f)
-        private val credit = label("", 10f).apply { maxLines = 2 }
+        private val temperature = label("", if (viewerMode) 32f else 22f).apply {
+            typeface = TvDesign.light
+            maxLines = 1
+        }
+        private val condition = label("", 13.5f).apply { setTextColor(0xFFDDE0E5.toInt()); maxLines = 1 }
+        private val metrics = label("", 12f).apply {
+            setTextColor(0xFFDDE0E5.toInt()); maxLines = 2
+            setLineSpacing(dp(6).toFloat(), 1f)
+        }
+        private val highs = label("", 16f).apply { maxLines = 1 }
+        private val credit = label("", 9f).apply { maxLines = 1 }
+        private val weatherStack = LinearLayout(context).apply { orientation = VERTICAL }
+        private val weatherRow = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+        private val timeStack = LinearLayout(context).apply { orientation = VERTICAL }
+        private val detailRow = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+        private val timeRule = View(context).apply { setBackgroundColor(0x55FFFFFF) }
+        private val weatherRule = View(context).apply { setBackgroundColor(0x55FFFFFF) }
+
         init {
             orientation = VERTICAL
-            background = subtleAmbientScrim()
-            setPadding(dp(8), dp(5), dp(8), dp(5))
-            conditions.addView(symbol, LinearLayout.LayoutParams(dp(26), dp(26)))
-            conditions.addView(weather, LinearLayout.LayoutParams(0, -2, 1f))
-            listOf(eyebrow, place, clock, date, conditions, metrics, credit).forEach { addView(it) }
+            background = null
+            setPadding(0, 0, 0, 0)
+            eyebrow.setTextColor(0xFFE3E7EA.toInt())
+            addView(eyebrow)
+            if (viewerMode) {
+                addView(place)
+                timeStack.addView(clock)
+                timeStack.addView(date)
+                detailRow.addView(timeStack, LinearLayout.LayoutParams(dp(230), -2))
+                detailRow.addView(timeRule, LinearLayout.LayoutParams(dp(1), dp(90)).apply {
+                    leftMargin = dp(8); rightMargin = dp(20)
+                })
+                weatherStack.addView(temperature)
+                weatherStack.addView(condition)
+                weatherStack.addView(highs)
+                weatherRow.addView(symbol, LinearLayout.LayoutParams(dp(53), dp(53)).apply {
+                    rightMargin = dp(10)
+                })
+                weatherRow.addView(weatherStack, LinearLayout.LayoutParams(dp(165), -2))
+                detailRow.addView(weatherRow, LinearLayout.LayoutParams(dp(238), -2))
+                addView(detailRow)
+                detailRow.clipChildren = false
+                weatherRow.translationY = -dp(15).toFloat()
+                date.translationY = -dp(8).toFloat()
+            } else {
+                addView(clock)
+                clock.layoutParams = LinearLayout.LayoutParams(-2, -2).apply {
+                    topMargin = -dp(12)
+                }
+                addView(date)
+                date.layoutParams = LinearLayout.LayoutParams(-2, -2).apply {
+                    topMargin = -dp(6)
+                }
+                weatherStack.addView(temperature)
+                weatherStack.addView(condition)
+                weatherRow.addView(symbol, LinearLayout.LayoutParams(dp(35), dp(35)).apply {
+                    rightMargin = dp(9)
+                })
+                weatherRow.addView(weatherStack, LinearLayout.LayoutParams(dp(116), -2))
+                weatherRow.addView(weatherRule, LinearLayout.LayoutParams(dp(1), dp(43)).apply {
+                    leftMargin = dp(10); rightMargin = dp(11)
+                })
+                weatherRow.addView(metrics, LinearLayout.LayoutParams(dp(135), -2))
+                addView(weatherRow)
+            }
+            addView(credit)
         }
+
         fun bind(caption: String, location: String, zone: TimeZone?, now: Date, slot: WeatherSlot, visible: Boolean) {
             visibility = if (visible) View.VISIBLE else View.GONE
-            eyebrow.put(caption)
-            place.put(location)
+            if (viewerMode) {
+                eyebrow.put(caption)
+                place.put(location)
+            } else {
+                place.visibility = View.GONE
+                eyebrow.put(listOf(caption, location).filter(String::isNotBlank).joinToString("   |   "))
+            }
             clock.put(if (settings.showClock && zone != null) presentation.clock(zone, settings, now) else "")
             date.put(if (settings.showDate && zone != null) presentation.date(zone, settings, now) else "")
             val current = slot.forecast?.current
-            val condition = current?.let { WeatherText.description(context, it) }.orEmpty()
-            weather.put(if (!settings.showWeather) "" else if (current == null) slot.message() else
-                listOfNotNull(current.temperatureC?.let { presentation.temperature(it, settings) }, condition.takeIf(String::isNotBlank))
-                    .joinToString("  ·  ").ifBlank { context.getString(R.string.ambient_condition_unavailable) } +
-                    if (slot.stale) " · " + context.getString(R.string.weather_cached) else "")
-            conditions.visibility = if (settings.showWeather) View.VISIBLE else View.GONE
+            val description = current?.let { WeatherText.description(context, it) }.orEmpty()
+            val weatherVisible = settings.showWeather
+            weatherRow.visibility = if (weatherVisible) View.VISIBLE else View.GONE
             symbol.bind(current?.weatherCode, current?.description)
-            metrics.put(if (settings.showWeather) presentation.metrics(current, settings) else "")
-            credit.put(if (settings.showWeather) slot.forecast?.takeIf { it.requiresVisibleAttribution }?.attribution.orEmpty() else "")
+            symbol.tint(when (current?.weatherCode) {
+                0, 1 -> 0xFFFFCE37.toInt()
+                2 -> 0xFFFFD873.toInt()
+                in 51..67, in 80..82 -> 0xFF88D6FA.toInt()
+                else -> settings.overlayColor
+            })
+            temperature.put(if (!weatherVisible) "" else if (current == null) "" else presentation.temperature(current.temperatureC, settings))
+            condition.put(if (!weatherVisible) "" else if (current == null) slot.message() else description +
+                (if (slot.stale) " · " + context.getString(R.string.weather_cached) else ""))
+            if (viewerMode) {
+                val today = slot.forecast?.days?.firstOrNull { day ->
+                    runCatching { java.time.LocalDate.parse(day.date) }.getOrNull() ==
+                        java.time.LocalDate.now((zone ?: TimeZone.getDefault()).toZoneId())
+                }
+                highs.put(if (!weatherVisible || today == null) "" else
+                    "H: " + presentation.temperature(today.maximumC, settings, false) +
+                    "    L: " + presentation.temperature(today.minimumC, settings, false))
+                metrics.visibility = View.GONE
+                timeRule.visibility = if (weatherVisible) View.VISIBLE else View.GONE
+            } else {
+                val parts = presentation.metrics(current, settings).split("  ·  ").filter(String::isNotBlank)
+                metrics.put(if (weatherVisible) parts.joinToString("\n") else "")
+                weatherRule.visibility = if (weatherVisible && parts.isNotEmpty()) View.VISIBLE else View.GONE
+            }
+            credit.put(if (weatherVisible) slot.forecast?.takeIf { it.requiresVisibleAttribution }?.attribution.orEmpty() else "")
         }
+
         fun tint(color: Int) {
-            listOf(eyebrow, place, clock, date, weather, metrics, credit).forEach { it.setTextColor(color) }
-            symbol.tint(color)
+            listOf(eyebrow, place, clock, date, temperature, condition, metrics, highs, credit)
+                .forEach { it.setTextColor(color) }
+            condition.setTextColor(0xFFE0E0E0.toInt())
+            metrics.setTextColor(0xFFD6D9DD.toInt())
+            date.setTextColor(0xFFDEE1E6.toInt())
+            if (!viewerMode && eyebrow.text.toString().startsWith("●")) {
+                val rendered = android.text.SpannableString(eyebrow.text)
+                val end = rendered.indexOf("   |").takeIf { it >= 0 } ?: rendered.length
+                rendered.setSpan(android.text.style.ForegroundColorSpan(0xFF67DD74.toInt()),
+                    0, end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                eyebrow.text = rendered
+            }
         }
+
         fun size(scale: Float) {
-            place.textSize = 19f * scale
-            clock.textSize = 70f * scale
-            weather.textSize = 14f * scale.coerceAtLeast(.8f)
+            clock.textSize = (if (viewerMode) 70f else 92f) * scale
+            place.textSize = 24f * scale
+            temperature.textSize = (if (viewerMode) 32f else 22f) * scale
+            eyebrow.textSize = (if (viewerMode) 13f else 15f) * scale
+            date.textSize = 15f * scale
         }
     }
 
     private inner class ForecastCell : LinearLayout(context) {
-        private val day = label("", 12f)
+        private val day = label("", 15f)
         private val symbol = WeatherSymbol(context)
-        private val temperatures = label("", 17f).apply { typeface = TvDesign.medium }
-        private val rain = label("", 11f)
+        private val temperatures = label("", 20f).apply { typeface = TvDesign.regular }
+        private val rain = label("", 13f).apply { setTextColor(0xFFE0E3E7.toInt()) }
+        private val rainMark = PrecipitationDrop(context)
+        private val rainRow = LinearLayout(context).apply { gravity = Gravity.CENTER }
         init {
             orientation = VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(6), dp(4), dp(6), dp(4))
+            setPadding(dp(3), dp(1), dp(3), dp(1))
             listOf(day, temperatures, rain).forEach { it.gravity = Gravity.CENTER; it.maxLines = 1 }
             addView(day)
-            addView(symbol, LinearLayout.LayoutParams(dp(28), dp(28)))
+            addView(symbol, LinearLayout.LayoutParams(dp(51), dp(51)).apply {
+                topMargin = dp(4); bottomMargin = dp(4)
+            })
             addView(temperatures)
-            addView(rain)
+            rainRow.addView(rainMark, LinearLayout.LayoutParams(dp(10), dp(13)).apply {
+                rightMargin = dp(5)
+            })
+            rainRow.addView(rain)
+            addView(rainRow)
         }
+
         fun bind(value: ForecastDay, zone: TimeZone, divider: Boolean) {
             day.put(presentation.dayLabel(value.date, zone))
-            temperatures.put(presentation.temperature(value.maximumC, settings, false) + " / " +
-                presentation.temperature(value.minimumC, settings, false))
+            val highs = presentation.temperature(value.maximumC, settings, false)
+            val lows = presentation.temperature(value.minimumC, settings, false)
+            val rich = android.text.SpannableString(highs + "  " + lows)
+            rich.setSpan(android.text.style.ForegroundColorSpan(0xFFC9CDD2.toInt()),
+                highs.length + 2, rich.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            temperatures.text = rich
             rain.put(presentation.percent(value.precipitationChancePct))
             symbol.bind(value.weatherCode, value.description)
-            symbol.tint(settings.overlayColor)
-            listOf(day, temperatures, rain).forEach { it.setTextColor(settings.overlayColor) }
-            // Forecast icons and labels float over the scene without opaque day cards.
-            background = null
+            symbol.tint(when (value.weatherCode) {
+                0, 1 -> 0xFFFFCA34.toInt()
+                2 -> 0xFFFFD36B.toInt()
+                in 51..67, in 80..82 -> 0xFF91D6F6.toInt()
+                else -> settings.overlayColor
+            })
+            day.setTextColor(settings.overlayColor)
+            rain.setTextColor(0xFFE0E3E7.toInt())
             contentDescription = listOf(day.text, value.description.orEmpty(), temperatures.text,
                 context.getString(R.string.ambient_rain_chance, rain.text)).joinToString(", ")
         }
-        fun size(scale: Float) { day.textSize = 12f * scale; temperatures.textSize = 16f * scale; rain.textSize = 11f * scale }
+
+        fun size(scale: Float) {
+            day.textSize = 15f * scale
+            temperatures.textSize = 20f * scale
+            rain.textSize = 13f * scale
+        }
     }
 
     private fun label(value: String, size: Float) = TextView(context).apply {
@@ -442,11 +599,17 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         if (text.toString() != value) text = value
         visibility = if (value.isBlank()) View.GONE else View.VISIBLE
     }
-    // No opaque cards: a shallow gradient and text shadow protect contrast over scenery.
-    private fun subtleAmbientScrim() = android.graphics.drawable.GradientDrawable(
-        android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP,
-        intArrayOf(0x7107121F, 0x2C07121F, 0x0007121F),
-    )
+    private fun flagForCountry(country: String): String {
+        if (country.isBlank()) return ""
+        val countryCode = java.util.Locale.getISOCountries().firstOrNull { code ->
+            country.equals(java.util.Locale.Builder().setRegion(code).build()
+                .getDisplayCountry(java.util.Locale.ENGLISH), true) ||
+                country.equals(code, true)
+        } ?: return ""
+        val first = 0x1F1E6 + (countryCode[0] - 'A')
+        val second = 0x1F1E6 + (countryCode[1] - 'A')
+        return "  " + String(Character.toChars(first)) + String(Character.toChars(second))
+    }
     private fun dp(value: Int) = TvDesign.dp(context, value)
     private fun drawnHeight(view: View) = (view.measuredHeight * view.scaleY).roundToInt()
     private fun drawnWidth(view: View) = (view.measuredWidth * view.scaleX).roundToInt()

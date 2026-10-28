@@ -9,7 +9,7 @@ The earlier Cinematic implementation advanced a nine-point position phase but re
 ## Implementation
 
 - Four discrete compositions rotate source/brand and viewer/forecast between opposite corners and upper/lower safe rows. Each group moves as a whole: clocks, city, status, weather icons, dividers/attribution and backgrounds. No continuous animation loop.
-- A 62%-width forecast with an independent viewer block replaces the always-full-width footer. Five- to seven-day weather remains selectable. Source and viewer locations stay independent, with no filename substituted for a city.
+- A reference-matched 51.5%-width forecast with an independent viewer block replaces the always-full-width footer. Five- to seven-day weather remains selectable. Source and viewer locations stay independent, with no filename substituted for a city.
 - Reserve the existing 5% screen-safe margin, plus an additional 8dp on the full-size player. Each information group is measured and fitted before being positioned. The upper and lower rows cannot overlap given their capped heights (42% and 38% of the available area).
 - When the controls are open, source information stays in the upper band while the viewer/forecast are hidden by the existing controller. Controls do not move.
 - The movement interval still accepts 1–30 minutes and defaults to 5. Movement now defaults to on for **new settings**; an existing explicitly saved off choice remains off. Hide/fade is still an independent optional control.

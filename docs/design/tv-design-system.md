@@ -24,7 +24,7 @@ The original mockup PNGs are not available in the issue or tracked assets. The w
 | Typography | Android `sans-serif`, `sans-serif-medium`, `sans-serif-light`; no bundled font |
 | Page title / body / label | 32sp / 17sp / 13sp |
 | Home destination title | 28–40sp adaptive; number/eyebrow 12sp |
-| Ambient source clock | 70sp at overlay-size 20; viewer clock scaled to 82% |
+| Ambient source clock | 92sp (thin); viewer clock 70sp (thin) at overlay-size 20; viewer clock scaled to 82% |
 | Spacing rhythm | 4, 8, 12, 16, 24, 32, 40dp |
 | Standard safe padding | 40dp horizontally, 28dp vertically |
 | Ambient safe area | At least 5% or 32dp horizontal / 22dp vertical, plus reserved movement inset |
@@ -81,7 +81,7 @@ The NWS adapter keeps provider-supplied daily condition text and optional point 
 
 Movement and inactivity hiding remain separately switchable and persisted. Movement now cycles through four distinct safe-row compositions using one interval timer. Brand, source, viewer and the compact forecast alternate corners and upper/lower rows, moving the entire visible widgets, including background gradients, dividers and symbols. See [display-care correction](ambient-display-care-2026-10-27.md) for the verified 12dp regression and its repair. Hiding uses the configured inactivity delay; any ordinary player interaction restores information. Neither changes the system screensaver, power configuration or media position.
 
-The cinematic forecast now uses 62% of the safe width and shares one non-overlapping row with the viewer's location block. Corner selection controls the initial arrangement, while display care periodically alternates the rows and sides. Advanced X/Y insets remain bounded by the measured gaps between groups. The alternate Compact preset retains its own visibility choices and uses the same safe placement engine. These are explicit adaptations from the former single-box editor to four information zones.
+The reference-composition forecast now uses 51.5% of the safe width and shares one non-overlapping row with the viewer's location block. Corner selection controls the initial arrangement, while display care periodically alternates the rows and sides. Advanced X/Y insets remain bounded by the measured gaps between groups. The alternate Compact preset retains its own visibility choices and uses the same safe placement engine. These are explicit adaptations from the former single-box editor to four information zones.
 
 New preferences use optional JSON fields. Existing four visibility switches, opacity/color/size, clock/units, movement, hiding and delay are read unchanged. Saved legacy None remains empty and makes no forecast requests. When the new layout and zone keys are absent in older saved data, enabled overlays adopt the approved Cinematic composition, source information and restrained brand; explicitly saved zone choices remain intact. New installations also default to Cinematic with display-care movement enabled and source/viewer date lines available. Explicitly saved movement and date choices are preserved. Per-zone opacity is 20–100%; visibility switches turn zones off. Existing source libraries and explicitly saved user settings are never reset.
 
@@ -98,3 +98,8 @@ Dream sessions start muted even if ordinary app playback was previously unmuted.
 ## Independent acceptance
 
 See [the independent review runbook](issue-36-validation.md). Compilation, tests, lint, runtime screenshots, remote behavior, visual fidelity, CPU/GPU/RAM measurements, screensaver lifecycle and extended playback remain unverified for this branch. No build, test, lint, emulator, ADB, device operation or automated validation was executed during implementation.
+
+
+## Supplied ambient mockup fidelity
+
+See [ambient reference fidelity contract](ambient-reference-fidelity.md) for normalized geometry, light/thin typography, data-driven source/viewer weather, five upcoming days, safe mirrored placements and outstanding hardware comparison limitations.
