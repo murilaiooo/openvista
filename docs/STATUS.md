@@ -10,7 +10,7 @@
 | Where is the integrated source? | The latest owner-TV-matched local overlay, PR #40, and the updated English/Portuguese READMEs are merged into `main` through PR #37. See [integration QA](testing/integrated-tv-snapshot-2026-10-28.md) and [PR #37](https://github.com/murilaiooo/openvista/pull/37). |
 | Is this ready for a public release? | **No.** The source is integrated into `main`; historical stream URLs and other distribution gates still need review. |
 | Does the TV match the integrated APK? | **Yes, byte for byte.** The installed October 27 debug APK and the current local build share the same SHA-256. This is not a 24-hour stability certification. See [QA record](testing/integrated-tv-snapshot-2026-10-28.md). |
-| Is this a public, signed or stable release? | **No.** GitHub repository remains private; no approved production APK release or supported cross-device matrix. |
+| Is there a signed APK? | **Yes: v0.3.0-preview.1** is a private-repository GitHub **prerelease**, built and signed independently of the existing debug key. It is not stable, not publicly accessible, and not a 24-hour soak certification. See [release notes](releases/v0.3.0-preview.1.md). |
 | Does the APK contain a camera catalog, playlists or bundled videos? | **It must not.** Under owner decision C-01, all live URLs, M3Us and local videos are user-managed, not shipped. Run the actual final-artifact guard before any release. |
 | Is weather global? | **Camera weather is now implemented outside the US** through Open-Meteo, while NWS remains preferred within its US coverage. A missing same-day high after sunset is supplemented only for that exact date. Location geocoding and all international failure/terms cases remain subject to review. |
 | What is next? | Reference-accurate design audit; one coherent Settings menu; burn-in phase/device verification; QA/optimization; security/history/content audit; 24-hour hardware soak; explicit owner approval. |
@@ -61,6 +61,6 @@ The integrated debug source passed 51 player tests, 4 diagnostic tests, 2 source
 ## Engineering rules
 
 - English-only repository code, docs, PRs and commit messages; EN/PT-BR app localization retained.
-- The package is still `com.openvista.prototype`, version code 2, `0.2.0-implementation-preview`; this is **not** a final public identity. Different source commits can produce the same version string, so compare artifacts by hash and Git state.
+- The package remains `com.openvista.prototype`. The signed preview is version code 3, `0.3.0-preview.1`; this is **not** a final public product identity. Different source commits can produce the same version string, so compare artifacts by hash and Git state.
 - Preserve user data, launcher and OS screensaver settings. Avoid bundled streams, fake location/media/weather data, unlicensed imagery, release-ready assumptions and unauthorized device modifications.
 - Use applicable `.claude/skills` and `.agents/skills` instructions, local Gradle/unit/Lint plus independent physical hardware checks. No GitHub Actions required.

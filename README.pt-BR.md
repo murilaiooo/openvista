@@ -146,7 +146,7 @@ O OpenVista não possui sistema próprio de anúncios, cadastro ou assinatura. P
 
 **Já posso baixar o OpenVista?**
 
-O OpenVista ainda está em **desenvolvimento** e não possui um APK público estável para instalação. Acompanhe as novidades em [status do projeto](docs/STATUS.md) e [próximas etapas](docs/roadmap.md). Recursos e compatibilidade com diferentes TVs continuam em avaliação.
+A versão assinada de testes **v0.3.0-preview.1** está disponível em [GitHub Releases](https://github.com/murilaiooo/openvista/releases/tag/v0.3.0-preview.1) para colaboradores com acesso a este repositório privado. Ainda não é uma versão pública estável. APKs antigos assinados com a chave de desenvolvimento não podem ser atualizados diretamente. Faça backup das câmeras e playlists antes de trocar a instalação.
 
 ---
 
