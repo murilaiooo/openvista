@@ -8,11 +8,25 @@ import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
+import java.time.ZoneId
 import java.util.Locale
 
 enum class StreamKind { HLS, DASH }
 
-data class UserSource(val title: String, val url: String, val kind: StreamKind)
+/**
+ * Grouping and location a list declares for one entry. Every field is optional and only holds
+ * what the list itself states; nothing is inferred from a title or URL.
+ */
+data class SourceMetadata(
+    val category: String = "",
+    val country: String = "",
+    val city: String = "",
+    val timeZone: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+)
+
+data class UserSource(val title: String, val url: String, val kind: StreamKind, val metadata: SourceMetadata = SourceMetadata())
 
 enum class PlaylistFailure {
     FILE_TOO_LARGE, INVALID_UTF8, INVALID_PLAYLIST, HLS_MANIFEST,
@@ -114,11 +128,19 @@ class UserSourceParser {
         var duplicates = 0
         var entries = 0
         var pendingTitle: String? = null
+        var pendingAttributes = emptyMap<String, String>()
+        var pendingGroup: String? = null
 
         for (line in lines.dropWhile { it.isBlank() }.drop(1)) {
             if (line.isBlank()) continue
             if (line.startsWith("#EXTINF:", ignoreCase = true)) {
-                pendingTitle = if (line.contains(',')) line.substringAfterLast(',') else null
+                val (attributes, title) = extinf(line.substring("#EXTINF:".length))
+                pendingAttributes = attributes
+                pendingTitle = title
+                continue
+            }
+            if (line.startsWith("#EXTGRP:", ignoreCase = true)) {
+                pendingGroup = line.substring("#EXTGRP:".length)
                 continue
             }
             if (line.startsWith("#")) continue
@@ -133,9 +155,11 @@ class UserSourceParser {
             } else if (!seen.add(url)) {
                 duplicates++
             } else {
-                sources += UserSource(cleanTitle(pendingTitle, entries), url, kind)
+                sources += UserSource(cleanTitle(pendingTitle, entries), url, kind, metadata(pendingAttributes, pendingGroup))
             }
             pendingTitle = null
+            pendingAttributes = emptyMap()
+            pendingGroup = null
         }
         return if (sources.isEmpty()) {
             PlaylistResult.Rejected(PlaylistFailure.NO_SUPPORTED_SOURCES)
@@ -143,6 +167,47 @@ class UserSourceParser {
             PlaylistResult.Ready(sources, skipped, duplicates)
         }
     }
+
+    /**
+     * Splits `-1 key="value" key=value,Title` at the first comma outside quotes, so attribute
+     * values and titles may both contain commas ("Rialto Bridge, Venice").
+     */
+    private fun extinf(body: String): Pair<Map<String, String>, String?> {
+        var quote: Char? = null
+        var split = -1
+        var previous = ' '
+        for ((index, char) in body.withIndex()) {
+            if (quote != null) { if (char == quote) quote = null; continue }
+            // Only a quote that opens a value counts, so "O'Hare" in an unquoted value is plain text.
+            if ((char == '"' || char == '\'') && previous == '=') quote = char
+            else if (char == ',') { split = index; break }
+            if (!char.isWhitespace()) previous = char
+        }
+        val head = if (split < 0) body else body.substring(0, split)
+        val attributes = HashMap<String, String>()
+        ATTRIBUTE.findAll(head).take(MAX_ATTRIBUTES).forEach { match ->
+            val value = match.groupValues.drop(2).firstOrNull(String::isNotEmpty).orEmpty()
+            attributes.putIfAbsent(match.groupValues[1].lowercase(Locale.ROOT), value)
+        }
+        return attributes to if (split < 0) null else body.substring(split + 1)
+    }
+
+    private fun metadata(attributes: Map<String, String>, group: String?): SourceMetadata {
+        fun first(vararg keys: String) = keys.firstNotNullOfOrNull { key -> attributes[key]?.let(::cleanText)?.takeIf(String::isNotEmpty) }.orEmpty()
+        // Lists such as iptv-org separate several countries with ';'; the first is the camera's own.
+        val country = first("tvg-country", "country").split(';', '|').first().trim()
+        val zone = first("tvg-timezone", "timezone", "time-zone", "tz").takeIf { it in REGION_ZONES }.orEmpty()
+        val latitude = first("latitude", "tvg-latitude", "lat").toDoubleOrNull()?.takeIf { it.isFinite() && it in -90.0..90.0 }
+        val longitude = first("longitude", "tvg-longitude", "lon", "lng").toDoubleOrNull()?.takeIf { it.isFinite() && it in -180.0..180.0 }
+        val paired = latitude != null && longitude != null
+        return SourceMetadata(
+            category = first("group-title").ifEmpty { group?.let(::cleanText).orEmpty() },
+            country = country, city = first("tvg-city", "city"), timeZone = zone,
+            latitude = latitude.takeIf { paired }, longitude = longitude.takeIf { paired },
+        )
+    }
+
+    private fun cleanText(raw: String): String = raw.filterNot { it.isISOControl() }.trim().take(MAX_METADATA_LENGTH)
 
     private fun validUrl(rawUrl: String): String? {
         val url = rawUrl.trim()
@@ -170,5 +235,10 @@ class UserSourceParser {
         private const val MAX_EMPTY_READS = 8
         const val MAX_LINES = 10_000
         const val MAX_TITLE_LENGTH = 100
+        const val MAX_METADATA_LENGTH = 100
+        private const val MAX_ATTRIBUTES = 32
+        private val ATTRIBUTE = Regex("""([A-Za-z][A-Za-z0-9_-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"',]+))""")
+        // Region IDs only ("Europe/Rome"), so a fixed offset cannot hide daylight-saving changes.
+        private val REGION_ZONES: Set<String> = ZoneId.getAvailableZoneIds().filter { '/' in it && !it.startsWith("Etc/") }.toSet()
     }
 }

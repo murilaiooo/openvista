@@ -34,7 +34,7 @@ import java.util.Locale
 class PlaybackSession(
     private val context: Context,
     private val store: LibraryStore,
-    private val onStatus: (String) -> Unit,
+    private val onStatus: (PlaybackNotice) -> Unit,
     private val onItem: (LibraryItem?) -> Unit,
     private val onReleased: () -> Unit = {},
     private val dreamMode: Boolean = false,
@@ -73,6 +73,10 @@ class PlaybackSession(
     private val rejectedVideoFormats = mutableSetOf<Format>()
     private var rotationDueAt = 0L
     private var dreamMuted = true
+    private var liveResyncs = 0
+    private var waitingForNetwork = false
+    private var autoRetryAttempts = 0
+    private val network = NetworkMonitor(context, ::onNetworkChanged)
 
     val isReleased get() = released
 
@@ -94,7 +98,18 @@ class PlaybackSession(
     }
     private val stablePlayback = Runnable {
         // A first frame alone is not evidence that a repeatedly stalling source recovered.
-        if (!released && player.isPlaying && hasRenderedFrame) failed.clear()
+        if (!released && player.isPlaying && hasRenderedFrame) {
+            failed.clear()
+            liveResyncs = 0
+            autoRetryAttempts = 0
+        }
+    }
+    private val networkResume = Runnable { resumeAfterNetwork() }
+    private val automaticRetry = Runnable {
+        if (!released && terminal && !waitingForNetwork) {
+            autoRetryAttempts++
+            replay(automatic = true)
+        }
     }
 
     init {
@@ -117,6 +132,15 @@ class PlaybackSession(
                 if (!acceptPlayerEvent()) return
                 lastErrorCode = error.errorCode
                 DiagnosticJournal.record(context, DiagnosticJournal.Event.PLAYBACK_ERROR, error.errorCode)
+                // A live stream that stalled past its window is still healthy; rejoin the live edge
+                // instead of marking the camera unavailable. Bounded until playback is stable again.
+                if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW &&
+                    liveResyncs < MAX_LIVE_RESYNCS) {
+                    liveResyncs++
+                    player.seekToDefaultPosition()
+                    player.prepare()
+                    return
+                }
                 failCurrent()
             }
 
@@ -198,13 +222,20 @@ class PlaybackSession(
             }
         })
         applySettings()
+        network.start()
         handler.postDelayed(checkpointTask, CHECKPOINT_INTERVAL_MS)
     }
 
     fun play(items: List<LibraryItem>, selectedId: String? = null, shuffle: Boolean = false) {
+        play(items, selectedId, shuffle, automatic = false)
+    }
+
+    private fun play(items: List<LibraryItem>, selectedId: String?, shuffle: Boolean, automatic: Boolean) {
         if (released) return
         saveCheckpoint()
         clearTimeout()
+        cancelWaits()
+        if (!automatic) autoRetryAttempts = 0
         recoveryItem = null
         isFallback = false
         stayOnVideos = false
@@ -258,6 +289,7 @@ class PlaybackSession(
         recoveryItem = null
         player.stop()
         terminal = false
+        cancelWaits()
         desiredPlayWhenReady = snapshot.playWhenReady
         val items = snapshot.itemIds.take(2_000).distinct().mapNotNull(store::item).distinctBy { it.id }
         val selected = snapshot.selectedId?.let(store::item)
@@ -281,7 +313,10 @@ class PlaybackSession(
         val candidate = (0 until queue.size).firstOrNull { offset -> queue[(index + offset) % queue.size].id !in failed }
         if (candidate == null) {
             if (!isFallback && family == MediaFamily.CAMERAS && beginFallback()) return
-            stopEmpty(R.string.playback_all_unavailable)
+            if (!isFallback && family == MediaFamily.CAMERAS) {
+                stopEmpty(R.string.playback_all_cameras_retrying)
+                scheduleAutomaticRetry()
+            } else stopEmpty(R.string.playback_all_unavailable)
             return
         }
         index = (index + candidate) % queue.size
@@ -349,15 +384,17 @@ class PlaybackSession(
         scheduleRotation()
     }
 
-    /** Explicit retry starts a fresh finite pass; it never runs a background retry loop. */
-    fun retry() {
+    /** Explicit retry starts a fresh finite pass over the same sources. */
+    fun retry() = replay(automatic = false)
+
+    private fun replay(automatic: Boolean) {
         if (released) return
         val retryItems = if (isFallback && cameraQueue.isNotEmpty()) cameraQueue else queue
         if (retryItems.isEmpty()) {
             status(R.string.playback_empty)
             return
         }
-        play(retryItems, if (isFallback) retryItems.firstOrNull()?.id else currentItem?.id)
+        play(retryItems, if (isFallback) retryItems.firstOrNull()?.id else currentItem?.id, false, automatic)
     }
 
     fun stayLocal() {
@@ -379,6 +416,7 @@ class PlaybackSession(
         resumeSnapshot = lastSnapshot
         released = true
         handler.removeCallbacksAndMessages(null)
+        network.stop()
         player.release()
         if (activeSession === this) activeSession = null
         onReleased()
@@ -400,12 +438,14 @@ class PlaybackSession(
     private fun start(item: LibraryItem, recovery: Boolean = false) {
         if (released) return
         terminal = false
+        cancelWaits()
         val requestGeneration = ++generation
         handler.removeCallbacks(rotationTask)
         handler.removeCallbacks(stablePlayback)
         clearTimeout()
         playingItem = item
         rotationDueAt = 0
+        liveResyncs = 0
         completedCurrent = false
         rejectedVideoFormats.clear()
         hasRenderedFrame = false
@@ -446,8 +486,12 @@ class PlaybackSession(
         queue = queue.mapNotNull { store.item(it.id) }.distinctBy { it.id }
         if (queue.isEmpty()) { stopEmpty(R.string.playback_empty); return }
         if (next == null) {
-            if (!isFallback && currentItem?.family == MediaFamily.CAMERAS && beginFallback()) return
-            stopEmpty(R.string.playback_all_unavailable)
+            val cameras = currentItem?.family == MediaFamily.CAMERAS
+            if (!isFallback && cameras && beginFallback()) return
+            if (cameras && !isFallback) {
+                stopEmpty(R.string.playback_all_cameras_retrying)
+                scheduleAutomaticRetry()
+            } else stopEmpty(R.string.playback_all_unavailable)
         } else {
             index = queue.indexOfFirst { it.id == next.id }
             start(next)
@@ -460,7 +504,13 @@ class PlaybackSession(
         clearTimeout()
         handler.removeCallbacks(rotationTask)
         handler.removeCallbacks(stablePlayback)
-        storeWrite { store.updateAvailability(item.id, Availability.UNAVAILABLE) }
+        // A disconnected TV says nothing about the camera; keep its saved availability.
+        val offline = item.family == MediaFamily.CAMERAS && !network.isOnline()
+        if (offline && recoveryItem == null) {
+            waitForNetwork()
+            return
+        }
+        if (!offline) storeWrite { store.updateAvailability(item.id, Availability.UNAVAILABLE) }
         if (recoveryItem != null) {
             recoveryItem = null
             recoveryAfter = SystemClock.elapsedRealtime() + recoveryDelay()
@@ -501,7 +551,7 @@ class PlaybackSession(
     private fun tryRecoveryAtBoundary(): Boolean {
         cameraQueue = cameraQueue.mapNotNull { store.item(it.id) }.filter { it.family == MediaFamily.CAMERAS }.distinctBy { it.id }
         if (!isFallback || stayOnVideos || store.settings().stayLocal || cameraQueue.isEmpty() ||
-            SystemClock.elapsedRealtime() < recoveryAfter) return false
+            SystemClock.elapsedRealtime() < recoveryAfter || !network.isOnline()) return false
         // A completed finite pass gets a full cooldown before another pass. The cursor
         // continues across passes so larger camera libraries are not starved.
         if (recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) recoveryAttempts = 0
@@ -524,6 +574,50 @@ class PlaybackSession(
         clearTimeout()
         playingItem = null
         player.stop()
+    }
+
+    /** D-44: play the configured local playlist during an outage, otherwise wait quietly. */
+    private fun waitForNetwork() {
+        playingItem = null
+        player.stop()
+        if (!isFallback && beginFallback()) return
+        waitingForNetwork = true
+        status(R.string.playback_offline)
+        // Connectivity callbacks are the normal trigger; a cheap local check covers OEM gaps.
+        handler.postDelayed(networkResume, NETWORK_POLL_MS)
+    }
+
+    private fun onNetworkChanged(online: Boolean) {
+        if (released) return
+        handler.removeCallbacks(networkResume)
+        // Give DHCP/DNS a moment after the link returns before reconnecting the scene.
+        if (waitingForNetwork) handler.postDelayed(networkResume, if (online) NETWORK_SETTLE_MS else NETWORK_POLL_MS)
+    }
+
+    private fun resumeAfterNetwork() {
+        if (released || !waitingForNetwork) return
+        if (!network.isOnline()) {
+            handler.postDelayed(networkResume, NETWORK_POLL_MS)
+            return
+        }
+        waitingForNetwork = false
+        val item = currentItem?.id?.let(store::item) ?: queue.getOrNull(index)?.id?.let(store::item)
+        if (item == null) advance(1) else {
+            index = queue.indexOfFirst { it.id == item.id }.coerceAtLeast(0)
+            start(item)
+        }
+    }
+
+    /** Low-frequency, capped backoff while every camera is down but the TV is online. */
+    private fun scheduleAutomaticRetry() {
+        handler.removeCallbacks(automaticRetry)
+        handler.postDelayed(automaticRetry, automaticRetryDelayMs(autoRetryAttempts))
+    }
+
+    private fun cancelWaits() {
+        waitingForNetwork = false
+        handler.removeCallbacks(networkResume)
+        handler.removeCallbacks(automaticRetry)
     }
 
     private fun recoveryDelay(): Long =
@@ -566,9 +660,7 @@ class PlaybackSession(
     }
 
     private fun status(message: Int) {
-        val value = context.getString(message)
-        onStatus(if (storageFailed && message != R.string.playback_storage_error)
-            "$value\n${context.getString(R.string.playback_storage_error)}" else value)
+        onStatus(PlaybackNotice.of(message, storageFailed && message != R.string.playback_storage_error))
     }
 
     private inline fun storeWrite(write: () -> Unit) {
@@ -687,8 +779,17 @@ class PlaybackSession(
         private const val RECOVERY_MIN_DELAY_MS = 60_000L
         private const val RECOVERY_MAX_DELAY_MS = 300_000L
         private const val MAX_RECOVERY_ATTEMPTS = 6
+        private const val MAX_LIVE_RESYNCS = 3
+        private const val NETWORK_SETTLE_MS = 3_000L
+        private const val NETWORK_POLL_MS = 30_000L
+        private const val AUTO_RETRY_MIN_DELAY_MS = 60_000L
+        private const val AUTO_RETRY_MAX_DELAY_MS = 15 * 60_000L
         private var activeSession: PlaybackSession? = null
         private var resumeSnapshot: PlaybackSnapshot? = null
+
+        /** One minute, then doubling to a fifteen-minute ceiling: 1, 2, 4, 8, 15, 15… */
+        internal fun automaticRetryDelayMs(attempts: Int): Long =
+            (AUTO_RETRY_MIN_DELAY_MS shl attempts.coerceIn(0, 4)).coerceAtMost(AUTO_RETRY_MAX_DELAY_MS)
 
         /** In-process handoff only; persisted checkpoints remain in the shared library. */
         fun lastSnapshot(): PlaybackSnapshot? = activeSession?.snapshot() ?: resumeSnapshot

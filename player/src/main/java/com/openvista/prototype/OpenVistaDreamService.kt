@@ -13,23 +13,19 @@ import android.service.dreams.DreamService
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
-import com.openvista.prototype.ambient.AmbientOverlay
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.LibraryStore
 import com.openvista.prototype.library.LibraryStorageException
 import com.openvista.prototype.library.MediaFamily
 import com.openvista.prototype.playback.PlaybackSession
 import com.openvista.prototype.ui.AppLocale
+import com.openvista.prototype.ui.SceneView
 import com.openvista.prototype.ui.TvUi
 import java.util.Calendar
 import java.util.Locale
@@ -40,11 +36,10 @@ class OpenVistaDreamService : DreamService() {
     private val handler = Handler(Looper.getMainLooper())
     private var store: LibraryStore? = null
     private var session: PlaybackSession? = null
-    private var video: PlayerView? = null
-    private var overlay: AmbientOverlay? = null
+    private var scene: SceneView? = null
+    private val overlay get() = scene?.ambient
     private var controls: LinearLayout? = null
     private var firstControl: View? = null
-    private var feedback: TextView? = null
     private var ui: Context? = null
     private var attached = false
     private var dreaming = false
@@ -64,10 +59,7 @@ class OpenVistaDreamService : DreamService() {
     private val hideControls = Runnable {
         controls?.visibility = View.GONE
         overlay?.setControlsVisible(false)
-        if (session?.let { !it.isReleased && it.player.isPlaying } == true && store?.lastStorageError() == null) {
-            feedback?.visibility = View.GONE
-        }
-        video?.requestFocus()
+        scene?.video?.requestFocus()
     }
     private val scheduleTick = object : Runnable {
         override fun run() {
@@ -117,7 +109,6 @@ class OpenVistaDreamService : DreamService() {
             setPadding(dp(40), dp(40), dp(40), dp(40))
             setText(R.string.dream_library_error)
         }
-        feedback = message
         setContentView(message)
     }
 
@@ -125,28 +116,7 @@ class OpenVistaDreamService : DreamService() {
         val context = AppLocale.wrap(this)
         ui = context
         val root = FrameLayout(context).apply { setBackgroundColor(Color.BLACK) }
-        video = PlayerView(context).apply {
-            useController = false
-            setKeepContentOnPlayerReset(false)
-            resizeMode = if (library.settings().resizeMode == "fit")
-                AspectRatioFrameLayout.RESIZE_MODE_FIT else AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            setShutterBackgroundColor(Color.TRANSPARENT)
-            isFocusable = true
-        }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        overlay = AmbientOverlay(context, library).also {
-            root.addView(it, FrameLayout.LayoutParams(-1, -1))
-        }
-        feedback = TextView(context).apply {
-            setTextColor(Color.WHITE)
-            setBackgroundColor(0xB3000000.toInt())
-            textSize = 18f
-            gravity = Gravity.CENTER
-            setPadding(dp(20), dp(12), dp(20), dp(12))
-            text = ""
-            visibility = View.GONE
-        }.also {
-            root.addView(it, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
-        }
+        scene = SceneView(context, library).also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
         controls = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -171,7 +141,7 @@ class OpenVistaDreamService : DreamService() {
             root.addView(menu, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
         }
         setContentView(root)
-        video?.requestFocus()
+        scene?.video?.requestFocus()
     }
 
     override fun onDreamingStarted() {
@@ -209,8 +179,7 @@ class OpenVistaDreamService : DreamService() {
             stopPlayback()
             handler.removeCallbacks(scheduleTick)
             handler.removeCallbacks(hideControls)
-            feedback?.text = ui?.getString(R.string.dream_schedule_inactive)
-            feedback?.visibility = View.VISIBLE
+            ui?.getString(R.string.dream_schedule_inactive)?.let { scene?.message(it, persistent = true) }
             finish()
             return
         }
@@ -221,25 +190,15 @@ class OpenVistaDreamService : DreamService() {
             finish()
             return
         }
-        if (session != null || startupFailed) {
-            updateKeepAwake()
-            return
-        }
+        if (session != null || startupFailed) return
         val context = ui ?: return
         val saved = PlaybackSession.lastSnapshot()
-        val created = try { PlaybackSession(context, library, { message ->
-            val failureCodes = listOf(R.string.playback_camera_unavailable,
-                R.string.playback_video_unavailable, R.string.playback_all_unavailable,
-                R.string.playback_empty, R.string.playback_storage_error)
-            val isFailure = failureCodes.any { message.contains(context.getString(it)) }
-            feedback?.text = if (isFailure) message else ""
-            feedback?.visibility = if (isFailure) View.VISIBLE else View.GONE
+        val created = try { PlaybackSession(context, library, { notice ->
+            scene?.show(notice)
         }, { item ->
             overlay?.updateItem(item)
         }, {
-            video?.player = null
-            overlay?.stop()
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            scene?.detach()
             if (dreaming && attached) {
                 dreaming = false
                 handler.removeCallbacks(scheduleTick)
@@ -248,35 +207,18 @@ class OpenVistaDreamService : DreamService() {
             }
         }, dreamMode = true) } catch (_: RuntimeException) {
             startupFailed = true
-            video?.player = null
-            overlay?.stop()
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            feedback?.text = context.getString(R.string.playback_engine_unavailable)
-            feedback?.visibility = View.VISIBLE
+            scene?.detach()
+            scene?.message(context.getString(R.string.playback_engine_unavailable), persistent = true)
             return
         }
         session = created
-        video?.player = created.player
-        created.player.addListener(object : Player.Listener {
-            override fun onEvents(player: Player, events: Player.Events) {
-                if (session !== created || created.isReleased) return
-                val current = player.currentMediaItem?.mediaId == created.currentItem?.id
-                overlay?.updatePlayback(current && player.isCurrentMediaItemLive,
-                    current && player.isPlaying, player.playbackState == Player.STATE_BUFFERING)
-            }
-            override fun onPlaybackStateChanged(playbackState: Int) { updateKeepAwake() }
-            override fun onIsPlayingChanged(isPlaying: Boolean) { updateKeepAwake() }
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) { updateKeepAwake() }
-        })
-        overlay?.start()
+        scene?.attach(created)
         val last = library.lastItemId()?.let(library::item)
         if (saved != null && saved.itemIds.any { library.item(it) != null }) {
             created.restore(saved)
         } else if (last == null) {
-            feedback?.text = context.getString(R.string.dream_no_saved_scene)
-            feedback?.visibility = View.VISIBLE
+            scene?.message(context.getString(R.string.dream_no_saved_scene), persistent = true)
         } else playSaved(last)
-        updateKeepAwake()
     }
 
     private fun playSaved(item: LibraryItem) {
@@ -293,8 +235,7 @@ class OpenVistaDreamService : DreamService() {
             try {
                 library.saveSettings(library.settings().copy(stayLocal = false))
             } catch (_: LibraryStorageException) {
-                feedback?.text = ui?.getString(R.string.playback_storage_error)
-                feedback?.visibility = View.VISIBLE
+                ui?.getString(R.string.playback_storage_error)?.let { scene?.message(it, persistent = false) }
             }
         }
         session?.play(library.items().filter { it.family == family }, shuffle = family == MediaFamily.CAMERAS)
@@ -302,20 +243,9 @@ class OpenVistaDreamService : DreamService() {
     }
 
     private fun stopPlayback() {
-        video?.player = null
+        scene?.detach()
         session?.release()
         session = null
-        overlay?.stop()
-        window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    private fun updateKeepAwake() {
-        val current = session
-        val keep = dreaming && attached && !startupFailed && current != null && !current.isReleased &&
-            store?.settings()?.keepAwake == true && current.player.playWhenReady &&
-            current.player.playbackState in setOf(Player.STATE_BUFFERING, Player.STATE_READY)
-        if (keep) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun registerScreenOff() {
@@ -405,7 +335,7 @@ class OpenVistaDreamService : DreamService() {
         handler.removeCallbacks(hideControls)
         controls?.visibility = View.GONE
         overlay?.setControlsVisible(false)
-        video?.requestFocus()
+        scene?.video?.requestFocus()
     }
 
     private fun addControl(menu: LinearLayout, label: Int, click: () -> Unit): View =
@@ -423,7 +353,7 @@ class OpenVistaDreamService : DreamService() {
             (0 until group.length).filter { group.isTrackSupported(it) }.map { group to it }
         }
         if (options.isEmpty()) {
-            feedback?.text = context.getString(R.string.dream_no_audio)
+            scene?.message(context.getString(R.string.dream_no_audio), persistent = false)
         } else {
             val selected = options.indexOfFirst { (group, track) -> group.isTrackSelected(track) }
             val next = (selected + 1) % options.size
@@ -435,9 +365,8 @@ class OpenVistaDreamService : DreamService() {
             val language = group.getTrackFormat(track).language?.let {
                 Locale.forLanguageTag(it).getDisplayLanguage(context.resources.configuration.locales[0])
             }?.takeIf { it.isNotBlank() } ?: context.getString(R.string.playback_unknown)
-            feedback?.text = context.getString(R.string.dream_audio_selected, next + 1, options.size, language)
+            scene?.message(context.getString(R.string.dream_audio_selected, next + 1, options.size, language), persistent = false)
         }
-        feedback?.visibility = View.VISIBLE
     }
 
     override fun onDetachedFromWindow() {
@@ -449,9 +378,7 @@ class OpenVistaDreamService : DreamService() {
         handler.removeCallbacksAndMessages(null)
         controls = null
         firstControl = null
-        feedback = null
-        overlay = null
-        video = null
+        scene = null
         ui = null
         store = null
         super.onDetachedFromWindow()

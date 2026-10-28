@@ -44,6 +44,9 @@ class LibraryStore(context: Context) : AutoCloseable {
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "OpenVista-library-store") }
     private var migrationRequired = false
     private var state = read()
+    // Playback resolves every queued identifier on each camera switch and every checkpoint;
+    // a lookup index keeps that constant-time for large libraries instead of a list scan.
+    private var byId = index(state)
     private var generation = if (migrationRequired) 1L else 0L
     private var persistedGeneration = 0L
     private var pending = false
@@ -55,7 +58,7 @@ class LibraryStore(context: Context) : AutoCloseable {
     }
 
     fun items(): List<LibraryItem> = synchronized(lock) { state.items.map(::detached) }
-    fun item(id: String): LibraryItem? = synchronized(lock) { state.items.find { it.id == id || id in it.formerIds }?.let(::detached) }
+    fun item(id: String): LibraryItem? = synchronized(lock) { byId[id]?.let(::detached) }
     fun playlists(): List<SavedPlaylist> = synchronized(lock) {
         state.playlists.map { it.copy(itemIds = it.itemIds.toList()) }
     }
@@ -118,6 +121,17 @@ class LibraryStore(context: Context) : AutoCloseable {
         // All item, identifier, playlist and byte-budget checks precede the state swap.
         change { old -> old.copy(items = old.items + additions, playlists = old.playlists + playlist) }
         ImportedCameraList(additions.size, items.size - additions.size, playlist.id)
+    }
+
+    /**
+     * Applies a location lookup to the item as it is now, so a lookup that finishes after the user
+     * edited or removed the source never restores stale values.
+     */
+    fun completeLocation(id: String, complete: (LibraryItem) -> LibraryItem) = change { old ->
+        val canonical = resolveId(old, id)
+        old.copy(items = old.items.map { item ->
+            if (item.id != canonical || item.family != MediaFamily.CAMERAS) item else normalize(complete(item))
+        })
     }
 
     fun removeItem(id: String) = change { old ->
@@ -277,6 +291,7 @@ class LibraryStore(context: Context) : AutoCloseable {
             validate(next)
             if (next == state) return
             state = next
+            byId = index(next)
             generation++
             scheduleWrite()
         }
@@ -464,6 +479,16 @@ class LibraryStore(context: Context) : AutoCloseable {
         val fallback = value.settings.fallbackPlaylistId
         checkValue(fallback == null || value.playlists.any { it.id == fallback && it.family == MediaFamily.VIDEOS }, "Fallback must be a saved video playlist.")
         checkValue(estimate <= MAX_BYTES, "The library has reached its storage limit.")
+    }
+
+    /** Same precedence as a front-to-back search of current IDs and prior IDs. */
+    private fun index(value: State): Map<String, LibraryItem> {
+        val result = HashMap<String, LibraryItem>(value.items.size * 2)
+        value.items.forEach { item ->
+            result.putIfAbsent(item.id, item)
+            item.formerIds.forEach { result.putIfAbsent(it, item) }
+        }
+        return result
     }
 
     private fun detached(item: LibraryItem): LibraryItem = item.copy(accessRoutes = item.accessRoutes.toList(), formerIds = item.formerIds.toList())

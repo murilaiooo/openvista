@@ -65,4 +65,15 @@
     <string name="settings_system_settings_confirmation">Isso abre as configurações da própria TV. O OpenVista não selecionará um protetor de tela nem alterará preferências do sistema. Mantenha o protetor existente desativado, a menos que decida alterá-lo.</string>
     <string name="settings_open_system_settings">Abrir configurações da TV</string>
     <string name="settings_updates_disabled">As atualizações públicas estão desativadas até a aprovação do canal, da assinatura e da publicação. Esta prévia não permite verificar nem baixar atualizações.</string>
+    <string name="settings_brand_subtitle">Suas vistas, suas fontes</string>
+    <string name="settings_breadcrumb">%1$s  •  %2$s  •  %3$s</string>
+    <string name="atlas_south_america">América do Sul</string>
+    <string name="atlas_europe">Europa</string>
+    <string name="atlas_africa">África</string>
+    <string name="atlas_indian_ocean">Oceano Índico</string>
+    <string name="atlas_southern_ocean">Oceano Antártico</string>
+    <string name="compass_north">N</string>
+    <string name="compass_east">L</string>
+    <string name="compass_south">S</string>
+    <string name="compass_west">O</string>
 </resources>

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home_tagline">Your world, at a quieter pace.</string>
-    <string name="home_explore">01  EXPLORE</string>
-    <string name="home_revisit">02  REVISIT</string>
-    <string name="home_remember">03  REMEMBER</string>
+    <string name="home_explore">01 / EXPLORE</string>
+    <string name="home_revisit">02 / REVISIT</string>
+    <string name="home_remember">03 / REMEMBER</string>
+    <string name="home_title">%1$s.</string>
     <string name="home_cameras_empty">Bring your own view. Add a stream URL or import your list.</string>
     <string name="home_cameras_ready">The places you have added, ready when you are.</string>
     <string name="home_videos_empty">Choose a video file or folder on your TV or USB drive.</string>
@@ -11,24 +12,21 @@
     <string name="home_favorites_empty">Mark a camera or video as a favorite to find it here.</string>
     <string name="home_favorites_ready">Keep the views you come back to within reach.</string>
     <string name="home_add_cameras">Add your cameras</string>
-    <string name="home_open_cameras">Explore your cameras</string>
     <string name="home_add_videos">Choose your videos</string>
-    <string name="home_open_videos">Browse your videos</string>
     <string name="home_open_favorites">Open favorites</string>
-    <string name="home_action_arrow">%1$s  →</string>
     <string name="home_resume_item">Resume · %1$s</string>
-    <string name="home_development_preview">Development preview</string>
+    <string name="home_badge">OpenVista / Development preview</string>
     <string name="home_illustrative_scenery">Illustrative scenery · Your sources stay yours.</string>
-    <plurals name="home_camera_count">
-        <item quantity="one">%d camera in your library</item>
-        <item quantity="other">%d cameras in your library</item>
+    <plurals name="home_action_cameras">
+        <item quantity="one">Explore %d camera</item>
+        <item quantity="other">Explore %d cameras</item>
     </plurals>
-    <plurals name="home_video_count">
-        <item quantity="one">%d video in your library</item>
-        <item quantity="other">%d videos in your library</item>
+    <plurals name="home_action_videos">
+        <item quantity="one">Open %d video</item>
+        <item quantity="other">Open %d videos</item>
     </plurals>
-    <plurals name="home_favorite_count">
-        <item quantity="one">%d saved favorite</item>
-        <item quantity="other">%d saved favorites</item>
+    <plurals name="home_action_favorites">
+        <item quantity="one">See %d favorite</item>
+        <item quantity="other">See %d favorites</item>
     </plurals>
 </resources>

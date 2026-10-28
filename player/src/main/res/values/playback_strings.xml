@@ -7,6 +7,8 @@
     <string name="playback_engine_unavailable">Playback could not start. Press OK and choose Try again, or exit the screensaver.</string>
     <string name="playback_camera_unavailable">Camera unavailable or unsupported. Trying the next camera.</string>
     <string name="playback_video_unavailable">Video unreadable or unsupported. Check the drive and folder access. Trying the next video.</string>
+    <string name="playback_all_cameras_retrying">None of your cameras can play right now. OpenVista will try them again automatically. Press OK for options.</string>
+    <string name="playback_offline">This TV is offline. Your scene resumes when the connection returns.</string>
     <string name="playback_all_unavailable">None of these sources could play. Choose another source or try again.</string>
     <string name="playback_using_fallback">Cameras unavailable. Playing your configured video playlist.</string>
     <string name="playback_checking_camera">Video finished. Checking whether a camera can play…</string>

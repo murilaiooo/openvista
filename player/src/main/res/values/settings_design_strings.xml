@@ -65,4 +65,15 @@
     <string name="settings_system_settings_confirmation">This opens the TV’s own settings. OpenVista will not select a screensaver or change any system preference. Keep the existing screensaver disabled unless you decide to change it.</string>
     <string name="settings_open_system_settings">Open TV settings</string>
     <string name="settings_updates_disabled">Public updates are disabled until the release channel, signing and publication are approved. No check or download is available in this preview.</string>
+    <string name="settings_brand_subtitle">Your views, your sources</string>
+    <string name="settings_breadcrumb">%1$s  •  %2$s  •  %3$s</string>
+    <string name="atlas_south_america">South America</string>
+    <string name="atlas_europe">Europe</string>
+    <string name="atlas_africa">Africa</string>
+    <string name="atlas_indian_ocean">Indian Ocean</string>
+    <string name="atlas_southern_ocean">Southern Ocean</string>
+    <string name="compass_north">N</string>
+    <string name="compass_east">E</string>
+    <string name="compass_south">S</string>
+    <string name="compass_west">W</string>
 </resources>
