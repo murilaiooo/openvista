@@ -11,7 +11,9 @@ import java.util.Locale
 /** Original adapter for the documented JSON API; no Open-Meteo server code is incorporated. */
 class OpenMeteoForecastProvider : ForecastProvider {
     override val id = "open-meteo-v1"
-    override val attribution = "Weather: Open-Meteo (https://open-meteo.com/), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Units converted and fields selected."
+    // Short credit stays legible in the fullscreen overlay. Full URLs and the
+    // conversion notice are retained in the project's weather-provider policy.
+    override val attribution = "Weather: Open-Meteo · CC BY 4.0"
     override val minimumRefreshMs = 30 * 60_000L
     override val maximumCacheAgeMs = 24 * 60 * 60_000L
 

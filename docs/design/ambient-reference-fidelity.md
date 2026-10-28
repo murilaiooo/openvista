@@ -23,7 +23,7 @@ Reference: owner-supplied OpenVista sunset mockup, October 27, 2026 (1672 × 941
 - Source and viewer are distinct compositions. Their clocks, temperatures and time zones are never swapped or inferred from a filename.
 - Use Android's light/thin sans family, quiet secondary labels and measured safe margins. The source clock has 92sp baseline, viewer clock 70sp baseline; these values are scaled by existing overlay size and screen constraints. Preserve the text hierarchy rather than using uniform-sized clocks.
 - Place 5 upcoming days after today in the default forecast, because the current day is represented by the viewer's current weather. Honor the existing 3–7-day selector with available real provider data.
-- Forecast icons use clear sky gold, precipitation cyan and neutral cloud white. Rain probability has an original cyan droplet glyph; columns have subtle dividers. Missing weather is explicitly marked unavailable, never invented to resemble the reference.
+- Forecast icons use clear sky gold, precipitation cyan and neutral cloud white. Rain probability has an original cyan droplet glyph; columns have subtle dividers. Missing weather is explicitly marked unavailable, never invented to resemble the reference. International locations use Open-Meteo with a discreet CC BY 4.0 provider credit; US locations favor NWS.
 - The local user's stored city label, date preference and media items are separate from the app's released defaults. Source flags appear only for recognized country metadata.
 - The soft, full-frame bottom gradient and text shadows are for readability; no solid black panels or expensive real-time blur.
 

@@ -504,7 +504,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                 timeRule.visibility = if (weatherVisible) View.VISIBLE else View.GONE
             } else {
                 val parts = presentation.metrics(current, settings).split("  ·  ").filter(String::isNotBlank)
-                metrics.put(if (weatherVisible) parts.joinToString("\n") else "")
+                metrics.put(if (weatherVisible) parts.joinToString("\n") { it.substringAfter(" ", it) } else "")
                 weatherRule.visibility = if (weatherVisible && parts.isNotEmpty()) View.VISIBLE else View.GONE
             }
             credit.put(if (weatherVisible) slot.forecast?.takeIf { it.requiresVisibleAttribution }?.attribution.orEmpty() else "")
