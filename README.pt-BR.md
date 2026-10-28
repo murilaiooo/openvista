@@ -27,7 +27,7 @@ Acesse câmeras, vídeos e favoritos em um só lugar.
 
 ### Reprodução de câmeras ao vivo
 
-<img src="assets/screenshots/live-camera.webp" alt="Reprodução de câmera ao vivo no OpenVista mostrando uma praia, localização, relógio e previsão do tempo" width="100%" />
+<img src="assets/screenshots/live-camera.webp" alt="Câmera ao vivo de Silver City, Estados Unidos, mostrando horário local, horário da câmera, clima e previsão de cinco dias" width="100%" />
 
 Aproveite a paisagem com relógio, informações do local e clima opcionais.
 

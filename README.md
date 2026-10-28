@@ -27,7 +27,7 @@ Find your cameras, local videos and favorites in one place.
 
 ### Live camera player
 
-<img src="assets/screenshots/live-camera.webp" alt="OpenVista live camera player showing a beach, camera location, clocks, weather and forecast" width="100%" />
+<img src="assets/screenshots/live-camera.webp" alt="OpenVista live camera view of Silver City, United States, showing local time, camera time, weather and a five-day forecast" width="100%" />
 
 Enjoy the view with an optional clock, location details and weather.
 
