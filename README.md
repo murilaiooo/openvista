@@ -49,31 +49,31 @@ OpenVista is built for **Android TV and Fire TV**, with Google TV compatibility 
 
 ## What can you do with it?
 
-## Watch live cameras from places around the world
+### Watch live cameras from places around the world
 
 Add your own compatible **HLS (M3U8)** or **MPEG-DASH (MPD)** stream links. Import a supported **M3U playlist** instead of entering each camera separately. Give sources meaningful names and add their city, country, category, time zone and coordinates when you know them.
 
 Your cameras can show a beach at sunrise, a city after dark, a harbor, wildlife or any other scene available through a stream you are allowed to use. OpenVista doesn't decide which destinations you see.
 
-## Turn local videos into an ambient display
+### Turn local videos into an ambient display
 
 Pick a video or a folder from your TV's storage or a connected USB drive, where the device supports it. Play your own landscape footage, travel clips, nature videos and other recordings without a streaming subscription. Video format and resolution support depend on the TV's codecs and hardware.
 
 Use your videos even without an internet connection. They can also serve as a fallback when a saved live stream is unavailable, once you configure a local playlist.
 
-## Build playlists and save favorites
+### Build playlists and save favorites
 
 Keep cameras and local videos in separate collections. Create playlists for different moods or places, choose shuffled or sequential playback, rearrange items and mark the sources you return to most often.
 
 You can let live cameras change automatically instead of leaving the same scene on screen all day. The rotation interval is adjustable, with five minutes as the initial setting.
 
-## Keep the scenery front and center
+### Keep the scenery front and center
 
 The fullscreen player is made for watching, not navigating menus. Use your TV remote to change cameras, control video playback and bring up controls when you need them. Temporary playback controls can disappear after a short period of inactivity.
 
 Choose whether videos fill the screen or fit within it. Select an instant switch or a softer scene transition. Audio can stay off for a quiet background experience.
 
-## Add a clock and weather, or show nothing at all
+### Add a clock and weather, or show nothing at all
 
 The information overlay is optional. Display the time and date, a camera's local time when its time zone is supplied, your chosen location and available weather conditions. A forecast view includes upcoming days and weather details when supported data is available.
 
@@ -81,7 +81,7 @@ Choose a clock-only layout, clock with weather, or no overlay. Adjust text size,
 
 **Weather availability:** the current forecast integration uses the U.S. National Weather Service for supported U.S. coordinates. Worldwide weather lookup and automatic city search are not available yet. Weather is optional, and camera playback doesn't depend on it.
 
-## Explore the locations in your camera collection
+### Explore the locations in your camera collection
 
 A map view helps you explore saved cameras by location when you add coordinates to their details. You can also find cameras using names and filters such as country, city, category and favorites.
 
