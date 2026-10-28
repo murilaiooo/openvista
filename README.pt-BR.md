@@ -8,8 +8,8 @@
 
 Leve câmeras ao vivo, belas paisagens e seus próprios vídeos para a tela da sua TV.
 
-[![Development preview](https://img.shields.io/badge/status-development%20preview-293D52?style=flat-square)](docs/STATUS.md)
-[![MIT License](https://img.shields.io/badge/license-MIT-168C94?style=flat-square)](LICENSE)
+[![Em desenvolvimento](https://img.shields.io/badge/status-em%20desenvolvimento-293D52?style=flat-square)](docs/STATUS.md)
+[![Licença MIT](https://img.shields.io/badge/licenca-MIT-168C94?style=flat-square)](LICENSE)
 
 [English](README.md) · **Português (Brasil)** · [Status do projeto](docs/STATUS.md) · [Próximas etapas](docs/roadmap.md) · [Contribuir](CONTRIBUTING.md)
 
@@ -49,31 +49,31 @@ O aplicativo foi desenvolvido para **Android TV e Fire TV**. A compatibilidade c
 
 ## O que você pode fazer com ele?
 
-## Assistir a câmeras ao vivo de diferentes lugares do mundo
+### Assistir a câmeras ao vivo de diferentes lugares do mundo
 
 Adicione seus próprios links de transmissão nos formatos **HLS (M3U8)** ou **MPEG-DASH (MPD)**. Se você tiver uma lista compatível, pode importar um arquivo **M3U** em vez de cadastrar cada câmera manualmente. Também é possível organizar as fontes por nome, cidade, país e categoria, além de informar fuso horário e coordenadas.
 
 Uma câmera pode mostrar o nascer do sol na praia, o movimento de uma cidade, um porto, animais ou qualquer outro lugar com uma transmissão que você tenha autorização para acessar. A seleção das câmeras fica nas suas mãos.
 
-## Usar seus vídeos como paisagens na TV
+### Usar seus vídeos como paisagens na TV
 
 Escolha um vídeo ou uma pasta do armazenamento da TV ou de um dispositivo USB conectado, quando houver suporte. Você pode reproduzir vídeos de natureza, viagens, paisagens e outras gravações em tela cheia, sem depender de uma assinatura de streaming. Os formatos e resoluções disponíveis dependem dos codecs e do hardware do aparelho.
 
 Os vídeos locais funcionam sem internet. Você também pode configurar uma playlist para servir de alternativa quando uma câmera ao vivo ficar indisponível.
 
-## Criar playlists e guardar seus favoritos
+### Criar playlists e guardar seus favoritos
 
 Organize câmeras e vídeos locais em coleções separadas. Crie playlists por lugar ou tipo de paisagem, escolha reprodução em ordem ou aleatória, reorganize os itens e marque seus favoritos.
 
 Se preferir, o OpenVista troca as câmeras automaticamente. Você escolhe o intervalo entre as cenas, que começa configurado em cinco minutos.
 
-## Aproveitar a imagem sem menus atrapalhando
+### Aproveitar a imagem sem menus atrapalhando
 
 O player foi pensado para uma experiência em tela cheia, com os controles aparecendo só quando necessários. Use o controle remoto para mudar de câmera, controlar vídeos e acessar as opções de reprodução. Os controles temporários podem desaparecer após alguns segundos sem interação.
 
 Você escolhe entre preencher a tela ou mostrar o vídeo inteiro, sem cortar as bordas. Também pode definir a troca imediata entre cenas ou uma transição mais suave. O som pode ficar desligado para deixar a paisagem como parte do ambiente.
 
-## Colocar relógio e previsão do tempo na tela
+### Colocar relógio e previsão do tempo na tela
 
 As informações são opcionais. Você pode mostrar hora e data, o horário local da câmera quando o fuso for informado, sua localização escolhida e as condições do tempo disponíveis. Há também uma visualização de previsão para os próximos dias, quando os dados estiverem disponíveis.
 
@@ -81,7 +81,7 @@ Escolha entre mostrar apenas o relógio, relógio com clima ou nenhuma informaç
 
 **Limitação atual do clima:** a integração utiliza o National Weather Service dos Estados Unidos e atende coordenadas americanas cobertas pelo serviço. A busca automática de cidades e a previsão mundial ainda não estão disponíveis. O clima é opcional e não interfere na reprodução das câmeras.
 
-## Encontrar suas câmeras pela localização
+### Encontrar suas câmeras pela localização
 
 Com as coordenadas cadastradas, você pode visualizar as câmeras em uma tela de mapa. Também dá para buscar fontes por nome e filtrar por país, cidade, categoria e favoritos.
 
