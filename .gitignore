@@ -51,3 +51,6 @@ __pycache__/
 *.m3u
 docs/research/minhas listas para revisar/
 openvista-fixtures/
+
+# Local signed distribution artifacts; upload through GitHub Releases, never source control
+/dist/

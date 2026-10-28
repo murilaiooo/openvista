@@ -420,8 +420,8 @@ class OpenVistaActivity : ComponentActivity() {
     }
     fun playbackDiagnostics(): String = if (::playerScreen.isInitialized && playerScreen.isAttached) playerScreen.diagnosticText() else lastDiagnostics
     fun editSource(item: LibraryItem? = null) = libraryScreens.editSource(item)
-    /** Completes missing camera locations in the background; the player picks them up on its next source. */
-    fun completeLocations() = locations.completeLibrary { if (route.page != "player") refresh() }
+    /** Automatic camera-city lookups are disabled until the user can explicitly opt in. */
+    fun completeLocations() { /* Automatic lookups need explicit privacy opt-in; manual Find location is still available. */ }
     fun pairing() = settingsScreens.startPairing()
     fun openForecast(item: LibraryItem? = null) = settingsScreens.forecast(item)
 
