@@ -10,7 +10,7 @@
 | Can it run on a TV? | **Yes, as a development preview.** Individual app flows were exercised on the owner's Hisense 58U6HF / Fire OS 7 (Android 9 / API 28). |
 | Is there a public APK or stable release? | **No.** Only locally built debug/test APKs; no signed public release or owner authorization to publish. |
 | Does OpenVista bundle live-camera links, M3U lists or videos? | **No.** Users import their own. Research-only media/playlist fixtures are excluded from runtime artifacts. |
-| Does weather work? | **Yes, for NWS-covered U.S. coordinates.** Tucson hourly conditions and seven-day forecast were exercised physically. Worldwide geocoding is not implemented. |
+| Does weather work? | **U.S. NWS was tested on Tucson.** An owner-requested private preview adds worldwide city lookup and current temperature through Open-Meteo/GeoNames. Public-provider licensing and real-device QA are still pending. |
 | Are all original v1 requirements finished? | **No.** Hisense automatic DreamService entry was verified, but full dream controls/lifecycle, physical USB, 24-hour soak, maps, pairing security, updater and final release gates remain. |
 | Are there open GitHub issues/PRs? | **Yes.** The QA development candidate and later focused changes are tracked separately; administrative closure of older records did not certify v1. |
 
@@ -36,6 +36,10 @@ A separate review snapshot of the Codex remaining-development work passed local 
 ### Smart ambient preview under review (2026-10-26)
 
 The focused development branch adds separate camera and local-video rotation intervals (defaults one and five minutes) and independent Smart TV-style camera/time and weather panels. Each panel moves to another corner each minute by default; random placement is configurable. Hardware image proof and persistence checks are recorded in [smart ambient QA](testing/smart-ambient-rotation-2026-10-26.md). The owner's existing 40 camera entries have no saved city, time-zone or coordinate metadata. Accurate camera-local time and temperature require supplying those fields; Tucson viewer weather is labeled separately. These features are development QA, **not stable-v1 certification**.
+
+### Minimal online scene information (owner-requested preview, 2026-10-26)
+
+The updated isolated QA branch replaces opaque scene/weather cards with **one background-free text group**: resolved city, the camera's local time, and its local temperature. Media source names/filenames are never shown. It can geocode a limited location-like segment from user-supplied camera titles using Open-Meteo/GeoNames, cache matches, and fetch worldwide current weather with the existing NWS-first regional adapter. The overlay moves once per minute. Ambiguous or unavailable sources are not assigned fabricated coordinates; the configured viewer location is clearly labeled as a fallback. This is noncommercial **private testing only**, with visible data-provider attribution. See [implementation, privacy and licensing limits](testing/minimal-online-overlay-2026-10-26.md).
 
 ## Known issues and unverified paths
 

@@ -8,7 +8,7 @@
 
 An open-source ambient video player built in Kotlin for Android TV, Fire TV, and potentially Google TV.
 
-Play your own live cameras and local videos with independent local-time and weather cards, configurable source rotation, and one-minute display-care movement.
+Play your own live cameras and local videos with a minimal, background-free city/time/temperature overlay, configurable source rotation, and one-minute display-care movement.
 
 [![Status](https://img.shields.io/badge/status-development%20preview-4DDBC4?style=flat-square)](docs/STATUS.md)
 [![Platform](https://img.shields.io/badge/tested-Hisense%20Fire%20OS%207-84C7FF?style=flat-square)](docs/testing/compatibility.md)
@@ -33,8 +33,8 @@ OpenVista is for the moments when a television should feel like a window, not a 
 | TV experience | Three-card Home, Cameras, My Videos, Favorites, onboarding, remote-first menus, EN/PT-BR | Home, library and basic D-pad/picker flows observed on Hisense; full accessibility pass pending |
 | Live sources | Manual HLS/DASH entry, user-selected M3U import, playlists, details, favorites | Original HLS/DASH 720p and M3U import observed; an independent unmerged QA candidate also rendered controlled HLS 1080p and DASH/HEVC 4K test patterns on Hisense. Sustained decoding remains unverified |
 | Local videos | Scoped Android file/folder picker, recursive scan, persistence, playlists, player resume | MP4 and selected-folder restoration observed; physical USB removal/revocation and full codec matrix pending |
-| Ambient playback | Fullscreen Media3 player; default 1-minute live-camera and 5-minute local-video rotation; separate camera/time and weather cards with optional randomized one-minute movement | Visual smart-card rendering observed on Hisense. Exact rotation timing and 24-hour endurance remain under QA |
-| Weather | Free U.S. National Weather Service seven-day forecasts, hourly forecast condition, cache | Tucson forecast and on-video temperature observed; U.S. coverage only; no geocoding |
+| Ambient playback | Fullscreen Media3; independent 1-minute live and 5-minute local-video rotation; text-only online city/local-time/temperature overlay with one-minute movement | The minimalist overlay is in a separate QA branch. Real-TV visual approval, exact rotation timing and endurance are pending |
+| Weather | NWS-first U.S. forecasts; owner-requested noncommercial preview of Open-Meteo global geocoding/weather with caching and visible GeoNames/Open-Meteo credit | Tucson NWS tested; global online camera auto-location requires physical validation and provider/license review before public release |
 | Maps | Local metadata coordinates, schematic map and source list | A licensed map-tile provider is not active |
 | System screensaver | Owner-selected OpenVista DreamService on Hisense | Automatic non-test Dream entry and on-screen video/clock/weather observed on Fire OS 7; broader lifecycle tests pending |
 | Pairing and updates | Security-gated phone input and verified-update implementation | **Disabled** pending security, release channel and Android installer validation |
@@ -68,9 +68,9 @@ Do not install a separate diagnostic app alongside OpenVista on the owner's test
 2. Open **My Videos** to select an accessible video or folder from the device or attached storage.
 3. Choose a source, set Favorites or playlists, and play it fullscreen.
 4. Configure separate live-camera and local-video rotation intervals in **Settings > Playback** (defaults 1 and 5 minutes), and configure random or ordered one-minute panel movement in **Settings > Clock and overlays**.
-5. For actual camera-local time and weather, open a saved camera's **Edit** screen and enter its city, time zone and latitude/longitude. Imported URLs do not automatically provide this metadata.
+5. The preview can resolve a likely city from a safe prefix of a camera title using the internet. For accuracy, edit a saved source to specify its actual city, country, time zone and coordinates. The media filename/title never appears in the overlay. An unresolved source may show a clearly labeled viewer location or hide the overlay.
 
-For U.S. weather, supply a city name and coordinates manually; the NWS endpoint does **not** offer city-name search in this build. Weather information remains optional, and the app works without location permission. When a camera has no coordinates, its ambient weather widget can use your saved viewer location.
+The owner-requested private preview uses Open-Meteo/GeoNames for worldwide name lookup and worldwide weather; NWS remains preferred for supported U.S. locations. Provider attribution is visible in small type without a background. The keyless Open-Meteo endpoint is noncommercial and must not be enabled in a public/commercial APK without a separate license, privacy and request-budget review. [Implementation and limitations](docs/testing/minimal-online-overlay-2026-10-26.md). No location permission is required.
 
 ## Compatibility and release policy
 

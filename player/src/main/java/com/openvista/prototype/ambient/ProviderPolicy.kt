@@ -4,8 +4,10 @@ import android.content.Context
 
 /** Deployment policy, never writable through preferences or an incoming request. */
 object ProviderPolicy {
-    // Owner acceptance of free-service terms, attribution and aggregate quotas is outstanding.
-    const val WORLDWIDE_WEATHER_APPROVED = false
+    // Owner requested online location/time/temperature for their private development preview.
+    // Open-Meteo's free public endpoint is noncommercial and requires visible attribution;
+    // public/commercial distribution still needs a separate license/rate-limit review.
+    const val WORLDWIDE_WEATHER_APPROVED = true
     const val OSM_MAP_APPROVED = false
 
     fun forecast(): ForecastProvider = if (WORLDWIDE_WEATHER_APPROVED) RegionalForecastProvider() else NwsForecastProvider()
