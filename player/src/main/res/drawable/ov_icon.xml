@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher icon: the shared OpenVista lens mark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M0,0 L108,0 L108,108 L0,108 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="108" android:endY="108"
+                android:startColor="#0E3A47" android:centerColor="#0A2533" android:endColor="#06141F" />
+        </aapt:attr>
+    </path>
+    <group android:translateX="24.00" android:translateY="24.00" android:scaleX="2.5000" android:scaleY="2.5000">
+        <group android:rotation="-14" android:pivotX="12" android:pivotY="12">
+            <path android:strokeColor="#F3F5F7" android:strokeWidth="1.6" android:strokeLineJoin="round"
+                android:pathData="M8.8,2.6 L15.2,2.6 A6.2,6.2 0 0 1 21.4,8.8 L21.4,15.2 A6.2,6.2 0 0 1 15.2,21.4 L8.8,21.4 A6.2,6.2 0 0 1 2.6,15.2 L2.6,8.8 A6.2,6.2 0 0 1 8.8,2.6 Z" />
+        </group>
+        <path android:strokeColor="#F3F5F7" android:strokeWidth="1.6"
+            android:pathData="M8.3,12.2 A3.3,3.3 0 1 0 14.9,12.2 A3.3,3.3 0 1 0 8.3,12.2 Z" />
+    </group>
+</vector>
