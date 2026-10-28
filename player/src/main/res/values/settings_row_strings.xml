@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_group_display_care">Display care</string>
+    <string name="settings_group_clock">Clock &amp; date</string>
+    <string name="settings_group_licenses">Open-source notices</string>
+    <string name="settings_licenses_row">Licenses and credits</string>
+    <string name="settings_licenses_body">Inter typeface · SIL Open Font License 1.1 · The Inter Project Authors
+
+AndroidX Media3 and AndroidX Activity · Apache License 2.0 · The Android Open Source Project
+
+ZXing core · Apache License 2.0 · ZXing authors
+
+Weather outside U.S. coverage and city search: Open-Meteo.com · CC BY 4.0 · non-commercial use
+
+U.S. forecasts: National Weather Service (weather.gov) · public domain
+
+OpenVista · MIT License</string>
+    <string name="settings_library_status">Library status</string>
+    <string name="settings_library_no_bundled">No bundled streams</string>
+    <string name="settings_minutes_value">%1$d min</string>
+    <string name="settings_seconds_value">%1$d s</string>
+    <string name="settings_percent_value">%1$d%%</string>
+    <string name="summary_rotation">Time on each camera before the next one</string>
+    <string name="summary_quality">Upper limit for adaptive streams</string>
+    <string name="summary_fit">How video fills the screen</string>
+    <string name="summary_transition">Between cameras and videos</string>
+    <string name="summary_sound">Start playback with audio</string>
+    <string name="summary_keep_awake">Keeps the screen on while OpenVista plays</string>
+    <string name="summary_fallback">Plays your videos when cameras are offline</string>
+    <string name="summary_stay_local">Keep playing local videos after a fallback</string>
+    <string name="summary_movement">Moves every information group to new safe positions</string>
+    <string name="summary_move_interval">How often the information moves</string>
+    <string name="summary_hiding">Fades information after inactivity</string>
+    <string name="summary_hide_delay">Inactivity before information fades</string>
+    <string name="summary_schedule">Uses the TV’s local time and may cross midnight</string>
+    <string name="summary_open_screensaver">Opens the TV’s own settings after confirmation</string>
+    <string name="summary_weather_context">Which place the forecast follows</string>
+    <string name="summary_temperature">Units for every temperature</string>
+    <string name="summary_viewer_location">City, coordinates and time zone</string>
+    <string name="summary_city_search">Find coordinates with Open-Meteo</string>
+    <string name="summary_forecast">Seven days for the chosen location</string>
+    <string name="summary_forecast_days">Days shown in the on-screen forecast</string>
+    <string name="summary_clock_format">12-hour or 24-hour time</string>
+    <string name="summary_show_clock">Source and viewer clocks</string>
+    <string name="summary_show_date">Date under each clock</string>
+    <string name="summary_show_weather">Current conditions next to each clock</string>
+    <string name="summary_add_stream">An HLS or DASH address you may use</string>
+    <string name="summary_import_list">M3U list from TV storage or USB</string>
+    <string name="summary_choose_folder">Scans only the folder you grant</string>
+    <string name="summary_choose_video">One file from TV storage or USB</string>
+    <string name="summary_manage_folders">Review or forget granted folders</string>
+    <string name="summary_language">Interface language</string>
+    <string name="summary_layout">Arrangement of on-screen information</string>
+    <string name="summary_preset">Quick combinations of visible information</string>
+    <string name="summary_show_brand">Small OpenVista logo</string>
+    <string name="summary_show_source">Source place, time and weather</string>
+    <string name="summary_show_viewer">Your place, time and weather</string>
+    <string name="summary_show_forecast">Upcoming days for your location</string>
+    <string name="summary_location_label">City and country names</string>
+    <string name="summary_corner">Starting position of the source information</string>
+    <string name="summary_size">Scale of on-screen text</string>
+    <string name="summary_offset">Extra distance from the screen edges</string>
+    <string name="summary_color">Tint of on-screen text</string>
+    <string name="summary_opacity">Overall information opacity</string>
+    <string name="summary_diagnostics">Shows technical playback details</string>
+    <string name="summary_report">Local report without URLs or paths</string>
+    <string name="summary_clear_cache">Removes saved forecasts and city searches</string>
+    <string name="summary_setup">Walk through adding sources again</string>
+    <plurals name="settings_library_sources">
+        <item quantity="one">%d user-managed source</item>
+        <item quantity="other">%d user-managed sources</item>
+    </plurals>
+</resources>

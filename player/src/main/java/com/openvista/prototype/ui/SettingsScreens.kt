@@ -6,9 +6,11 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.provider.Settings
 import android.text.InputType
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -37,6 +39,10 @@ import com.openvista.prototype.update.UpdateCoordinator
 import com.openvista.prototype.update.UpdateState
 import java.util.TimeZone
 
+/**
+ * Content of the single Settings menu. Every preference has exactly one home category;
+ * legacy routes (overlays, schedule, privacy, updates) open the category that now owns them.
+ */
 @UnstableApi
 class SettingsScreens(private val host: OpenVistaActivity) {
     private val ui get() = host.ui
@@ -56,14 +62,9 @@ class SettingsScreens(private val host: OpenVistaActivity) {
 
     fun render(body: LinearLayout, page: String) {
         preview?.stop(); preview = null
-        when (page) {
-            "playback_settings" -> playback(body)
-            "overlays", "overlay_editor" -> overlays(body, page == "overlay_editor")
+        when (SettingsShell.category(page)) {
             "weather_settings" -> weatherSettings(body)
             "advanced" -> advanced(body)
-            "schedule" -> schedule(body)
-            "privacy" -> privacy(body)
-            "updates" -> updates(body)
             "screensaver" -> screensaver(body)
             "appearance" -> appearance(body)
             "library_settings" -> librarySettings(body)
@@ -72,56 +73,93 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         }
     }
 
-    private fun appearance(body: LinearLayout) {
-        pageHeading(body, R.string.settings_category_appearance, R.string.settings_appearance_description)
-        val language = group(body, R.string.language)
-        choice(language, R.string.language, listOf("system", "en", "pt-BR"),
-            listOf(s(R.string.system_default), s(R.string.language_english), s(R.string.language_portuguese)), store.settings().language) { language ->
-            store.saveSettings(store.settings().copy(language = language))
-            AppLocale.save(host, language)
-            host.recreate()
-        }
-        val information = group(body, R.string.settings_group_information)
-        destination(information, R.string.clock_overlays, "overlays")
-        destination(information, R.string.overlay_editor, "overlay_editor")
-        destination(information, R.string.settings_category_weather_clock, "weather_settings")
-    }
-
     private fun playback(body: LinearLayout) {
         pageHeading(body, R.string.playback, R.string.settings_playback_description)
+        val settings = store.settings()
         val video = group(body, R.string.settings_group_video)
-        number(video, R.string.rotation, store.settings().rotationMinutes, 1..60) { settings, value -> settings.copy(rotationMinutes = value) }
+        number(video, R.string.rotation, settings.rotationMinutes, 1..60, TvIcon.Symbol.TIMER, R.string.summary_rotation,
+            R.string.settings_minutes_value) { value, number -> value.copy(rotationMinutes = number) }
         choice(video, R.string.quality, listOf(0, 720, 1080, 2160), listOf(s(R.string.automatic), "720p", "1080p", "2160p"),
-            store.settings().maxVideoHeight) { value -> store.saveSettings(store.settings().copy(maxVideoHeight = value)) }
-        choice(video, R.string.aspect_ratio, listOf("crop", "fit"), listOf(s(R.string.crop), s(R.string.fit)), store.settings().resizeMode) {
-            store.saveSettings(store.settings().copy(resizeMode = it))
+            settings.maxVideoHeight, TvIcon.Symbol.QUALITY, R.string.summary_quality) { value ->
+            store.saveSettings(store.settings().copy(maxVideoHeight = value))
         }
-        choice(video, R.string.transitions, listOf(false, true), listOf(s(R.string.instant), s(R.string.smooth)), store.settings().smoothTransitions) {
+        choice(video, R.string.aspect_ratio, listOf("crop", "fit"), listOf(s(R.string.crop), s(R.string.fit)), settings.resizeMode,
+            TvIcon.Symbol.FIT, R.string.summary_fit) { store.saveSettings(store.settings().copy(resizeMode = it)) }
+        choice(video, R.string.transitions, listOf(false, true), listOf(s(R.string.instant), s(R.string.smooth)),
+            settings.smoothTransitions, TvIcon.Symbol.TRANSITION, R.string.summary_transition) {
             store.saveSettings(store.settings().copy(smoothTransitions = it))
         }
         val sound = group(body, R.string.settings_group_sound_power)
-        toggle(sound, R.string.sound, !store.settings().muted) { it.copy(muted = !it.muted) }
-        toggle(sound, R.string.keep_awake, store.settings().keepAwake) { it.copy(keepAwake = !it.keepAwake) }
-        sound.addView(ui.description(s(R.string.power_notice)))
+        toggle(sound, R.string.sound, !settings.muted, TvIcon.Symbol.VOLUME, R.string.summary_sound) { it.copy(muted = !it.muted) }
+        toggle(sound, R.string.keep_awake, settings.keepAwake, TvIcon.Symbol.POWER, R.string.summary_keep_awake) {
+            it.copy(keepAwake = !it.keepAwake)
+        }
+        note(sound, R.string.power_notice)
         val fallback = group(body, R.string.settings_group_fallback)
-        fallback.addView(ui.description(s(R.string.fallback_notice)))
         val playlists = store.playlists().filter { it.family == MediaFamily.VIDEOS }
         choice(fallback, R.string.fallback_set, listOf<String?>(null) + playlists.map { it.id },
-            listOf(s(R.string.off)) + playlists.map { it.name }, store.settings().fallbackPlaylistId) {
-            store.saveSettings(store.settings().copy(fallbackPlaylistId = it))
+            listOf(s(R.string.off)) + playlists.map { it.name }, settings.fallbackPlaylistId, TvIcon.Symbol.PLAYLIST,
+            R.string.summary_fallback) { store.saveSettings(store.settings().copy(fallbackPlaylistId = it)) }
+        toggle(fallback, R.string.stay_local, settings.stayLocal, TvIcon.Symbol.FOLDER, R.string.summary_stay_local) {
+            it.copy(stayLocal = !it.stayLocal)
         }
-        toggle(fallback, R.string.stay_local, store.settings().stayLocal) { it.copy(stayLocal = !it.stayLocal) }
+        note(fallback, R.string.fallback_notice)
     }
 
-    private fun overlays(body: LinearLayout, editor: Boolean) {
-        pageHeading(body, if (editor) R.string.overlay_editor else R.string.clock_overlays, R.string.settings_overlay_description)
-        if (editor) overlayPreview(body)
+    private fun screensaver(body: LinearLayout) {
+        pageHeading(body, R.string.settings_category_screensaver, R.string.settings_screensaver_description)
         val settings = store.settings()
+        val care = group(body, R.string.settings_group_display_care)
+        toggle(care, R.string.overlay_movement, settings.moveOverlay, TvIcon.Symbol.MOVE, R.string.summary_movement) {
+            it.copy(moveOverlay = !it.moveOverlay)
+        }
+        number(care, R.string.settings_move_interval, settings.overlayMoveMinutes, 1..30, TvIcon.Symbol.TIMER,
+            R.string.summary_move_interval, R.string.settings_minutes_value) { value, number -> value.copy(overlayMoveMinutes = number) }
+        toggle(care, R.string.overlay_hiding, settings.hideOverlay, TvIcon.Symbol.EYE, R.string.summary_hiding) {
+            it.copy(hideOverlay = !it.hideOverlay)
+        }
+        number(care, R.string.overlay_hide_delay, settings.overlayHideSeconds, 10..3600, TvIcon.Symbol.CLOCK,
+            R.string.summary_hide_delay, R.string.settings_seconds_value) { value, number -> value.copy(overlayHideSeconds = number) }
+        note(care, R.string.overlay_notice)
+        val window = group(body, R.string.settings_group_schedule)
+        toggle(window, R.string.schedule_enable, settings.scheduleEnabled, TvIcon.Symbol.CLOCK, R.string.summary_schedule) {
+            it.copy(scheduleEnabled = !it.scheduleEnabled)
+        }
+        time(window, R.string.schedule_start, settings.scheduleStartMinute) { value, minute -> value.copy(scheduleStartMinute = minute) }
+        time(window, R.string.schedule_end, settings.scheduleEndMinute) { value, minute -> value.copy(scheduleEndMinute = minute) }
+        note(window, R.string.schedule_notice)
+        val status = group(body, R.string.settings_group_system_status)
+        ui.settingRow(status, s(R.string.screensaver), s(R.string.settings_kept_disabled), "screensaver_status",
+            s(R.string.settings_screensaver_hold), false, TvIcon.Symbol.SCREENSAVER, TvUi.RowControl.NONE) {}
+        ui.settingRow(status, s(R.string.open_screensaver_settings), key = "open_screensaver_settings",
+            summary = s(R.string.summary_open_screensaver), icon = TvIcon.Symbol.SETTINGS) {
+            host.showDialog(AlertDialog.Builder(host).setTitle(R.string.open_screensaver_settings)
+                .setMessage(R.string.settings_system_settings_confirmation)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.settings_open_system_settings) { _, _ ->
+                    try { host.startActivity(Intent(Settings.ACTION_DREAM_SETTINGS)) }
+                    catch (_: RuntimeException) { host.message(R.string.system_settings_unavailable) }
+                }.create())
+        }
+        note(status, R.string.screensaver_notice)
+    }
+
+    private fun appearance(body: LinearLayout) {
+        pageHeading(body, R.string.settings_category_appearance, R.string.settings_appearance_description)
+        val settings = store.settings()
+        val language = group(body, R.string.language)
+        choice(language, R.string.language, listOf("system", "en", "pt-BR"),
+            listOf(s(R.string.system_default), s(R.string.language_english), s(R.string.language_portuguese)), settings.language,
+            TvIcon.Symbol.LANGUAGE, R.string.summary_language) { value ->
+            store.saveSettings(store.settings().copy(language = value))
+            AppLocale.save(host, value)
+            host.recreate()
+        }
+        overlayPreview(body)
         val composition = group(body, R.string.settings_group_composition)
         choice(composition, R.string.settings_overlay_layout, listOf("cinematic", "compact"),
-            listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact)), settings.overlayLayout) {
-            store.saveSettings(store.settings().copy(overlayLayout = it))
-        }
+            listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact)), settings.overlayLayout,
+            TvIcon.Symbol.LAYERS, R.string.summary_layout) { store.saveSettings(store.settings().copy(overlayLayout = it)) }
         val preset = when {
             !settings.showClock && !settings.showWeather && !settings.showDate && !settings.showLocation &&
                 !settings.showBrand && !settings.showSourceInfo && !settings.showViewerInfo && !settings.showForecast -> "none"
@@ -136,60 +174,61 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             else -> "custom"
         }
         choice(composition, R.string.overlay_preset, listOf("cinematic", "compact", "clock", "none"),
-            listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact), s(R.string.preset_minimal), s(R.string.preset_none)), preset) { selected ->
+            listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact), s(R.string.preset_minimal), s(R.string.preset_none)),
+            preset, TvIcon.Symbol.LAYERS, R.string.summary_preset) { selected ->
             val all = selected == "cinematic" || selected == "compact"
             store.saveSettings(store.settings().copy(overlayLayout = if (selected == "compact") "compact" else "cinematic",
                 showClock = selected != "none", showWeather = all, showDate = all, showLocation = all,
                 showBrand = all, showSourceInfo = all, showViewerInfo = selected != "none", showForecast = selected == "cinematic"))
         }
         val visibility = group(body, R.string.settings_group_visibility)
-        toggle(visibility, R.string.settings_show_brand, settings.showBrand) { it.copy(showBrand = !it.showBrand) }
-        toggle(visibility, R.string.settings_show_source, settings.showSourceInfo) { it.copy(showSourceInfo = !it.showSourceInfo) }
-        toggle(visibility, R.string.settings_show_viewer, settings.showViewerInfo) { it.copy(showViewerInfo = !it.showViewerInfo) }
-        toggle(visibility, R.string.settings_show_forecast, settings.showForecast) { it.copy(showForecast = !it.showForecast) }
-        choice(visibility, R.string.settings_forecast_days, listOf(3, 4, 5, 6, 7), listOf("3", "4", "5", "6", "7"), settings.viewerForecastDays) {
-            store.saveSettings(store.settings().copy(viewerForecastDays = it))
+        toggle(visibility, R.string.settings_show_brand, settings.showBrand, TvIcon.Symbol.EYE, R.string.summary_show_brand) {
+            it.copy(showBrand = !it.showBrand)
         }
-        toggle(visibility, R.string.clock, settings.showClock) { it.copy(showClock = !it.showClock) }
-        toggle(visibility, R.string.date, settings.showDate) { it.copy(showDate = !it.showDate) }
-        toggle(visibility, R.string.weather, settings.showWeather) { it.copy(showWeather = !it.showWeather) }
-        toggle(visibility, R.string.location, settings.showLocation) { it.copy(showLocation = !it.showLocation) }
-        choice(visibility, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"), settings.clockFormat) {
-            store.saveSettings(store.settings().copy(clockFormat = it))
+        toggle(visibility, R.string.settings_show_source, settings.showSourceInfo, TvIcon.Symbol.CAMERA, R.string.summary_show_source) {
+            it.copy(showSourceInfo = !it.showSourceInfo)
         }
-        if (editor) {
-            val position = group(body, R.string.settings_group_position)
-            choice(position, R.string.overlay_corner, listOf(0, 1, 2, 3), listOf(s(R.string.top_left), s(R.string.top_right), s(R.string.bottom_left), s(R.string.bottom_right)), store.settings().overlayCorner) {
-                store.saveSettings(store.settings().copy(overlayCorner = it))
-            }
-            number(position, R.string.overlay_size, store.settings().overlaySize, 14..40) { settings, value -> settings.copy(overlaySize = value) }
-            number(position, R.string.overlay_x, store.settings().overlayX, 0..100) { settings, value -> settings.copy(overlayX = value) }
-            number(position, R.string.overlay_y, store.settings().overlayY, 0..100) { settings, value -> settings.copy(overlayY = value) }
-            choice(position, R.string.overlay_color, listOf(-1, 0xFFFFE4B5.toInt(), 0xFFB5EBFF.toInt()),
-                listOf(s(R.string.white), s(R.string.warm), s(R.string.cool)), store.settings().overlayColor) {
-                store.saveSettings(store.settings().copy(overlayColor = it))
-            }
-            val opacity = group(body, R.string.settings_group_opacity)
-            number(opacity, R.string.overlay_opacity, store.settings().overlayOpacity, 20..100) { settings, value -> settings.copy(overlayOpacity = value) }
-            number(opacity, R.string.settings_source_opacity, settings.sourceOpacity, 20..100) { value, number -> value.copy(sourceOpacity = number) }
-            number(opacity, R.string.settings_viewer_opacity, settings.viewerOpacity, 20..100) { value, number -> value.copy(viewerOpacity = number) }
-            number(opacity, R.string.settings_forecast_opacity, settings.forecastOpacity, 20..100) { value, number -> value.copy(forecastOpacity = number) }
-            number(opacity, R.string.settings_brand_opacity, settings.brandOpacity, 20..100) { value, number -> value.copy(brandOpacity = number) }
-            val behavior = group(body, R.string.settings_group_behavior)
-            toggle(behavior, R.string.overlay_movement, settings.moveOverlay) { it.copy(moveOverlay = !it.moveOverlay) }
-            number(behavior, R.string.settings_move_interval, settings.overlayMoveMinutes, 1..30) { value, number -> value.copy(overlayMoveMinutes = number) }
-            toggle(behavior, R.string.overlay_hiding, settings.hideOverlay) { it.copy(hideOverlay = !it.hideOverlay) }
-            number(behavior, R.string.overlay_hide_delay, settings.overlayHideSeconds, 10..3600) { settings, value -> settings.copy(overlayHideSeconds = value) }
-            behavior.addView(ui.description(s(R.string.overlay_notice)))
-        } else destination(body, R.string.overlay_editor, "overlay_editor")
+        toggle(visibility, R.string.settings_show_viewer, settings.showViewerInfo, TvIcon.Symbol.NAVIGATE, R.string.summary_show_viewer) {
+            it.copy(showViewerInfo = !it.showViewerInfo)
+        }
+        toggle(visibility, R.string.settings_show_forecast, settings.showForecast, TvIcon.Symbol.WEATHER, R.string.summary_show_forecast) {
+            it.copy(showForecast = !it.showForecast)
+        }
+        toggle(visibility, R.string.location, settings.showLocation, TvIcon.Symbol.PIN, R.string.summary_location_label) {
+            it.copy(showLocation = !it.showLocation)
+        }
+        val position = group(body, R.string.settings_group_position)
+        choice(position, R.string.overlay_corner, listOf(0, 1, 2, 3),
+            listOf(s(R.string.top_left), s(R.string.top_right), s(R.string.bottom_left), s(R.string.bottom_right)), settings.overlayCorner,
+            TvIcon.Symbol.MOVE, R.string.summary_corner) { store.saveSettings(store.settings().copy(overlayCorner = it)) }
+        number(position, R.string.overlay_size, settings.overlaySize, 14..40, TvIcon.Symbol.TEXT_SIZE, R.string.summary_size) { value, number ->
+            value.copy(overlaySize = number)
+        }
+        number(position, R.string.overlay_x, settings.overlayX, 0..100, TvIcon.Symbol.MOVE, R.string.summary_offset,
+            R.string.settings_percent_value) { value, number -> value.copy(overlayX = number) }
+        number(position, R.string.overlay_y, settings.overlayY, 0..100, TvIcon.Symbol.MOVE, R.string.summary_offset,
+            R.string.settings_percent_value) { value, number -> value.copy(overlayY = number) }
+        choice(position, R.string.overlay_color, listOf(-1, 0xFFFFE4B5.toInt(), 0xFFB5EBFF.toInt()),
+            listOf(s(R.string.white), s(R.string.warm), s(R.string.cool)), settings.overlayColor, TvIcon.Symbol.PALETTE,
+            R.string.summary_color) { store.saveSettings(store.settings().copy(overlayColor = it)) }
+        val opacity = group(body, R.string.settings_group_opacity)
+        number(opacity, R.string.overlay_opacity, settings.overlayOpacity, 20..100, TvIcon.Symbol.OPACITY, R.string.summary_opacity,
+            R.string.settings_percent_value) { value, number -> value.copy(overlayOpacity = number) }
+        number(opacity, R.string.settings_source_opacity, settings.sourceOpacity, 20..100, TvIcon.Symbol.OPACITY, null,
+            R.string.settings_percent_value) { value, number -> value.copy(sourceOpacity = number) }
+        number(opacity, R.string.settings_viewer_opacity, settings.viewerOpacity, 20..100, TvIcon.Symbol.OPACITY, null,
+            R.string.settings_percent_value) { value, number -> value.copy(viewerOpacity = number) }
+        number(opacity, R.string.settings_forecast_opacity, settings.forecastOpacity, 20..100, TvIcon.Symbol.OPACITY, null,
+            R.string.settings_percent_value) { value, number -> value.copy(forecastOpacity = number) }
+        number(opacity, R.string.settings_brand_opacity, settings.brandOpacity, 20..100, TvIcon.Symbol.OPACITY, null,
+            R.string.settings_percent_value) { value, number -> value.copy(brandOpacity = number) }
     }
 
     private fun overlayPreview(body: LinearLayout) {
         val livePreview = group(body, R.string.settings_live_preview)
-        livePreview.addView(ui.description(s(R.string.settings_preview_description)))
+        note(livePreview, R.string.settings_preview_description)
         val overlay = AmbientOverlay(host, store)
         preview = overlay
-        overlay.setBackgroundColor(0xFF173044.toInt())
         store.lastItemId()?.let(store::item)?.let(overlay::updateItem)
         val frame = object : FrameLayout(host) {
             override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -200,38 +239,54 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             isFocusable = false
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+            background = TvDesign.panel(host, 0xFF173044.toInt(), TvDesign.rowStroke, radiusDp = 4.6f)
+            clipToOutline = true
             addView(overlay, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
-        livePreview.addView(frame, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        livePreview.addView(frame, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = ui.dp(4)
+        })
         overlay.start()
     }
 
     private fun weatherSettings(body: LinearLayout) {
         pageHeading(body, R.string.settings_category_weather_clock, R.string.settings_weather_description)
-        body.addView(ui.description(s(if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) R.string.weather_worldwide_notice else R.string.weather_nws_notice)))
-        if (!ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) body.addView(ui.description(s(R.string.provider_approval_required)))
+        val settings = store.settings()
         val location = group(body, R.string.settings_group_weather_location)
-        choice(location, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)), store.settings().weatherContext) {
+        note(location, if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) R.string.weather_worldwide_notice else R.string.weather_nws_notice)
+        if (!ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) note(location, R.string.provider_approval_required)
+        choice(location, R.string.weather_context, listOf("camera", "viewer"), listOf(s(R.string.camera_location), s(R.string.viewer_location)),
+            settings.weatherContext, TvIcon.Symbol.PIN, R.string.summary_weather_context) {
             store.saveSettings(store.settings().copy(weatherContext = it))
         }
-        choice(location, R.string.temperature, listOf("system", "celsius", "fahrenheit"), listOf(s(R.string.system_default), "°C", "°F"), store.settings().temperatureUnit) {
+        choice(location, R.string.temperature, listOf("system", "celsius", "fahrenheit"), listOf(s(R.string.system_default), "°C", "°F"),
+            settings.temperatureUnit, TvIcon.Symbol.SUN, R.string.summary_temperature) {
             store.saveSettings(store.settings().copy(temperatureUnit = it))
         }
-        ui.settingRow(location, s(R.string.viewer_location_edit), store.settings().viewerCity.ifBlank { s(R.string.settings_not_set) },
-            "viewer_location_edit") { editLocation() }
+        ui.settingRow(location, s(R.string.viewer_location_edit), settings.viewerCity.ifBlank { s(R.string.settings_not_set) },
+            "viewer_location_edit", s(R.string.summary_viewer_location), icon = TvIcon.Symbol.NAVIGATE,
+            control = TvUi.RowControl.CHEVRON) { editLocation() }
         ui.settingRow(location, s(R.string.city_search), if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) "" else s(R.string.settings_unavailable),
-            "city_search", if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) null else s(R.string.provider_approval_required),
-            ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) { citySearch() }
+            "city_search", s(if (ProviderPolicy.WORLDWIDE_WEATHER_APPROVED) R.string.summary_city_search else R.string.provider_approval_required),
+            ProviderPolicy.WORLDWIDE_WEATHER_APPROVED, TvIcon.Symbol.SEARCH) { citySearch() }
         ui.settingRow(location, s(R.string.device_location), s(R.string.settings_unavailable), "device_location",
-            s(R.string.device_location_notice), false) {}
-        ui.settingRow(location, s(R.string.forecast), key = "forecast") { forecast() }
-        val clock = group(body, R.string.clock)
-        toggle(clock, R.string.clock, store.settings().showClock) { it.copy(showClock = !it.showClock) }
-        toggle(clock, R.string.date, store.settings().showDate) { it.copy(showDate = !it.showDate) }
-        choice(clock, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"), store.settings().clockFormat) {
+            s(R.string.device_location_notice), false, TvIcon.Symbol.NAVIGATE, TvUi.RowControl.NONE) {}
+        ui.settingRow(location, s(R.string.forecast), key = "forecast", summary = s(R.string.summary_forecast),
+            icon = TvIcon.Symbol.WEATHER) { forecast() }
+        choice(location, R.string.settings_forecast_days, listOf(3, 4, 5, 6, 7), listOf("3", "4", "5", "6", "7"),
+            settings.viewerForecastDays, TvIcon.Symbol.WEATHER, R.string.summary_forecast_days) {
+            store.saveSettings(store.settings().copy(viewerForecastDays = it))
+        }
+        val clock = group(body, R.string.settings_group_clock)
+        toggle(clock, R.string.clock, settings.showClock, TvIcon.Symbol.CLOCK, R.string.summary_show_clock) { it.copy(showClock = !it.showClock) }
+        toggle(clock, R.string.date, settings.showDate, TvIcon.Symbol.CLOCK, R.string.summary_show_date) { it.copy(showDate = !it.showDate) }
+        toggle(clock, R.string.weather, settings.showWeather, TvIcon.Symbol.SUN, R.string.summary_show_weather) {
+            it.copy(showWeather = !it.showWeather)
+        }
+        choice(clock, R.string.clock_format, listOf("system", "12", "24"), listOf(s(R.string.system_default), "12 h", "24 h"),
+            settings.clockFormat, TvIcon.Symbol.CLOCK, R.string.summary_clock_format) {
             store.saveSettings(store.settings().copy(clockFormat = it))
         }
-        destination(clock, R.string.clock_overlays, "overlays")
     }
 
     private fun editLocation() {
@@ -325,45 +380,115 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     private fun advanced(body: LinearLayout) {
         pageHeading(body, R.string.settings_category_advanced, R.string.settings_advanced_description)
         val diagnostics = group(body, R.string.diagnostics)
-        toggle(diagnostics, R.string.diagnostics_enable, store.settings().diagnosticsEnabled) { it.copy(diagnosticsEnabled = !it.diagnosticsEnabled) }
-        ui.settingRow(diagnostics, s(R.string.report), key = "report") { report() }
-        val data = group(body, R.string.settings_group_local_data)
-        destination(data, R.string.privacy, "privacy")
-        destination(data, R.string.schedule, "schedule")
+        toggle(diagnostics, R.string.diagnostics_enable, store.settings().diagnosticsEnabled, TvIcon.Symbol.REPORT,
+            R.string.summary_diagnostics) { it.copy(diagnosticsEnabled = !it.diagnosticsEnabled) }
+        ui.settingRow(diagnostics, s(R.string.report), key = "report", summary = s(R.string.summary_report),
+            icon = TvIcon.Symbol.REPORT) { report() }
+        val privacy = group(body, R.string.privacy)
+        note(privacy, R.string.privacy_body)
+        note(privacy, R.string.provider_privacy)
+        ui.settingRow(privacy, s(R.string.clear_provider_cache), key = "clear_provider_cache",
+            summary = s(R.string.summary_clear_cache), icon = TvIcon.Symbol.REFRESH) { weather.clearCache(); host.message(R.string.saved) }
         val availability = group(body, R.string.settings_group_availability)
-        destination(availability, R.string.updates, "updates")
+        updates(availability)
         ui.settingRow(availability, s(R.string.pairing), s(if (PairingSecurity.REVIEWED) R.string.settings_available else R.string.settings_disabled),
-            "pairing", s(R.string.pairing_review_pending), PairingSecurity.REVIEWED) { startPairing() }
-        ui.settingRow(availability, s(R.string.setup), key = "setup") { host.open(LibraryRoute("setup")) }
+            "pairing", s(R.string.pairing_review_pending), PairingSecurity.REVIEWED, TvIcon.Symbol.LINK,
+            TvUi.RowControl.NONE) { startPairing() }
+        ui.settingRow(availability, s(R.string.setup), key = "setup", summary = s(R.string.summary_setup),
+            icon = TvIcon.Symbol.HOME) { host.open(LibraryRoute("setup")) }
+    }
+
+    /** Update controls live in Advanced; they stay disabled until the release channel is approved. */
+    private fun updates(body: LinearLayout) {
+        if (!UpdateChannel.APPROVED) {
+            ui.settingRow(body, s(R.string.check_updates), s(R.string.settings_disabled), "check_updates",
+                s(R.string.settings_updates_disabled), false, TvIcon.Symbol.DOWNLOAD, TvUi.RowControl.NONE) {}
+            return
+        }
+        note(body, R.string.update_notice)
+        body.addView(ui.description(updateState.message(host)))
+        ui.settingRow(body, s(R.string.check_updates), key = "check_updates", icon = TvIcon.Symbol.DOWNLOAD) { updater.discover(::onUpdate) }
+        toggle(body, R.string.automatic_updates, store.settings().automaticUpdates, TvIcon.Symbol.DOWNLOAD) {
+            it.copy(automaticUpdates = !it.automaticUpdates)
+        }
+        when (val state = updateState) {
+            is UpdateState.Available -> ui.settingRow(body, s(R.string.download_update), key = "download_update",
+                icon = TvIcon.Symbol.DOWNLOAD) { updater.download(state.release, ::onUpdate) }
+            is UpdateState.Ready -> ui.settingRow(body, s(R.string.install_update), key = "install_update",
+                icon = TvIcon.Symbol.DOWNLOAD) { updater.install(state.update, ::onUpdate) }
+            UpdateState.NeedsPermission -> ui.settingRow(body, s(R.string.allow_installs), key = "allow_installs",
+                icon = TvIcon.Symbol.SHIELD) { launchInstallIntent(updater.unknownAppsSettingsIntent()) }
+            is UpdateState.ConfirmationRequired -> ui.settingRow(body, s(R.string.install_update), key = "confirm_update",
+                icon = TvIcon.Symbol.DOWNLOAD) { launchInstallIntent(state.intent) }
+            else -> Unit
+        }
+        ui.settingRow(body, s(R.string.cancel), key = "cancel_update", icon = TvIcon.Symbol.POWER) { updater.cancel() }
     }
 
     private fun librarySettings(body: LinearLayout) {
         pageHeading(body, R.string.settings_category_library, R.string.settings_library_description)
+        val items = store.items()
         val sources = group(body, R.string.settings_group_add_sources)
-        ui.settingRow(sources, s(R.string.add_stream), key = "library_add_stream") { host.editSource() }
-        ui.settingRow(sources, s(R.string.import_list), s(R.string.settings_import_m3u), "library_import_list") { host.pickList() }
-        ui.settingRow(sources, s(R.string.choose_folder), key = "library_choose_folder") { host.pickFolder() }
-        ui.settingRow(sources, s(R.string.choose_video), key = "library_choose_video") { host.pickVideo() }
+        ui.settingRow(sources, s(R.string.add_stream), key = "library_add_stream", summary = s(R.string.summary_add_stream),
+            icon = TvIcon.Symbol.LINK) { host.editSource() }
+        ui.settingRow(sources, s(R.string.import_list), key = "library_import_list", summary = s(R.string.summary_import_list),
+            icon = TvIcon.Symbol.UPLOAD) { host.pickList() }
+        ui.settingRow(sources, s(R.string.choose_folder), key = "library_choose_folder", summary = s(R.string.summary_choose_folder),
+            icon = TvIcon.Symbol.FOLDER) { host.pickFolder() }
+        ui.settingRow(sources, s(R.string.choose_video), key = "library_choose_video", summary = s(R.string.summary_choose_video),
+            icon = TvIcon.Symbol.FILM) { host.pickVideo() }
         val library = group(body, R.string.settings_group_organize)
-        ui.settingRow(library, s(R.string.cameras), store.items().count { it.family == MediaFamily.CAMERAS }.toString(), "library_cameras") {
+        count(library, R.string.cameras, items.count { it.family == MediaFamily.CAMERAS }, "library_cameras", TvIcon.Symbol.CAMERA) {
             host.open(LibraryRoute("cameras"))
         }
-        ui.settingRow(library, s(R.string.my_videos), store.items().count { it.family == MediaFamily.VIDEOS }.toString(), "library_videos") {
+        count(library, R.string.my_videos, items.count { it.family == MediaFamily.VIDEOS }, "library_videos", TvIcon.Symbol.FILM) {
             host.open(LibraryRoute("videos"))
         }
-        ui.settingRow(library, s(R.string.favorites), store.items().count { it.favorite }.toString(), "library_favorites") {
+        count(library, R.string.favorites, items.count { it.favorite }, "library_favorites", TvIcon.Symbol.STAR) {
             host.open(LibraryRoute("favorites"))
         }
-        ui.settingRow(library, s(R.string.settings_camera_playlists), store.playlists().count { it.family == MediaFamily.CAMERAS }.toString(), "library_camera_playlists") {
-            host.open(LibraryRoute("playlists", family = MediaFamily.CAMERAS))
-        }
-        ui.settingRow(library, s(R.string.settings_video_playlists), store.playlists().count { it.family == MediaFamily.VIDEOS }.toString(), "library_video_playlists") {
-            host.open(LibraryRoute("playlists", family = MediaFamily.VIDEOS))
-        }
+        count(library, R.string.settings_camera_playlists, store.playlists().count { it.family == MediaFamily.CAMERAS },
+            "library_camera_playlists", TvIcon.Symbol.PLAYLIST) { host.open(LibraryRoute("playlists", family = MediaFamily.CAMERAS)) }
+        count(library, R.string.settings_video_playlists, store.playlists().count { it.family == MediaFamily.VIDEOS },
+            "library_video_playlists", TvIcon.Symbol.PLAYLIST) { host.open(LibraryRoute("playlists", family = MediaFamily.VIDEOS)) }
         val folders = group(body, R.string.manage_folders)
-        ui.settingRow(folders, s(R.string.manage_folders), store.folders().size.toString(), "library_folders") { host.open(LibraryRoute("folders")) }
-        ui.settingRow(folders, s(R.string.settings_rescan), key = "library_rescan", summary = s(R.string.settings_rescan_description)) { host.rescan() }
-        folders.addView(ui.description(s(R.string.local_only)))
+        count(folders, R.string.manage_folders, store.folders().size, "library_folders", TvIcon.Symbol.FOLDER,
+            R.string.summary_manage_folders) { host.open(LibraryRoute("folders")) }
+        ui.settingRow(folders, s(R.string.settings_rescan), key = "library_rescan", summary = s(R.string.settings_rescan_description),
+            icon = TvIcon.Symbol.REFRESH) { host.rescan() }
+        statusCard(body, items.size)
+        note(body, R.string.local_only)
+    }
+
+    /** Real library facts in the reference's status card: user sources and the zero-bundle policy. */
+    private fun statusCard(body: LinearLayout, sources: Int) {
+        val card = ui.row().apply {
+            gravity = Gravity.TOP
+            setPadding(ui.dp(14), ui.dp(10), ui.dp(9), ui.dp(10))
+            background = TvDesign.panel(host, 0x0EFFFFFF, TvDesign.rowStroke, radiusDp = 4.6f)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        }
+        card.addView(View(host).apply { background = TvIcon(host, TvIcon.Symbol.DATABASE, 18f, 0xFFC8D3DB.toInt(), 1.4f) },
+            LinearLayout.LayoutParams(ui.dp(18), ui.dp(18)).apply { marginEnd = ui.dp(15.6f); topMargin = ui.dp(2) })
+        val lines = ui.column()
+        lines.addView(ui.text(s(R.string.settings_library_status), 11f).apply { setPadding(0, 0, 0, ui.dp(4)) })
+        val count = host.resources.getQuantityString(R.plurals.settings_library_sources, sources, sources)
+        listOf(count to TvDesign.live, s(R.string.settings_library_no_bundled) to 0xFF7D8A94.toInt()).forEach { (label, color) ->
+            lines.addView(ui.row().apply {
+                addView(View(host).apply {
+                    background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) }
+                }, LinearLayout.LayoutParams(ui.dp(7), ui.dp(7)).apply { marginEnd = ui.dp(10) })
+                addView(ui.text(label, 9.6f, 0xFFE3E9ED.toInt()))
+            })
+        }
+        card.addView(lines, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        for (index in 0 until card.childCount) {
+            card.getChildAt(index).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        }
+        card.contentDescription = listOf(s(R.string.settings_library_status), count, s(R.string.settings_library_no_bundled)).joinToString(". ")
+        body.addView(card, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = ui.dp(12)
+        })
     }
 
     private fun about(body: LinearLayout) {
@@ -371,80 +496,15 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         val application = group(body, R.string.app_name)
         val info = try { host.packageManager.getPackageInfo(host.packageName, 0) } catch (_: Exception) { null }
         val version = info?.let { "${it.versionName.orEmpty()} (${it.longVersionCode})" } ?: s(R.string.not_available)
-        application.addView(ui.description(host.getString(R.string.settings_version, version)))
-        application.addView(ui.description(s(R.string.app_unverified)))
-        application.addView(ui.description(s(R.string.settings_development_preview)))
-        val support = group(body, R.string.settings_group_support)
-        destination(support, R.string.privacy, "privacy")
-        ui.settingRow(support, s(R.string.report), key = "about_report") { report() }
-        destination(support, R.string.updates, "updates")
-        destination(support, R.string.screensaver, "screensaver")
-        ui.settingRow(support, s(R.string.setup), key = "about_setup") { host.open(LibraryRoute("setup")) }
-    }
-
-    private fun schedule(body: LinearLayout) {
-        pageHeading(body, R.string.schedule, R.string.schedule_notice)
-        body.addView(ui.description(s(R.string.settings_screensaver_hold)))
-        val window = group(body, R.string.settings_group_schedule)
-        toggle(window, R.string.schedule_enable, store.settings().scheduleEnabled) { it.copy(scheduleEnabled = !it.scheduleEnabled) }
-        time(window, R.string.schedule_start, store.settings().scheduleStartMinute) { settings, minute -> settings.copy(scheduleStartMinute = minute) }
-        time(window, R.string.schedule_end, store.settings().scheduleEndMinute) { settings, minute -> settings.copy(scheduleEndMinute = minute) }
-    }
-
-    private fun screensaver(body: LinearLayout) {
-        pageHeading(body, R.string.settings_category_screensaver, R.string.settings_screensaver_description)
-        val status = group(body, R.string.settings_group_system_status)
-        ui.settingRow(status, s(R.string.screensaver), s(R.string.settings_kept_disabled), "screensaver_status",
-            s(R.string.settings_screensaver_hold), false) {}
-        status.addView(ui.description(s(R.string.power_notice)))
-        val behavior = group(body, R.string.settings_group_behavior)
-        destination(behavior, R.string.schedule, "schedule")
-        destination(behavior, R.string.clock_overlays, "overlays")
-        val help = group(body, R.string.settings_group_help)
-        help.addView(ui.description(s(R.string.screensaver_notice)))
-        ui.settingRow(help, s(R.string.open_screensaver_settings), key = "open_screensaver_settings") {
-            host.showDialog(AlertDialog.Builder(host).setTitle(R.string.open_screensaver_settings)
-                .setMessage(R.string.settings_system_settings_confirmation)
-                .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.settings_open_system_settings) { _, _ ->
-                    try { host.startActivity(Intent(Settings.ACTION_DREAM_SETTINGS)) }
-                    catch (_: RuntimeException) { host.message(R.string.system_settings_unavailable) }
-                }.create())
+        ui.settingRow(application, host.getString(R.string.settings_version, version), key = "about_version",
+            summary = s(R.string.settings_development_preview), enabled = false, icon = TvIcon.Symbol.ABOUT,
+            control = TvUi.RowControl.NONE) {}
+        note(application, R.string.app_unverified)
+        val licenses = group(body, R.string.settings_group_licenses)
+        ui.settingRow(licenses, s(R.string.settings_licenses_row), key = "about_licenses", icon = TvIcon.Symbol.REPORT) {
+            host.showDialog(AlertDialog.Builder(host).setTitle(R.string.settings_licenses_row)
+                .setMessage(R.string.settings_licenses_body).setPositiveButton(R.string.close, null).create())
         }
-    }
-
-    private fun privacy(body: LinearLayout) {
-        pageHeading(body, R.string.privacy, R.string.privacy_body)
-        val providers = group(body, R.string.settings_group_weather_data)
-        providers.addView(ui.description(s(R.string.provider_privacy)))
-        ui.settingRow(providers, s(R.string.clear_provider_cache), key = "clear_provider_cache") { weather.clearCache(); host.message(R.string.saved) }
-        val local = group(body, R.string.settings_group_local_data)
-        ui.settingRow(local, s(R.string.manage_folders), key = "manage_folders") { host.open(LibraryRoute("folders")) }
-        ui.settingRow(local, s(R.string.report), key = "privacy_report") { report() }
-    }
-
-    private fun updates(body: LinearLayout) {
-        pageHeading(body, R.string.updates, R.string.update_notice)
-        val availability = group(body, R.string.settings_group_availability)
-        if (!UpdateChannel.APPROVED) {
-            ui.settingRow(availability, s(R.string.check_updates), s(R.string.settings_disabled), "check_updates",
-                s(R.string.settings_updates_disabled), false) {}
-            ui.toggleRow(availability, s(R.string.automatic_updates), store.settings().automaticUpdates, "setting_${R.string.automatic_updates}",
-                s(R.string.settings_updates_disabled), false) {}
-            destination(body, R.string.settings_category_about, "about")
-            return
-        }
-        availability.addView(ui.description(updateState.message(host)))
-        ui.button(body, s(R.string.check_updates)) { updater.discover(::onUpdate) }
-        toggle(body, R.string.automatic_updates, store.settings().automaticUpdates) { it.copy(automaticUpdates = !it.automaticUpdates) }
-        when (val state = updateState) {
-            is UpdateState.Available -> ui.button(body, s(R.string.download_update)) { updater.download(state.release, ::onUpdate) }
-            is UpdateState.Ready -> ui.button(body, s(R.string.install_update)) { updater.install(state.update, ::onUpdate) }
-            UpdateState.NeedsPermission -> ui.button(body, s(R.string.allow_installs)) { launchInstallIntent(updater.unknownAppsSettingsIntent()) }
-            is UpdateState.ConfirmationRequired -> ui.button(body, s(R.string.install_update)) { launchInstallIntent(state.intent) }
-            else -> Unit
-        }
-        ui.button(body, s(R.string.cancel)) { updater.cancel() }
     }
 
     private fun launchInstallIntent(intent: Intent) {
@@ -453,7 +513,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
     private fun onUpdate(state: UpdateState) {
         updateState = state
         if (state == UpdateState.Failed) DiagnosticJournal.record(host, DiagnosticJournal.Event.UPDATE_ERROR)
-        if (host.route.page == "updates") host.refresh()
+        if (SettingsShell.category(host.route.page) == "advanced") host.refresh()
         host.message(state.message(host))
         // This preference cannot activate the publication gate or bypass Android confirmation.
         if (store.settings().automaticUpdates) when (state) {
@@ -494,7 +554,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
                 val matrix = MultiFormatWriter().encode(offer.url, BarcodeFormat.QR_CODE, 400, 400)
                 val pixels = IntArray(400 * 400) { index -> if (matrix[index % 400, index / 400]) 0xFF000000.toInt() else -1 }
                 val bitmap = Bitmap.createBitmap(pixels, 400, 400, Bitmap.Config.ARGB_8888)
-                body.addView(ImageView(host).apply { setImageBitmap(bitmap); contentDescription = s(R.string.pairing) }, LinearLayout.LayoutParams(ui.dp(240), ui.dp(240)))
+                body.addView(ImageView(host).apply { setImageBitmap(bitmap); contentDescription = s(R.string.pairing) }, LinearLayout.LayoutParams(ui.dp(180), ui.dp(180)))
                 // The QR secret is never displayed as text or put in clipboard/logs.
             }, { request ->
                 awaitingConsent = true
@@ -503,7 +563,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
                         val approved = coordinator.approve(request.id)
                         if (approved == null) host.message(R.string.pairing_expired) else {
                             val source = approved.source
-                            host.mutate { store.addItems(listOf(com.openvista.prototype.library.LibraryItem(
+                            host.mutate { store.addItems(listOf(LibraryItem(
                                 java.util.UUID.randomUUID().toString(), source.title, source.url, MediaFamily.CAMERAS, source.kind.name))) }
                         }
                     }.setNegativeButton(R.string.pairing_deny) { _, _ -> coordinator.deny(request.id) }
@@ -534,23 +594,31 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             }.setNegativeButton(R.string.close, null).create())
     }
 
-    private fun toggle(body: LinearLayout, title: Int, value: Boolean, transform: (AppSettings) -> AppSettings) {
-        ui.toggleRow(body, s(title), value, "setting_$title") { host.mutate { store.saveSettings(transform(store.settings())) } }
+    private fun toggle(body: LinearLayout, title: Int, value: Boolean, icon: TvIcon.Symbol? = null, summary: Int? = null,
+                       transform: (AppSettings) -> AppSettings) {
+        ui.toggleRow(body, s(title), value, "setting_$title", summary?.let(::s), icon = icon) {
+            host.mutate { store.saveSettings(transform(store.settings())) }
+        }
     }
-    private fun <T> choice(body: LinearLayout, title: Int, values: List<T>, labels: List<String>, selected: T, action: (T) -> Unit) {
+    private fun <T> choice(body: LinearLayout, title: Int, values: List<T>, labels: List<String>, selected: T,
+                           icon: TvIcon.Symbol? = null, summary: Int? = null, action: (T) -> Unit) {
         val index = values.indexOf(selected)
-        ui.settingRow(body, s(title), if (index >= 0) labels[index] else s(R.string.settings_custom), "setting_$title") {
+        ui.settingRow(body, s(title), if (index >= 0) labels[index] else s(R.string.settings_custom), "setting_$title",
+            summary?.let(::s), icon = icon, control = TvUi.RowControl.DROPDOWN) {
             host.showDialog(AlertDialog.Builder(host).setTitle(title).setSingleChoiceItems(labels.toTypedArray(), index) { dialog, which ->
                 dialog.dismiss(); host.mutate { action(values[which]) }
             }.setNegativeButton(R.string.cancel, null).create())
         }
     }
-    private fun number(body: LinearLayout, title: Int, value: Int, range: IntRange, change: (AppSettings, Int) -> AppSettings) {
-        ui.settingRow(body, s(title), value.toString(), "setting_$title") {
+    private fun number(body: LinearLayout, title: Int, value: Int, range: IntRange, icon: TvIcon.Symbol? = null,
+                       summary: Int? = null, unit: Int? = null, change: (AppSettings, Int) -> AppSettings) {
+        val shown = unit?.let { host.getString(it, value) } ?: value.toString()
+        ui.settingRow(body, s(title), shown, "setting_$title", summary?.let(::s), icon = icon, control = TvUi.RowControl.DROPDOWN) {
             val fields = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
             val input = ui.field(fields, "${s(title)} (${range.first}–${range.last})", value.toString(), 5, InputType.TYPE_CLASS_NUMBER)
             val error = ui.description(""); fields.addView(error)
-            val dialog = AlertDialog.Builder(host).setTitle(title).setView(fields).setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
+            val dialog = AlertDialog.Builder(host).setTitle(title).setView(fields).setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.save, null).create()
             host.showDialog(dialog)
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val number = input.text.toString().toIntOrNull()
@@ -560,11 +628,13 @@ class SettingsScreens(private val host: OpenVistaActivity) {
         }
     }
     private fun time(body: LinearLayout, title: Int, value: Int, change: (AppSettings, Int) -> AppSettings) {
-        ui.settingRow(body, s(title), "%02d:%02d".format(value / 60, value % 60), "setting_$title") {
+        ui.settingRow(body, s(title), "%02d:%02d".format(value / 60, value % 60), "setting_$title", icon = TvIcon.Symbol.TIMER,
+            control = TvUi.RowControl.DROPDOWN) {
             val fields = ui.column().apply { setPadding(ui.dp(20), ui.dp(10), ui.dp(20), ui.dp(10)) }
             val input = ui.field(fields, s(title), "%02d:%02d".format(value / 60, value % 60), 5)
             val error = ui.description(""); fields.addView(error)
-            val dialog = AlertDialog.Builder(host).setTitle(title).setView(fields).setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
+            val dialog = AlertDialog.Builder(host).setTitle(title).setView(fields).setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.save, null).create()
             host.showDialog(dialog)
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val pieces = input.text.toString().split(':')
@@ -574,28 +644,26 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             }
         }
     }
-    private fun destination(body: LinearLayout, label: Int, page: String) {
-        ui.settingRow(body, s(label), key = "destination_$page") { host.open(LibraryRoute(page)) }
+    private fun count(body: LinearLayout, title: Int, value: Int, key: String, icon: TvIcon.Symbol, summary: Int? = null,
+                      action: () -> Unit) {
+        ui.settingRow(body, s(title), value.toString(), key, summary?.let(::s), icon = icon, control = TvUi.RowControl.CHEVRON) { action() }
     }
+    /** The open category's caps label and one-line description, as at the top of the reference panel. */
     private fun pageHeading(body: LinearLayout, title: Int, description: Int) {
-        body.addView(ui.heading(s(title)).apply { setPadding(ui.dp(4), 0, ui.dp(4), ui.dp(6)) })
-        body.addView(ui.description(s(description)).apply { textSize = 14f })
+        body.addView(ui.caps(s(title)).apply { setPadding(ui.dp(2), ui.dp(4), ui.dp(2), ui.dp(4)) })
+        body.addView(ui.text(s(description), 10f, 0xFFC9D4DC.toInt()).apply { setPadding(ui.dp(2), ui.dp(2), ui.dp(2), ui.dp(4)) })
     }
     private fun group(body: LinearLayout, title: Int): LinearLayout {
-        val group = ui.column().apply {
-            setPadding(ui.dp(10), ui.dp(10), ui.dp(10), ui.dp(10))
-            background = TvDesign.panel(host, 0x77182D3E)
-        }
-        group.addView(ui.text(s(title), 13f, TvDesign.accent).apply {
-            typeface = TvDesign.medium
-            letterSpacing = .04f
-            setPadding(ui.dp(8), ui.dp(2), ui.dp(8), ui.dp(8))
-            setAccessibilityHeading(true)
+        val group = ui.column()
+        group.addView(ui.caps(s(title), 0xFF8FA3B1.toInt()).apply {
+            textSize = 6.8f
+            setPadding(ui.dp(2), ui.dp(11), ui.dp(2), ui.dp(5))
         })
-        body.addView(group, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-            setMargins(0, ui.dp(12), 0, 0)
-        })
+        body.addView(group, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         return group
+    }
+    private fun note(body: LinearLayout, text: Int) {
+        body.addView(ui.text(s(text), 8.6f, TvDesign.muted).apply { setPadding(ui.dp(2), ui.dp(5), ui.dp(2), ui.dp(3)) })
     }
     private fun temperature(value: Double?): String {
         if (value == null) return s(R.string.not_available)

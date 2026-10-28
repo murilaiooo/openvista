@@ -8,8 +8,8 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.CancellationSignal
-import android.text.TextUtils
 import android.view.KeyEvent
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -31,6 +31,7 @@ import com.openvista.prototype.ui.HomeScreen
 import com.openvista.prototype.ui.LibraryScreens
 import com.openvista.prototype.ui.PlayerScreen
 import com.openvista.prototype.ui.SettingsScreens
+import com.openvista.prototype.ui.SettingsShell
 import com.openvista.prototype.ui.TvUi
 import com.openvista.prototype.ui.TvDesign
 import com.openvista.sources.PlaylistResult
@@ -263,13 +264,7 @@ class OpenVistaActivity : ComponentActivity() {
             val page = route.page
             val settings = settingsScreens.createShell(page)
             addBoundedScreen(settings)
-            val category = when (page) {
-                "settings" -> "playback_settings"
-                "schedule" -> "screensaver"
-                "overlays", "overlay_editor" -> "appearance"
-                "privacy", "updates" -> "advanced"
-                else -> page
-            }
+            val category = SettingsShell.category(page)
             settings.post {
                 if (route.page == page && settings.isAttachedToWindow) {
                     (settings.findViewWithTag<View>(desired)
@@ -306,18 +301,18 @@ class OpenVistaActivity : ComponentActivity() {
     private fun addBoundedScreen(screen: View) {
         root.addView(screen, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         feedback = ui.description(pendingMessage.orEmpty()).apply {
-            textSize = 14f
+            textSize = 10f
             setTextColor(TvDesign.text)
-            setPadding(ui.dp(14), ui.dp(6), ui.dp(14), ui.dp(6))
-            maxLines = 2
-            ellipsize = TextUtils.TruncateAt.END
-            background = TvDesign.panel(this@OpenVistaActivity, 0xEB07121F.toInt())
+            setPadding(ui.dp(12), ui.dp(6), ui.dp(12), ui.dp(6))
+            background = TvDesign.panel(this@OpenVistaActivity, 0xE6081826.toInt(), TvDesign.glassStroke, radiusDp = 12f)
             accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
             visibility = if (pendingMessage.isNullOrBlank()) View.GONE else View.VISIBLE
         }
-        val container = screen.findViewWithTag<FrameLayout>("settings_feedback_container")
-            ?: screen.findViewWithTag<FrameLayout>("home_feedback_container")
-        container?.addView(feedback, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        val settingsFeedback = screen.findViewWithTag<FrameLayout>("settings_feedback_container")
+        val container = settingsFeedback ?: screen.findViewWithTag<FrameLayout>("home_feedback_container")
+        // A compact pill aligned with its screen's edge; it wraps rather than truncating long messages.
+        container?.addView(feedback, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            if (settingsFeedback != null) Gravity.END else Gravity.START))
     }
 
     fun play(items: List<LibraryItem>, selectedId: String? = null, shuffle: Boolean = false) {
@@ -351,10 +346,12 @@ class OpenVistaActivity : ComponentActivity() {
         if (::feedback.isInitialized && route.page != "player") {
             ui.announce(feedback, value)
             feedback.visibility = if (value.isBlank()) View.GONE else View.VISIBLE
-            if (value == getString(R.string.library_restored)) {
+            // Confirmations on bounded screens fade on their own; the live region has announced them.
+            if (value.isNotBlank() && (value == getString(R.string.library_restored) || route.page == "home" ||
+                    settingsScreens.ownsPage(route.page))) {
                 feedback.postDelayed({
                     if (!isDestroyed && pendingMessage == value) message("")
-                }, 3_000L)
+                }, if (value == getString(R.string.loading)) 15_000L else 4_000L)
             }
         }
     }
