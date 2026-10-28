@@ -37,7 +37,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     }
     private val forecastPanel = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        background = null
+        background = SoftGlassDrawable()
         setPadding(0, 0, 0, 0)
     }
     private val forecastTitle = label("", 11f)
@@ -298,7 +298,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             view.scaleX = minOf(xFit, yFit)
             view.scaleY = minOf(xFit, yFit)
         }
-        fit(source, atMost(.34f), (compositionHeight * .45f).toInt())
+        fit(source, atMost(.425f), (compositionHeight * .45f).toInt())
         fit(brand, atMost(.28f), (compositionHeight * .11f).toInt())
         fit(viewer, atMost(.475f), (compositionHeight * .39f).toInt())
         fit(forecastPanel, MeasureSpec.makeMeasureSpec(
@@ -391,7 +391,15 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     /** The viewer owns a horizontal baseline composition; the source owns a vertical one. */
     private inner class LocationGroup(private val viewerMode: Boolean) : LinearLayout(context) {
         private val eyebrow = label("", if (viewerMode) 13f else 15f)
-        private val place = label("", 24f).apply { typeface = TvDesign.light; maxLines = 1 }
+        private val place = label("", 24f).apply {
+            typeface = TvDesign.light
+            maxLines = 2
+            ellipsize = null
+        }
+        private val sourceHeader = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         private val clock = label("", if (viewerMode) 70f else 92f).apply {
             typeface = android.graphics.Typeface.create("sans-serif-thin", android.graphics.Typeface.NORMAL)
             letterSpacing = -.035f
@@ -419,11 +427,11 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
 
         init {
             orientation = VERTICAL
-            background = null
+            background = SoftGlassDrawable()
             setPadding(0, 0, 0, 0)
             eyebrow.setTextColor(0xFFE3E7EA.toInt())
-            addView(eyebrow)
             if (viewerMode) {
+                addView(eyebrow)
                 addView(place)
                 timeStack.addView(clock)
                 timeStack.addView(date)
@@ -444,6 +452,14 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                 weatherRow.translationY = -dp(15).toFloat()
                 date.translationY = -dp(8).toFloat()
             } else {
+                // The city, country and flag receive an independent text view.
+                // A long city must never force the country to be truncated.
+                eyebrow.maxLines = 1
+                sourceHeader.addView(eyebrow, LinearLayout.LayoutParams(-2, -2))
+                sourceHeader.addView(place, LinearLayout.LayoutParams(-2, -2).apply {
+                    leftMargin = dp(9)
+                })
+                addView(sourceHeader)
                 addView(clock)
                 clock.layoutParams = LinearLayout.LayoutParams(-2, -2).apply {
                     topMargin = -dp(12)
@@ -473,8 +489,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                 eyebrow.put(caption)
                 place.put(location)
             } else {
-                place.visibility = View.GONE
-                eyebrow.put(listOf(caption, location).filter(String::isNotBlank).joinToString("   |   "))
+                eyebrow.put(caption)
+                place.put(location.takeIf(String::isNotBlank)?.let { "|  $it" }.orEmpty())
             }
             clock.put(if (settings.showClock && zone != null) presentation.clock(zone, settings, now) else "")
             date.put(if (settings.showDate && zone != null) presentation.date(zone, settings, now) else "")
@@ -518,7 +534,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             date.setTextColor(0xFFDEE1E6.toInt())
             if (!viewerMode && eyebrow.text.toString().startsWith("●")) {
                 val rendered = android.text.SpannableString(eyebrow.text)
-                val end = rendered.indexOf("   |").takeIf { it >= 0 } ?: rendered.length
+                val end = rendered.length
                 rendered.setSpan(android.text.style.ForegroundColorSpan(0xFF67DD74.toInt()),
                     0, end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 eyebrow.text = rendered
@@ -527,7 +543,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
 
         fun size(scale: Float) {
             clock.textSize = (if (viewerMode) 70f else 92f) * scale
-            place.textSize = 24f * scale
+            place.textSize = (if (viewerMode) 24f else 13f) * scale
             temperature.textSize = (if (viewerMode) 32f else 22f) * scale
             eyebrow.textSize = (if (viewerMode) 13f else 15f) * scale
             date.textSize = 15f * scale

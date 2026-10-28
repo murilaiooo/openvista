@@ -15,6 +15,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.media3.common.C
@@ -30,6 +31,7 @@ import com.openvista.prototype.library.LibraryStorageException
 import com.openvista.prototype.library.MediaFamily
 import com.openvista.prototype.playback.PlaybackSession
 import com.openvista.prototype.ui.AppLocale
+import com.openvista.prototype.ui.CameraFrameHold
 import com.openvista.prototype.ui.TvUi
 import java.util.Calendar
 import java.util.Locale
@@ -42,7 +44,7 @@ class OpenVistaDreamService : DreamService() {
     private var session: PlaybackSession? = null
     private var video: PlayerView? = null
     private var overlay: AmbientOverlay? = null
-    private var transition: View? = null
+    private var frameHold: CameraFrameHold? = null
     private var controls: LinearLayout? = null
     private var firstControl: View? = null
     private var feedback: TextView? = null
@@ -128,17 +130,20 @@ class OpenVistaDreamService : DreamService() {
         val root = FrameLayout(context).apply { setBackgroundColor(Color.BLACK) }
         video = PlayerView(context).apply {
             useController = false
-            setKeepContentOnPlayerReset(false)
+            setKeepContentOnPlayerReset(true)
             resizeMode = if (library.settings().resizeMode == "fit")
                 AspectRatioFrameLayout.RESIZE_MODE_FIT else AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            setShutterBackgroundColor(Color.BLACK)
+            setShutterBackgroundColor(Color.TRANSPARENT)
             isFocusable = true
         }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        transition = View(context).apply {
-            setBackgroundColor(Color.BLACK)
-            alpha = 0f
+        val previousFrame = ImageView(context).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            visibility = View.GONE
             isClickable = false
+            isFocusable = false
+            alpha = 0f
         }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
+        frameHold = CameraFrameHold(requireNotNull(video), previousFrame)
         overlay = AmbientOverlay(context, library).also {
             root.addView(it, FrameLayout.LayoutParams(-1, -1))
         }
@@ -148,9 +153,10 @@ class OpenVistaDreamService : DreamService() {
             textSize = 18f
             gravity = Gravity.CENTER
             setPadding(dp(20), dp(12), dp(20), dp(12))
-            text = context.getString(R.string.dream_hint)
+            text = ""
+            visibility = View.GONE
         }.also {
-            root.addView(it, FrameLayout.LayoutParams(-1, -2, Gravity.TOP))
+            root.addView(it, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
         }
         controls = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -233,20 +239,20 @@ class OpenVistaDreamService : DreamService() {
         val context = ui ?: return
         val saved = PlaybackSession.lastSnapshot()
         val created = try { PlaybackSession(context, library, { message ->
-            feedback?.text = message
-            feedback?.visibility = if (session?.currentItem == null || !isPlayingStatus(message)) View.VISIBLE else View.GONE
+            val failureCodes = listOf(R.string.playback_camera_unavailable,
+                R.string.playback_video_unavailable, R.string.playback_all_unavailable,
+                R.string.playback_empty, R.string.playback_storage_error)
+            val isFailure = failureCodes.any { message.contains(context.getString(it)) }
+            feedback?.text = if (isFailure) message else ""
+            feedback?.visibility = if (isFailure) View.VISIBLE else View.GONE
         }, { item ->
+            if (item != null) frameHold?.changingCamera()
             overlay?.updateItem(item)
-            if (library.settings().smoothTransitions) {
-                transition?.animate()?.cancel()
-                transition?.alpha = 1f
-                transition?.animate()?.alpha(0f)?.setDuration(350)?.start()
-            }
         }, {
+            frameHold?.release()
+            frameHold = null
             video?.player = null
             overlay?.stop()
-            transition?.animate()?.cancel()
-            transition?.alpha = 0f
             window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             if (dreaming && attached) {
                 dreaming = false
@@ -266,6 +272,11 @@ class OpenVistaDreamService : DreamService() {
         session = created
         video?.player = created.player
         created.player.addListener(object : Player.Listener {
+            override fun onRenderedFirstFrame() {
+                if (session !== created || created.isReleased) return
+                if (created.player.currentMediaItem?.mediaId == created.currentItem?.id)
+                    frameHold?.firstFrame()
+            }
             override fun onEvents(player: Player, events: Player.Events) {
                 if (session !== created || created.isReleased) return
                 val current = player.currentMediaItem?.mediaId == created.currentItem?.id
@@ -286,8 +297,6 @@ class OpenVistaDreamService : DreamService() {
         } else playSaved(last)
         updateKeepAwake()
     }
-
-    private fun isPlayingStatus(message: String): Boolean = message == ui?.getString(R.string.playback_playing)
 
     private fun playSaved(item: LibraryItem) {
         val library = store ?: return
@@ -312,12 +321,12 @@ class OpenVistaDreamService : DreamService() {
     }
 
     private fun stopPlayback() {
+        frameHold?.release()
+        frameHold = null
         video?.player = null
         session?.release()
         session = null
         overlay?.stop()
-        transition?.animate()?.cancel()
-        transition?.alpha = 0f
         window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
@@ -463,7 +472,7 @@ class OpenVistaDreamService : DreamService() {
         firstControl = null
         feedback = null
         overlay = null
-        transition = null
+        frameHold = null
         video = null
         ui = null
         store = null

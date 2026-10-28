@@ -9,6 +9,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.media3.common.C
@@ -34,6 +35,7 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
     private val main = Handler(Looper.getMainLooper())
     private var session: PlaybackSession? = null
     private var video: PlayerView? = null
+    private var frameHold: CameraFrameHold? = null
     private var ambient: AmbientOverlay? = null
     private var menu: LinearLayout? = null
     private var status: TextView? = null
@@ -51,18 +53,31 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         val frame = FrameLayout(host).apply { setBackgroundColor(Color.BLACK) }
         video = PlayerView(host).apply {
             useController = false
-            setKeepContentOnPlayerReset(false)
+            setKeepContentOnPlayerReset(true)
             resizeMode = if (store.settings().resizeMode == "fit") AspectRatioFrameLayout.RESIZE_MODE_FIT else AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            setShutterBackgroundColor(Color.BLACK)
+            setShutterBackgroundColor(Color.TRANSPARENT)
             isFocusable = true
         }.also { frame.addView(it, FrameLayout.LayoutParams(-1, -1)) }
+        // One cached, downscaled frame covers the decoder's reset while switching cameras.
+        // This is a still image, not an additional player or network request.
+        val previousFrame = ImageView(host).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            isFocusable = false
+            isClickable = false
+            visibility = View.GONE
+            alpha = 0f
+        }
+        frame.addView(previousFrame, FrameLayout.LayoutParams(-1, -1))
+        frameHold = CameraFrameHold(requireNotNull(video), previousFrame)
         ambient = AmbientOverlay(host, store).also { frame.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        val transition = View(host).apply { setBackgroundColor(Color.BLACK); alpha = 0f; isClickable = false }
-        frame.addView(transition, FrameLayout.LayoutParams(-1, -1))
-        status = ui.description(host.getString(R.string.player_hint)).apply {
-            gravity = Gravity.CENTER; setPadding(ui.dp(32), ui.dp(12), ui.dp(32), ui.dp(12)); setBackgroundColor(0xC0000000.toInt())
+        // No loading/status banner over the video. Only actionable failures can surface briefly.
+        status = ui.description("").apply {
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+            setPadding(ui.dp(18), ui.dp(10), ui.dp(18), ui.dp(10))
+            setBackgroundColor(0xA009121F.toInt())
             accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
-        }.also { frame.addView(it, FrameLayout.LayoutParams(-1, -2, Gravity.TOP)) }
+        }.also { frame.addView(it, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER)) }
         diagnostics = ui.description("").apply {
             setBackgroundColor(0xC0000000.toInt()); visibility = View.GONE
         }.also { frame.addView(it, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_VERTICAL or Gravity.END)) }
@@ -93,26 +108,37 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         // The panel is capped to half the display so transport controls cannot cover the whole scene.
         frame.addView(content, FrameLayout.LayoutParams(-1, (host.resources.displayMetrics.heightPixels * .52).toInt(), Gravity.BOTTOM))
         val created = PlaybackSession(host, store, { message ->
-            status?.text = message
-            status?.visibility = View.VISIBLE
+            // Connection, readiness, play and camera-rotation updates are intentionally silent.
+            // Failure notices remain visible briefly without occupying the top overlay zone.
+            val failures = listOf(R.string.playback_camera_unavailable,
+                R.string.playback_video_unavailable, R.string.playback_all_unavailable,
+                R.string.playback_empty, R.string.playback_storage_error)
+            val isFailure = failures.any { message.contains(host.getString(it)) }
             main.removeCallbacks(hideStatus)
-            if (message == host.getString(R.string.playback_playing)) main.postDelayed(hideStatus, 5000)
+            status?.text = if (isFailure) message else ""
+            status?.visibility = if (isFailure) View.VISIBLE else View.GONE
+            if (isFailure) main.postDelayed(hideStatus, 3500)
             updateDiagnostics()
         }, { item ->
+            if (item != null) frameHold?.changingCamera()
             ambient?.updateItem(item)
-            if (store.settings().smoothTransitions) { transition.animate().cancel(); transition.alpha = 1f; transition.animate().alpha(0f).setDuration(350).start() }
         }, {
             attached = false
             main.removeCallbacksAndMessages(null)
+            frameHold?.release()
+            frameHold = null
             video?.player = null
             ambient?.stop()
-            transition.animate().cancel()
-            transition.alpha = 0f
             host.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         })
         session = created
         video?.player = created.player
         created.player.addListener(object : Player.Listener {
+            override fun onRenderedFirstFrame() {
+                if (session !== created || created.isReleased) return
+                if (created.player.currentMediaItem?.mediaId == created.currentItem?.id)
+                    frameHold?.firstFrame()
+            }
             override fun onEvents(player: Player, events: Player.Events) {
                 if (session !== created || created.isReleased) return
                 val current = player.currentMediaItem?.mediaId == created.currentItem?.id
@@ -230,6 +256,7 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         main.removeCallbacksAndMessages(null)
         video?.player = null
         session?.release(); session = null
+        frameHold?.release(); frameHold = null
         ambient?.stop(); ambient = null
         video = null; menu = null; status = null; diagnostics = null
         host.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
