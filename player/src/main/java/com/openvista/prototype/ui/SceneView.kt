@@ -51,17 +51,17 @@ class SceneView(context: Context, private val store: LibraryStore) : FrameLayout
     private val notice = TextView(context).apply {
         visibility = View.GONE
         gravity = Gravity.CENTER
-        textSize = 17f
+        textSize = TvDesign.bodySize + 1f
         typeface = TvDesign.regular
         setTextColor(TvDesign.text)
-        setLineSpacing(TvDesign.dp(context, 4).toFloat(), 1f)
-        val horizontal = TvDesign.dp(context, 28)
-        val vertical = TvDesign.dp(context, 18)
+        setLineSpacing(TvDesign.dp(context, 3).toFloat(), 1f)
+        val horizontal = TvDesign.dp(context, 20)
+        val vertical = TvDesign.dp(context, 12)
         setPadding(horizontal, vertical, horizontal, vertical)
         background = GradientDrawable().apply {
-            setColor(0xD90B1724.toInt())
-            cornerRadius = TvDesign.dp(context, 16).toFloat()
-            setStroke(TvDesign.dp(context, 1), 0x33FFFFFF)
+            setColor(TvDesign.glass)
+            cornerRadius = TvDesign.dp(context, 10).toFloat()
+            setStroke(TvDesign.dp(context, 1), TvDesign.glassStroke)
         }
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
     }
