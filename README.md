@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/branding/openvista-cover.png" alt="OpenVista: a serene mountain lake beneath a warm horizon" width="100%" />
+<img src="assets/branding/openvista-cover.png" alt="OpenVista: a window to everywhere, showing live camera playback, local time and weather forecasts" width="100%" />
 
 # OpenVista
 
