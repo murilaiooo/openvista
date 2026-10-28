@@ -146,7 +146,7 @@ O OpenVista não possui sistema próprio de anúncios, cadastro ou assinatura. P
 
 **Já posso baixar o OpenVista?**
 
-A versão assinada de testes **v0.3.0-preview.1** está disponível em [GitHub Releases](https://github.com/murilaiooo/openvista/releases/tag/v0.3.0-preview.1) para colaboradores com acesso a este repositório privado. Ainda não é uma versão pública estável. APKs antigos assinados com a chave de desenvolvimento não podem ser atualizados diretamente. Faça backup das câmeras e playlists antes de trocar a instalação.
+A versão assinada de testes **v0.3.0-preview.1** está disponível publicamente em [GitHub Releases](https://github.com/murilaiooo/openvista/releases/tag/v0.3.0-preview.1). É uma versão inicial para testes, não uma versão estável. APKs antigos assinados com a chave de desenvolvimento não podem ser atualizados diretamente. Faça backup das câmeras e playlists antes de trocar a instalação.
 
 ---
 
