@@ -1,5 +1,6 @@
 package com.openvista.prototype.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -28,6 +29,8 @@ import com.openvista.prototype.playback.PlaybackSession
  * darkens the surface while a new source connects or when nothing can play, so a stale last
  * frame is not left on screen behind a failure.
  */
+// Created only in code with its library store; never inflated from XML.
+@SuppressLint("ViewConstructor")
 @UnstableApi
 class SceneView(context: Context, private val store: LibraryStore) : FrameLayout(context) {
     private val main = Handler(Looper.getMainLooper())
