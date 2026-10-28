@@ -24,27 +24,23 @@ Play your own live cameras and local videos, with a minimal clock and optional w
 
 These are **real screenshots from a Hisense 58U6HF running Fire OS 7**, not mockups. Captured directly from the development build on October 27, 2026, at 3840 × 2160, with the app set to English. The images were compressed for GitHub without altering the screens.
 
-The live camera and sample videos were added by the tester. **OpenVista does not include any streams, playlists, or videos.** The interface may change before release.
+The featured live camera was added by the tester. **OpenVista does not include any streams, playlists, or videos.** The interface may change before release.
+
+### Home
+
+<img src="assets/screenshots/home.webp" alt="Real OpenVista Home screen with Cameras, My Videos, and Favorites" width="100%" />
 
 ### Live camera playback
 
-![OpenVista real live camera player with the Burleigh Beach scene, local clock and weather, and the viewer's five-day forecast](assets/screenshots/live-camera.webp)
+<img src="assets/screenshots/live-camera.webp" alt="Real OpenVista player showing Burleigh Beach with live camera time, weather and the viewer forecast" width="100%" />
 
-*An owner-added Burleigh Beach live feed, with source-local time and weather plus a separate viewer clock and forecast.*
+*Owner-added Burleigh Beach live feed with source-local time and weather alongside a separate viewer clock and forecast.*
 
-### Browse your scenery
+### Settings
 
-| Home | Your live cameras |
-| :---: | :---: |
-| ![Real OpenVista Home with Cameras, My Videos, and Favorites panels](assets/screenshots/home.webp) | ![Real Cameras library with add-stream and playlist controls](assets/screenshots/cameras.webp) |
-| **My Videos** | **Favorites** |
-| ![Real My Videos library with folder picker and local test files](assets/screenshots/my-videos.webp) | ![Real Favorites view with an owner-saved camera](assets/screenshots/favorites.webp) |
+<img src="assets/screenshots/settings.webp" alt="Real OpenVista Settings screen showing playback rotation, video fit, transitions and sound controls" width="100%" />
 
-### Settings made for TV
-
-![Real OpenVista Settings screen showing playback rotation, video fit, scene transitions, and sound options](assets/screenshots/settings.webp)
-
-*All images show the current owner-tested development build. Camera imagery belongs to its respective source owner; the screenshots are illustrative, not a bundled content catalog.*
+*Captured on the owner's Hisense Fire TV. The live feed is for demonstration only and is not bundled with OpenVista.*
 
 ---
 
