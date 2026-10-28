@@ -48,7 +48,20 @@ class TvUi(val context: Context) {
         setAccessibilityHeading(true)
     }
 
-    fun scroll(child: View) = ScrollView(context).apply {
+    /**
+     * Scrolling container. Without an exact height (inside a dialog) it caps itself at 65 % of the
+     * screen, so long forms scroll and the dialog's buttons never leave the display.
+     */
+    fun scroll(child: View) = object : ScrollView(context) {
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            val cap = (resources.displayMetrics.heightPixels * .65f).toInt()
+            val spec = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY) heightMeasureSpec
+                else MeasureSpec.makeMeasureSpec(
+                    if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST) minOf(cap, MeasureSpec.getSize(heightMeasureSpec)) else cap,
+                    MeasureSpec.AT_MOST)
+            super.onMeasure(widthMeasureSpec, spec)
+        }
+    }.apply {
         isFillViewport = true
         clipToPadding = false
         isFocusable = false

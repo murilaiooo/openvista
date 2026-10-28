@@ -488,7 +488,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             header.addView(divider, LayoutParams(dp(1f), dp(11f)).apply { marginStart = dp(10f); marginEnd = dp(10f) })
             header.addView(city)
             header.addView(country)
-            addView(header)
+            // Wrap width: a default MATCH_PARENT header would be squeezed to the clock's width.
+            addView(header, LayoutParams(-2, -2))
             addView(clock, LayoutParams(-2, -2).apply { topMargin = -dp(1f) })
             addView(date, LayoutParams(-2, -2).apply { topMargin = -dp(5f) })
             val temps = LinearLayout(context).apply { orientation = VERTICAL; addView(temperature); addView(condition) }
