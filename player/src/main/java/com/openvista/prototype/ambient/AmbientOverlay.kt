@@ -201,7 +201,12 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                 cameraLocation != null && coordinateKey(forecast.location) == coordinateKey(cameraLocation)
             }?.location?.timeZone?.let(presentation::zone)
         val viewerZone = presentation.zone(settings.viewerTimeZone) ?: TimeZone.getDefault()
-        val sourcePlace = item?.let { listOf(it.city, it.country).filter(String::isNotBlank).joinToString(", ") }.orEmpty()
+        // The country is resolved from any saved form, or from the camera's own zone, and shown localized with its flag.
+        val countryCode = item?.let { CountryResolver.resolve(it.country, it.timeZone.ifBlank { null } ?: sourceZone?.id) }
+        val countryName = item?.let { CountryResolver.displayName(it.country, countryCode, context.resources.configuration.locales[0]) }.orEmpty()
+        val countryFlag = countryCode?.let(CountryResolver::flag).orEmpty()
+        val sourcePlace = item?.let { listOf(it.city, countryName).filter(String::isNotBlank).joinToString(", ") }.orEmpty() +
+            if (countryFlag.isNotEmpty()) "  $countryFlag" else ""
         val sourceStatus = context.getString(when {
             live && playing && item?.family == MediaFamily.CAMERAS -> R.string.ambient_live
             playing -> R.string.ambient_playing
@@ -210,7 +215,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         })
         val liveStatus = live && playing && item?.family == MediaFamily.CAMERAS
         source.bind(if (liveStatus) "● " + sourceStatus else sourceStatus,
-            if (settings.showLocation) sourcePlace + flagForCountry(item?.country.orEmpty()) else "",
+            if (settings.showLocation) sourcePlace else "",
             sourceZone, current, sourceSlot, settings.showSourceInfo && item != null)
         val viewerConfigured = settings.viewerCity.isNotBlank() || viewerLocation != null || settings.viewerTimeZone.isNotBlank()
         val deviceClockOnly = settings.showClock && !settings.showSourceInfo && !viewerConfigured
@@ -614,17 +619,6 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private fun TextView.put(value: String) {
         if (text.toString() != value) text = value
         visibility = if (value.isBlank()) View.GONE else View.VISIBLE
-    }
-    private fun flagForCountry(country: String): String {
-        if (country.isBlank()) return ""
-        val countryCode = java.util.Locale.getISOCountries().firstOrNull { code ->
-            country.equals(java.util.Locale.Builder().setRegion(code).build()
-                .getDisplayCountry(java.util.Locale.ENGLISH), true) ||
-                country.equals(code, true)
-        } ?: return ""
-        val first = 0x1F1E6 + (countryCode[0] - 'A')
-        val second = 0x1F1E6 + (countryCode[1] - 'A')
-        return "  " + String(Character.toChars(first)) + String(Character.toChars(second))
     }
     private fun dp(value: Int) = TvDesign.dp(context, value)
     private fun drawnHeight(view: View) = (view.measuredHeight * view.scaleY).roundToInt()
