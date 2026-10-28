@@ -15,7 +15,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.media3.common.C
@@ -31,7 +30,6 @@ import com.openvista.prototype.library.LibraryStorageException
 import com.openvista.prototype.library.MediaFamily
 import com.openvista.prototype.playback.PlaybackSession
 import com.openvista.prototype.ui.AppLocale
-import com.openvista.prototype.ui.CameraFrameHold
 import com.openvista.prototype.ui.TvUi
 import java.util.Calendar
 import java.util.Locale
@@ -44,7 +42,6 @@ class OpenVistaDreamService : DreamService() {
     private var session: PlaybackSession? = null
     private var video: PlayerView? = null
     private var overlay: AmbientOverlay? = null
-    private var frameHold: CameraFrameHold? = null
     private var controls: LinearLayout? = null
     private var firstControl: View? = null
     private var feedback: TextView? = null
@@ -130,20 +127,12 @@ class OpenVistaDreamService : DreamService() {
         val root = FrameLayout(context).apply { setBackgroundColor(Color.BLACK) }
         video = PlayerView(context).apply {
             useController = false
-            setKeepContentOnPlayerReset(true)
+            setKeepContentOnPlayerReset(false)
             resizeMode = if (library.settings().resizeMode == "fit")
                 AspectRatioFrameLayout.RESIZE_MODE_FIT else AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             setShutterBackgroundColor(Color.TRANSPARENT)
             isFocusable = true
         }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        val previousFrame = ImageView(context).apply {
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            visibility = View.GONE
-            isClickable = false
-            isFocusable = false
-            alpha = 0f
-        }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        frameHold = CameraFrameHold(requireNotNull(video), previousFrame)
         overlay = AmbientOverlay(context, library).also {
             root.addView(it, FrameLayout.LayoutParams(-1, -1))
         }
@@ -246,11 +235,8 @@ class OpenVistaDreamService : DreamService() {
             feedback?.text = if (isFailure) message else ""
             feedback?.visibility = if (isFailure) View.VISIBLE else View.GONE
         }, { item ->
-            if (item != null) frameHold?.changingCamera()
             overlay?.updateItem(item)
         }, {
-            frameHold?.release()
-            frameHold = null
             video?.player = null
             overlay?.stop()
             window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -272,11 +258,6 @@ class OpenVistaDreamService : DreamService() {
         session = created
         video?.player = created.player
         created.player.addListener(object : Player.Listener {
-            override fun onRenderedFirstFrame() {
-                if (session !== created || created.isReleased) return
-                if (created.player.currentMediaItem?.mediaId == created.currentItem?.id)
-                    frameHold?.firstFrame()
-            }
             override fun onEvents(player: Player, events: Player.Events) {
                 if (session !== created || created.isReleased) return
                 val current = player.currentMediaItem?.mediaId == created.currentItem?.id
@@ -321,8 +302,6 @@ class OpenVistaDreamService : DreamService() {
     }
 
     private fun stopPlayback() {
-        frameHold?.release()
-        frameHold = null
         video?.player = null
         session?.release()
         session = null
@@ -472,7 +451,6 @@ class OpenVistaDreamService : DreamService() {
         firstControl = null
         feedback = null
         overlay = null
-        frameHold = null
         video = null
         ui = null
         store = null

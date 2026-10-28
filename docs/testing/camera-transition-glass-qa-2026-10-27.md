@@ -1,4 +1,6 @@
-# Camera switching and soft-glass QA
+# Camera switching and soft-glass QA (superseded transition strategy)
+
+**Regression warning (2026-10-27):** The PixelCopy/ImageView camera-frame hold described below caused the live scene to appear frozen and has been removed. The active playback implementation no longer captures or layers video stills over live streams, and disables Media3's keep-content-on-reset setting. See [live video freeze recovery](live-video-freeze-regression-2026-10-27.md). The text below is retained only as a record of the rejected approach, not a current implementation guide.
 
 Date: 2026-10-27. Scope: regular player and DreamService.
 
