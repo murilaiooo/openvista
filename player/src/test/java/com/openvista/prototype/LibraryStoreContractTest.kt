@@ -84,6 +84,32 @@ class LibraryStoreContractTest {
         assertEquals(listOf("video"), store.playlists().single().itemIds)
     }
 
+    @Test fun directAndTreeRoutesMergeWithoutLosingFavoritePlaylistOrResume() {
+        val store = open()
+        val folder = "content://documents.example/tree/root"
+        val fromTree = "content://documents.example/tree/root/document/root%2Fclip"
+        val direct = "content://documents.example/document/root%2Fclip"
+        store.saveFolder(FolderGrant(folder, "USB", persisted = true))
+        store.upsert(LibraryItem("tree-clip", "Original title", fromTree, MediaFamily.VIDEOS, folderUri = folder))
+        store.savePlaylist(SavedPlaylist("set", "Videos", MediaFamily.VIDEOS, listOf("tree-clip")))
+        store.saveCheckpoint(PlaybackCheckpoint("tree-clip", 2_000L, 5_000L))
+        store.upsert(LibraryItem("direct-clip", "Second title", direct, MediaFamily.VIDEOS, favorite = true))
+
+        assertEquals(1, store.items().size)
+        assertEquals("Original title", store.items().single().title)
+        assertTrue(store.items().single().favorite)
+        assertEquals(2, store.items().single().accessRoutes.size)
+        assertEquals(listOf("tree-clip"), store.playlists().single().itemIds)
+        assertEquals(2_000L, store.checkpoint("direct-clip")?.positionMs)
+        store.flush()
+
+        val restored = open()
+        assertEquals(1, restored.items().size)
+        assertEquals("tree-clip", restored.item("direct-clip")?.id)
+        assertEquals(2, restored.items().single().accessRoutes.size)
+        assertEquals(listOf("tree-clip"), restored.playlists().single().itemIds)
+    }
+
     @Test fun settingsAreBoundedAndPersistWithoutInternetOrAccount() {
         val store = open()
         store.saveSettings(store.settings().copy(rotationMinutes = 200, language = "xx",

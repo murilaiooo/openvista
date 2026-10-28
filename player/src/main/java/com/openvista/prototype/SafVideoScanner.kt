@@ -16,7 +16,9 @@ internal class SafVideoScanner(private val resolver: ContentResolver) {
     }
 
     fun scan(treeUri: Uri, cancellation: CancellationSignal): Result {
-        cancellation.throwIfCanceled()
+        // An already-cancelled scan never queries the provider or raises from this API.
+        // Cancellation during a running scan still propagates to the lifecycle owner.
+        if (cancellation.isCanceled) return Result.Unavailable
         val root = try { DocumentsContract.getTreeDocumentId(treeUri) }
         catch (_: RuntimeException) { return Result.Unavailable }
         val queue = ArrayDeque<String>()

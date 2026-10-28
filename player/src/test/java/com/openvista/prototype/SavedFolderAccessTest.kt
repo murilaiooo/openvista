@@ -24,13 +24,16 @@ class SavedFolderAccessTest {
         assertNull(SavedFolderAccess(context).restore())
     }
 
-    @Test fun revokedGrantIsNotReusedButSelectionSurvivesForReconnection() {
+    @Test fun missingGrantCannotRestoreAccessAndCanBeExplicitlyForgotten() {
         val preferences = context.getSharedPreferences("openvista_saved_folder", Context.MODE_PRIVATE)
-        val saved = "content://private.documents/tree/expired"
-        preferences.edit().putString("tree_uri", saved).commit()
-        assertNull("A revoked grant must not be reused.", SavedFolderAccess(context).restore())
-        assertEquals("A disconnected provider must not erase the user's choice.", saved,
-            preferences.getString("tree_uri", null))
+        val selected = "content://private.documents/tree/expired"
+        preferences.edit().putString("tree_uri", selected).commit()
+        // Preserve the user's selection metadata while a removable provider may be absent,
+        // but never treat that metadata as an OS-backed read grant.
+        assertNull(SavedFolderAccess(context).restore())
+        assertEquals(selected, preferences.getString("tree_uri", null))
+        SavedFolderAccess(context).forget()
+        assertNull(preferences.getString("tree_uri", null))
     }
 
     @Test fun pickerGrantCanBeRememberedAndRestoredInTheSimulator() {

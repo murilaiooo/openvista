@@ -4,7 +4,7 @@
 
 | Device family | App mode | DreamService auto idle | Local storage picker | Live HLS | Weather | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Hisense 58U6HF, Fire OS 7 | Basic Home/player tested | Not accepted | File + folder selection and process-restore tested; real USB edge cases pending | HLS/DASH 720p observed | Tucson NWS forecast observed | **Partial physical proof, not stable-v1 accepted** |
+| Hisense 58U6HF, Fire OS 7 | Basic Home/player tested | Automatic OpenVista dream entry and onscreen video/clock/weather confirmed on device; remote/wake/endurance pending | File + folder selection and process-restore tested; real USB edge cases pending | HLS/DASH 720p observed | Tucson NWS forecast observed | **Partial physical proof, not stable-v1 accepted** |
 | Google TV 12+ | Unverified | OEM policy varies | Unverified | Unverified | Unverified | Test representative model |
 | Older Android TV | Unverified | Unverified | Unverified | Unverified | Unverified | Test representative model |
 | Other Fire OS versions | Unverified | OEM policy varies | Unverified | Unverified | Unverified | Test representative model |

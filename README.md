@@ -20,6 +20,30 @@ Play your own live cameras and local videos, with a minimal clock and optional w
 
 ---
 
+## See OpenVista on a real TV
+
+These are **real screenshots from a Hisense 58U6HF running Fire OS 7**, not mockups. Captured directly from the development build on October 27, 2026, at 3840 × 2160, with the app set to English. The images were compressed for GitHub without altering the screens.
+
+The featured live camera was added by the tester. **OpenVista does not include any streams, playlists, or videos.** The interface may change before release.
+
+### Home
+
+<img src="assets/screenshots/home.webp" alt="Real OpenVista Home screen with Cameras, My Videos, and Favorites" width="100%" />
+
+### Live camera playback
+
+<img src="assets/screenshots/live-camera.webp" alt="Real OpenVista player showing Burleigh Beach with live camera time, weather and the viewer forecast" width="100%" />
+
+*Owner-added Burleigh Beach live feed with source-local time and weather alongside a separate viewer clock and forecast.*
+
+### Settings
+
+<img src="assets/screenshots/settings.webp" alt="Real OpenVista Settings screen showing playback rotation, video fit, transitions and sound controls" width="100%" />
+
+*Captured on the owner's Hisense Fire TV. The live feed is for demonstration only and is not bundled with OpenVista.*
+
+---
+
 ## A window to somewhere you choose
 
 OpenVista is for the moments when a television should feel like a window, not a wall of menus. Pick a live beach camera, a city skyline, or a video from your own collection. Let it play with only the information you want to see.
