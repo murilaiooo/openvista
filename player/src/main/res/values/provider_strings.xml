@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_approval_required">Worldwide forecasts, city search and map providers are implemented but await provider terms, privacy and usage approval. Saved coordinates and US NWS forecasts remain available.</string>
+    <string name="weather_worldwide_notice">NWS forecasts are preferred in US coverage; Open-Meteo supplies worldwide forecasts. Weather is model data, not a guaranteed observation. Missing values stay unavailable.</string>
+    <string name="city_search_privacy">Searching sends the city you enter and your IP address to Open-Meteo. Choose a result to save its coordinates locally. No device location is collected.</string>
+    <string name="provider_privacy">Weather requests disclose selected coordinates and your IP address to the provider. Approved city search sends only your submitted query. Approved maps request only the visible area. No provider request contains stream URLs. Services may retain request logs under their own policies.</string>
+    <string name="clear_provider_cache">Clear forecast and city-search cache</string>
+    <string name="weather_day_extra">Rain %1$s mm · Sunrise %2$s · Sunset %3$s</string>
+    <string name="map_pan_help">Use the direction buttons to move the map, zoom controls to change scale, and markers or the saved-source list to select a source. Polar areas beyond map coverage remain blank.</string>
+    <string name="map_west">Move west</string>
+    <string name="map_east">Move east</string>
+    <string name="map_north">Move north</string>
+    <string name="map_south">Move south</string>
+    <string name="condition_clear">Clear sky</string>
+    <string name="condition_mainly_clear">Mainly clear</string>
+    <string name="condition_partly_cloudy">Partly cloudy</string>
+    <string name="condition_overcast">Overcast</string>
+    <string name="condition_fog">Fog</string>
+    <string name="condition_rime_fog">Freezing fog</string>
+    <string name="condition_light_drizzle">Light drizzle</string>
+    <string name="condition_drizzle">Drizzle</string>
+    <string name="condition_heavy_drizzle">Heavy drizzle</string>
+    <string name="condition_freezing_drizzle">Freezing drizzle</string>
+    <string name="condition_light_rain">Light rain</string>
+    <string name="condition_rain">Rain</string>
+    <string name="condition_heavy_rain">Heavy rain</string>
+    <string name="condition_freezing_rain">Freezing rain</string>
+    <string name="condition_light_snow">Light snow</string>
+    <string name="condition_snow">Snow</string>
+    <string name="condition_heavy_snow">Heavy snow</string>
+    <string name="condition_snow_grains">Snow grains</string>
+    <string name="condition_light_showers">Light rain showers</string>
+    <string name="condition_showers">Rain showers</string>
+    <string name="condition_heavy_showers">Heavy rain showers</string>
+    <string name="condition_snow_showers">Snow showers</string>
+    <string name="condition_thunderstorms">Thunderstorms</string>
+    <string name="condition_thunderstorms_hail">Thunderstorms with hail</string>
+    <string name="find_location">Find location</string>
+    <string name="location_searching">Searching…</string>
+    <string name="no_location_matches">No places match this name. Check the spelling or add the country.</string>
+    <string name="location_lookup_privacy">Find location sends only the city or name you search for to Open-Meteo. Cameras that name a city but lack its country, coordinates or time zone are completed the same way in the background; stream links are never sent.</string>
+</resources>

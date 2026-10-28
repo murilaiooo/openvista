@@ -7,6 +7,8 @@
     <string name="playback_engine_unavailable">Não foi possível iniciar a reprodução. Pressione OK e escolha Tentar novamente ou saia do protetor de tela.</string>
     <string name="playback_camera_unavailable">Câmera indisponível ou incompatível. Tentando a próxima câmera.</string>
     <string name="playback_video_unavailable">Vídeo ilegível ou incompatível. Verifique a unidade e o acesso à pasta. Tentando o próximo vídeo.</string>
+    <string name="playback_all_cameras_retrying">Nenhuma das suas câmeras pode ser reproduzida agora. O OpenVista tentará novamente de forma automática. Pressione OK para ver as opções.</string>
+    <string name="playback_offline">Esta TV está sem conexão. Sua cena volta quando a conexão retornar.</string>
     <string name="playback_all_unavailable">Nenhuma destas fontes foi reproduzida. Escolha outra fonte ou tente novamente.</string>
     <string name="playback_using_fallback">Câmeras indisponíveis. Reproduzindo sua lista de vídeos configurada.</string>
     <string name="playback_checking_camera">Vídeo concluído. Verificando se uma câmera pode ser reproduzida…</string>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_approval_required">Previsão mundial, busca de cidades e mapas foram implementados, mas aguardam aprovação dos termos, da privacidade e do uso dos provedores. As coordenadas salvas e a previsão dos EUA pelo NWS continuam disponíveis.</string>
+    <string name="weather_worldwide_notice">O NWS tem preferência na cobertura dos EUA; o Open-Meteo fornece previsões mundiais. São dados de modelos, não uma observação garantida. Valores ausentes ficam indisponíveis.</string>
+    <string name="city_search_privacy">A busca envia a cidade informada e seu endereço IP ao Open-Meteo. Escolha um resultado para salvar as coordenadas na TV. A localização do aparelho não é coletada.</string>
+    <string name="provider_privacy">As consultas de previsão informam ao provedor as coordenadas selecionadas e seu endereço IP. A busca de cidades, quando aprovada, envia apenas a consulta confirmada. O mapa, quando aprovado, solicita apenas a área visível. As URLs das transmissões nunca são enviadas aos provedores. Os serviços podem manter registros de consultas conforme suas políticas.</string>
+    <string name="clear_provider_cache">Limpar cache de previsão e cidades</string>
+    <string name="weather_day_extra">Chuva %1$s mm · Nascer do sol %2$s · Pôr do sol %3$s</string>
+    <string name="map_pan_help">Use os botões de direção para mover o mapa, o zoom para mudar a escala e os marcadores ou a lista de fontes salvas para escolher uma fonte. Áreas polares fora da cobertura ficam em branco.</string>
+    <string name="map_west">Mover a oeste</string>
+    <string name="map_east">Mover a leste</string>
+    <string name="map_north">Mover ao norte</string>
+    <string name="map_south">Mover ao sul</string>
+    <string name="condition_clear">Céu limpo</string>
+    <string name="condition_mainly_clear">Predomínio de céu limpo</string>
+    <string name="condition_partly_cloudy">Parcialmente nublado</string>
+    <string name="condition_overcast">Encoberto</string>
+    <string name="condition_fog">Nevoeiro</string>
+    <string name="condition_rime_fog">Nevoeiro congelante</string>
+    <string name="condition_light_drizzle">Garoa fraca</string>
+    <string name="condition_drizzle">Garoa</string>
+    <string name="condition_heavy_drizzle">Garoa forte</string>
+    <string name="condition_freezing_drizzle">Garoa congelante</string>
+    <string name="condition_light_rain">Chuva fraca</string>
+    <string name="condition_rain">Chuva</string>
+    <string name="condition_heavy_rain">Chuva forte</string>
+    <string name="condition_freezing_rain">Chuva congelante</string>
+    <string name="condition_light_snow">Neve fraca</string>
+    <string name="condition_snow">Neve</string>
+    <string name="condition_heavy_snow">Neve forte</string>
+    <string name="condition_snow_grains">Grãos de neve</string>
+    <string name="condition_light_showers">Pancadas fracas de chuva</string>
+    <string name="condition_showers">Pancadas de chuva</string>
+    <string name="condition_heavy_showers">Pancadas fortes de chuva</string>
+    <string name="condition_snow_showers">Pancadas de neve</string>
+    <string name="condition_thunderstorms">Trovoadas</string>
+    <string name="condition_thunderstorms_hail">Trovoadas com granizo</string>
+    <string name="find_location">Buscar local</string>
+    <string name="location_searching">Buscando…</string>
+    <string name="no_location_matches">Nenhum lugar corresponde a esse nome. Confira a grafia ou informe o país.</string>
+    <string name="location_lookup_privacy">Buscar local envia ao Open-Meteo apenas a cidade ou o nome pesquisado. Câmeras que informam uma cidade, mas não o país, as coordenadas ou o fuso horário, são completadas da mesma forma em segundo plano; os links das transmissões nunca são enviados.</string>
+</resources>

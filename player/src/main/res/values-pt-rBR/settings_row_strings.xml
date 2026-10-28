@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_group_display_care">Cuidado com a tela</string>
+    <string name="settings_group_clock">Relógio e data</string>
+    <string name="settings_group_licenses">Avisos de código aberto</string>
+    <string name="settings_licenses_row">Licenças e créditos</string>
+    <string name="settings_licenses_body">Fonte Inter · SIL Open Font License 1.1 · The Inter Project Authors
+
+AndroidX Media3 e AndroidX Activity · Apache License 2.0 · The Android Open Source Project
+
+ZXing core · Apache License 2.0 · autores do ZXing
+
+Clima fora da cobertura dos EUA e busca de cidades: Open-Meteo.com · CC BY 4.0 · uso não comercial
+
+Previsões dos EUA: National Weather Service (weather.gov) · domínio público
+
+OpenVista · Licença MIT</string>
+    <string name="settings_library_status">Status da biblioteca</string>
+    <string name="settings_library_no_bundled">Nenhuma transmissão incluída</string>
+    <string name="settings_minutes_value">%1$d min</string>
+    <string name="settings_seconds_value">%1$d s</string>
+    <string name="settings_percent_value">%1$d%%</string>
+    <string name="summary_rotation">Tempo em cada câmera antes da próxima</string>
+    <string name="summary_quality">Limite superior para transmissões adaptativas</string>
+    <string name="summary_fit">Como o vídeo ocupa a tela</string>
+    <string name="summary_transition">Entre câmeras e vídeos</string>
+    <string name="summary_sound">Iniciar a reprodução com áudio</string>
+    <string name="summary_keep_awake">Mantém a tela ligada enquanto o OpenVista reproduz</string>
+    <string name="summary_fallback">Reproduz seus vídeos quando as câmeras estão off-line</string>
+    <string name="summary_stay_local">Continuar nos vídeos locais após o modo off-line</string>
+    <string name="summary_movement">Move todos os grupos de informação para novas posições seguras</string>
+    <string name="summary_move_interval">Com que frequência as informações se movem</string>
+    <string name="summary_hiding">Esmaece as informações após inatividade</string>
+    <string name="summary_hide_delay">Inatividade antes de esmaecer as informações</string>
+    <string name="summary_schedule">Usa o horário local da TV e pode passar da meia-noite</string>
+    <string name="summary_open_screensaver">Abre as configurações da própria TV após confirmação</string>
+    <string name="summary_weather_context">Qual lugar a previsão acompanha</string>
+    <string name="summary_temperature">Unidade de todas as temperaturas</string>
+    <string name="summary_viewer_location">Cidade, coordenadas e fuso horário</string>
+    <string name="summary_city_search">Encontrar coordenadas com o Open-Meteo</string>
+    <string name="summary_forecast">Sete dias para o local escolhido</string>
+    <string name="summary_forecast_days">Dias exibidos na previsão na tela</string>
+    <string name="summary_clock_format">Horário de 12 ou 24 horas</string>
+    <string name="summary_show_clock">Relógios da fonte e do espectador</string>
+    <string name="summary_show_date">Data abaixo de cada relógio</string>
+    <string name="summary_show_weather">Condições atuais ao lado de cada relógio</string>
+    <string name="summary_add_stream">Um endereço HLS ou DASH que você pode usar</string>
+    <string name="summary_import_list">Lista M3U do armazenamento da TV ou USB</string>
+    <string name="summary_choose_folder">Verifica somente a pasta que você permitir</string>
+    <string name="summary_choose_video">Um arquivo do armazenamento da TV ou USB</string>
+    <string name="summary_manage_folders">Revisar ou esquecer pastas permitidas</string>
+    <string name="summary_language">Idioma da interface</string>
+    <string name="summary_layout">Disposição das informações na tela</string>
+    <string name="summary_preset">Combinações rápidas de informações visíveis</string>
+    <string name="summary_show_brand">Pequeno logotipo do OpenVista</string>
+    <string name="summary_show_source">Local, horário e clima da fonte</string>
+    <string name="summary_show_viewer">Seu local, horário e clima</string>
+    <string name="summary_show_forecast">Próximos dias para o seu local</string>
+    <string name="summary_location_label">Nomes de cidade e país</string>
+    <string name="summary_corner">Posição inicial das informações da fonte</string>
+    <string name="summary_size">Escala do texto na tela</string>
+    <string name="summary_offset">Distância extra das bordas da tela</string>
+    <string name="summary_color">Tom do texto na tela</string>
+    <string name="summary_opacity">Opacidade geral das informações</string>
+    <string name="summary_diagnostics">Mostra detalhes técnicos da reprodução</string>
+    <string name="summary_report">Relatório local sem URLs ou caminhos</string>
+    <string name="summary_clear_cache">Remove previsões e buscas de cidades salvas</string>
+    <string name="summary_setup">Refazer o passo a passo para adicionar fontes</string>
+    <plurals name="settings_library_sources">
+        <item quantity="one">%d fonte gerenciada por você</item>
+        <item quantity="many">%d fontes gerenciadas por você</item>
+        <item quantity="other">%d fontes gerenciadas por você</item>
+    </plurals>
+</resources>

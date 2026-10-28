@@ -16,14 +16,12 @@
     <string name="my_videos">My Videos</string>
     <string name="favorites">Favorites</string>
     <string name="settings">Settings</string>
-    <string name="back">Back</string>
     <string name="add_stream">Add a stream</string>
     <string name="import_list">Import a list</string>
     <string name="play_my_videos">Play my videos</string>
     <string name="choose_folder">Choose a video folder</string>
     <string name="choose_video">Choose a video file</string>
     <string name="manage_folders">Manage folders</string>
-    <string name="library_empty">Your library is ready for your sources.</string>
     <string name="camera_empty">Add an HLS or DASH stream, import your M3U list, or play a video from a folder.</string>
     <string name="video_empty">Choose a folder or file on your TV or USB drive. Access stays within your selection.</string>
     <string name="favorite_empty">Save a favorite from a camera or video’s details.</string>
@@ -48,8 +46,6 @@
     <string name="confirm_delete_playlist">Delete this playlist? Your sources and media files are kept.</string>
     <string name="name">Name</string>
     <string name="stream_url">Stream URL</string>
-    <string name="stream_type">Stream format</string>
-    <string name="source_details">Source details</string>
     <string name="category">Category</string>
     <string name="country">Country</string>
     <string name="city">City</string>
@@ -87,10 +83,8 @@
     <string name="empty_playlist">This playlist has no items. Add sources from your library.</string>
     <string name="shuffle">Shuffle</string>
     <string name="sequence">In order</string>
-    <string name="order">Playback order</string>
     <string name="playlist_copy">%1$s (copy)</string>
     <string name="fallback_set">Use as offline fallback</string>
-    <string name="fallback_clear">Disable local fallback</string>
     <string name="fallback_notice">Local fallback is used only when you choose a video playlist.</string>
     <string name="filter">Search and filter</string>
     <string name="search">Search name, city or category</string>
@@ -107,12 +101,9 @@
     <string name="map_cluster">%1$d sources</string>
     <string name="next_page">Next page</string>
     <string name="previous_page">Previous page</string>
-    <string name="menu">Controls</string>
     <string name="pause_play">Pause / play</string>
     <string name="next">Next source</string>
     <string name="previous">Previous source</string>
-    <string name="seek_back">Back 10 seconds</string>
-    <string name="seek_forward">Forward 10 seconds</string>
     <string name="sound">Sound</string>
     <string name="audio_track">Audio track</string>
     <string name="auto_audio">Automatic audio selection</string>
@@ -121,14 +112,11 @@
     <string name="retry">Retry sources</string>
     <string name="stay_local">Stay on local videos</string>
     <string name="library">Library</string>
-    <string name="player_hint">OK opens controls. Arrows change cameras or seek videos. Back returns to the library.</string>
-    <string name="clock_overlays">Clock and overlays</string>
     <string name="weather">Weather</string>
     <string name="weather_loading">Loading weather…</string>
     <string name="weather_no_location">Choose a weather location</string>
     <string name="weather_provider_required">Weather provider not configured</string>
     <string name="weather_unavailable">Weather unavailable</string>
-    <string name="weather_license_notice">Weather and city search need an approved provider. No weather or geocoding request is sent in this build. You may save your own coordinates for later.</string>
     <string name="forecast">Seven-day forecast</string>
     <string name="weather_context">Weather location</string>
     <string name="camera_location">Current camera</string>
@@ -141,8 +129,6 @@
     <string name="weather_attribution">Data: %1$s</string>
     <string name="weather_day">%1$s · %2$s / %3$s · Rain chance %4$s%% · Wind %5$s km/h · Humidity %6$s%%</string>
     <string name="not_available">Not available</string>
-    <string name="basic">Basic settings</string>
-    <string name="advanced">Advanced settings</string>
     <string name="playback">Playback</string>
     <string name="language">Language</string>
     <string name="system_default">TV default</string>
@@ -166,9 +152,7 @@
     <string name="temperature">Temperature</string>
     <string name="overlay_preset">Overlay preset</string>
     <string name="preset_minimal">Clock only</string>
-    <string name="preset_weather">Clock and weather</string>
     <string name="preset_none">No overlays</string>
-    <string name="overlay_editor">Visual overlay editor</string>
     <string name="overlay_corner">Corner</string>
     <string name="top_left">Top left</string>
     <string name="top_right">Top right</string>
@@ -186,7 +170,6 @@
     <string name="overlay_hiding">Hide overlays after inactivity</string>
     <string name="overlay_hide_delay">Overlay inactivity delay (seconds)</string>
     <string name="overlay_notice">Movement and hiding are independent. These options do not guarantee protection from burn-in.</string>
-    <string name="schedule">Screensaver schedule</string>
     <string name="schedule_enable">Limit automatic screensaver playback to a daily window</string>
     <string name="schedule_start">Start (HH:mm)</string>
     <string name="schedule_end">End (HH:mm)</string>
@@ -205,7 +188,6 @@
     <string name="copy">Copy report</string>
     <string name="copied">Report copied.</string>
     <string name="share_unavailable">No app can share this report. You may copy it instead.</string>
-    <string name="updates">Application updates</string>
     <string name="check_updates">Check for updates</string>
     <string name="download_update">Download trusted update</string>
     <string name="install_update">Continue with Android installer</string>
@@ -225,8 +207,6 @@
     <string name="app_unverified">Implementation preview · awaiting independent validation</string>
     <string name="report_header">OpenVista local diagnostic report</string>
     <string name="map_source">%1$s · %2$.3f, %3$.3f</string>
-    <string name="remote_list">Import list from a URL</string>
-    <string name="remote_list_notice">OpenVista will download this list only when you confirm. Sources will be saved locally; no stream plays during import.</string>
     <string name="sensitive_url_notice">This editor shows your private source URL. It is never included in reports.</string>
     <string name="weather_nws_notice">Free seven-day US forecasts are available for saved coordinates. Set your city and coordinates below. City search is not yet supported.</string>
     <string name="city_search_unavailable">City search is unavailable. Enter a city and coordinates manually.</string>

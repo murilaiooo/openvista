@@ -1,62 +1,66 @@
 # OpenVista: current engineering status
 
-**Last reviewed: 2026-10-26.** This document is the single canonical status page for the repository. Other documents may preserve dated planning and implementation history.
+**Reviewed October 28, 2026; final source integration documented below.** This is the live status for the active Android TV development work. Read [the Claude release handoff](implementation/claude-release-handoff-2026-10-27.md) for the full history and [the owner-approved acceptance criteria](product/v1-acceptance.md). Historical PR bodies and dated plans can be stale.
 
 ## At a glance
 
-| Question | Answer |
+| Question | Current answer |
 | --- | --- |
-| Is there Android app source? | **Yes.** Native Kotlin player, UI, user library, SAF access, Media3, ambient overlays and tests are in the mainline development source. |
-| Can it run on a TV? | **Yes, as a development preview.** Individual app flows were exercised on the owner's Hisense 58U6HF / Fire OS 7 (Android 9 / API 28). |
-| Is there a public APK or stable release? | **No.** Only locally built debug/test APKs; no signed public release or owner authorization to publish. |
-| Does OpenVista bundle live-camera links, M3U lists or videos? | **No.** Users import their own. Research-only media/playlist fixtures are excluded from runtime artifacts. |
-| Does weather work? | **Yes, for NWS-covered U.S. coordinates.** Tucson hourly conditions and seven-day forecast were exercised physically. Worldwide geocoding is not implemented. |
-| Are all original v1 requirements finished? | **No.** Hisense DreamService entry was observed, but its full remote/lifecycle/endurance acceptance, USB edge cases, 24-hour soak, maps, pairing security, updater and final release gates remain. |
-| Are there open GitHub issues/PRs? | **No, as of this review.** The owner closed the prior backlog administratively, not as proof every feature passed acceptance. Closed records and branches remain available. |
+| Is the Android TV application implemented? | **Yes, development preview.** Native Kotlin/Media3 with user-managed HLS/DASH/M3U, local videos/SAF, playlists, favorites, Home, a unified Settings design and ambient overlays. |
+| Where is the integrated source? | The latest owner-TV-matched local overlay, PR #40, and the updated English/Portuguese READMEs are consolidated for mainline integration. See [integration QA](testing/integrated-tv-snapshot-2026-10-28.md) and [PR #37](https://github.com/murilaiooo/openvista/pull/37). |
+| Is this ready for a public release? | **No.** The source is consolidated for mainline; historical stream URLs and other distribution gates still need review. |
+| Does the TV match the integrated APK? | **Yes, byte for byte.** The installed October 27 debug APK and the current local build share the same SHA-256. This is not a 24-hour stability certification. See [QA record](testing/integrated-tv-snapshot-2026-10-28.md). |
+| Is this a public, signed or stable release? | **No.** GitHub repository remains private; no approved production APK release or supported cross-device matrix. |
+| Does the APK contain a camera catalog, playlists or bundled videos? | **It must not.** Under owner decision C-01, all live URLs, M3Us and local videos are user-managed, not shipped. Run the actual final-artifact guard before any release. |
+| Is weather global? | **Camera weather is now implemented outside the US** through Open-Meteo, while NWS remains preferred within its US coverage. A missing same-day high after sunset is supplemented only for that exact date. Location geocoding and all international failure/terms cases remain subject to review. |
+| What is next? | Reference-accurate design audit; one coherent Settings menu; burn-in phase/device verification; QA/optimization; security/history/content audit; 24-hour hardware soak; explicit owner approval. |
 
-## Evidence actually collected
+## Observed and documented milestones
 
-| Area | Observed result | Evidence |
-| --- | --- | --- |
-| Diagnostics and device | Hisense 58U6HF, Fire OS 7, Android API 28; local diagnostic APK and device baseline | [Device baseline](testing/hisense-baseline.md) and [diagnostic runbook](testing/diagnostic-apk-runbook.md) |
-| App shell | Android TV Home, basic remote focus and navigation, zero-source workflow, manual source entry | [Integrated-app QA](testing/production-pr22-validation-2026-10-26.md) and owner-authorized 2026-10-26 test session |
-| Media import | User-selected M3U playlist imported; later 38 user-selected live-camera entries added with 0 rejected/duplicates; app contains no built-in source URLs | [User-managed contract](product/user-managed-content.md), [APK guard](testing/release-content-guard.md) |
-| Streaming | HLS 720p and DASH 720p played on Hisense using independently served test media | [Media spike](testing/player-prototype-spike.md) and owner-authorized 2026-10-26 test session |
-| Local media | An individually selected MP4 played; an authorized folder was scanned with two videos and was present after process restart | [SAF work](testing/saf-usb-spike.md) and owner-authorized 2026-10-26 test session |
-| Weather | Official NWS seven-day Tucson forecast displayed; overlay displayed Tucson temperature + condition while HLS fixture played | [NWS integration](testing/nws-weather-integration-2026-10-26.md) |
-| Localization | English source resources and Brazilian Portuguese TV interface, including settings and forecast, exercised | [Integrated-app QA](testing/production-pr22-validation-2026-10-26.md) |
-| Local verification | Android unit tests, source-core tests, diagnostics tests, build and Android Lint passed; 23 Python tests; no-bundled-content guard passed on debug APK | [Integrated QA](testing/production-pr22-validation-2026-10-26.md), [NWS QA](testing/nws-weather-integration-2026-10-26.md) |
+- Previous October 26 integration tests established HLS/DASH 720p playback, MP4 and user-selected folder flow, M3U import, navigation, scoped UI localization and Tucson NWS on the Hisense. See [integrated app QA](testing/production-pr22-validation-2026-10-26.md).
+- Mainline [SAF canonical identity and migration](testing/saf-canonical-qa-2026-10-26.md) and [DreamService activation](testing/hisense-dreamservice-activation-2026-10-26.md) have separate evidence and are integrated into the new review branch. Do not infer USB grant and OEM behavior are universally validated.
+- Owner-requested 3-panel Home, atlas/sidebar Settings, native styling, real source/viewer clocks and 3-7-day forecasts exist on the active redesign branch. References describe the intended visuals, **not a certified pixel match**.
+- [Display care](design/ambient-display-care-2026-10-27.md): four bounded position arrangements for complete information groups, configurable movement default five minutes plus independent inactivity fading. Unit geometry/device spot-checks exist; timed cycles across varying layouts require further hardware checks. This reduces static exposure; it cannot guarantee burn-in prevention.
+- [Worldwide weather](design/worldwide-weather-provider.md): NWS preferred where available; international Open-Meteo camera weather independently seen on physical hardware, subject to non-commercial and credit requirements.
+- [Player freeze recovery](testing/live-video-freeze-regression-2026-10-27.md): a PixelCopy hold overlay caused stale/frozen moving footage and was removed by `d90c535`. Ten-second physical TV recording around a camera switch showed 21/21 changed frame pairs; short decoder gaps are still possible.
+- [Missing current-day high](testing/missing-today-high-weather-qa-2026-10-27.md): after sunset, NWS high absence is supplemented using same-date Open-Meteo daily high while preserving original provider values and credit; focused tests and physical Tucson display passed.
+- Three genuine 3840x2160 physical TV screenshots are in `assets/screenshots/` and linked from README. **These are not the three original owner design mockups**, which must be provided to the implementation agent separately.
 
-These are **partial results**, not comprehensive acceptance for entire feature families. A local file or research-list import does not establish rights to redistribute a third-party stream. A declared 1080p/4K resolution is not a measured decoder result.
+## October 28 release-quality pass (branch `claude/project-thread-xcksji`)
 
-## Known issues and unverified paths
+Implemented on top of `codex/ui-redesign-36`. Evidence is labeled per item; nothing here is release acceptance.
 
-1. **Local video deduplication:** the same MP4 appeared twice after first adding it individually and then importing its parent folder. Reproduced after process restart; needs a canonical identity/dedup policy.
-2. **Physical USB:** file/folder selection and persistence work for tested internal media. Unplug/replug, revoked grants, real USB drive behavior and all supported containers/codecs have not passed the required matrix.
-3. **High-resolution and long-duration playback:** 1080p/4K, HDR behavior, dropped frames, thermal/CPU/RAM and 24-hour uninterrupted rotation/soak are not signed off.
-4. **DreamService:** on 2026-10-26 the owner explicitly approved enabling OpenVista as the system screensaver on the Hisense. A 20-second temporary idle test observed the real OpenVista DreamService automatically enter Dreaming with a live camera and weather/clock overlay; original three-minute timers were restored. Dream-mode remote controls, wake/sleep recovery, full three-minute natural waiting period, 24-hour stability and other devices remain unverified. See [Hisense DreamService activation evidence](testing/hisense-dreamservice-activation-2026-10-26.md).
-5. **Map/geocoding:** an app-local schematic and saved-coordinate list exist. Licensed map tiles and city-name geocoding are not integrated.
-6. **Weather scope:** NWS forecasts cover supported U.S. coordinates only. Some provider-supplied condition text remains English in PT-BR. Stale/offline behavior was not subjected to extended on-device failure injection.
-7. **LAN pairing:** code exists, but the security gate remains off. It must not expose a listener before confidentiality and local authorization review.
-8. **Updates:** discovery/download/installer code exists, but the public update channel is disabled. Android 9 installation may require explicit system UI confirmation. Signing, release channel and installer hardware proof remain.
-9. **Full app QA:** complex focus, accessibility, network recovery, crop/quality settings, settings persistence, playback switching, source failures and background/sleep behavior require additional validation.
-10. **Distribution:** there is no signed user-facing release, no 24-hour acceptance and no compatibility certification for TVs other than the test Hisense.
+- **Playback recovery** (`9490c31`): a live stream that falls behind its live window resyncs instead of being marked unavailable; a network outage no longer marks every camera unavailable (the session waits for connectivity, plays the fallback playlist when configured and resumes after the network settles); when all cameras fail while online, retries back off at 1, 2, 4, 8 and then 15 minutes. Notices are typed (quiet, brief, persistent) instead of string-matched. The stored *Scene transition: fade through black* setting is now implemented by a shared `SceneView` used by the player and the screensaver; persistent failures darken the surface so a frozen last frame is not left on screen. No PixelCopy or still-frame overlay was reintroduced. Library lookups are indexed. *Unit tests for the retry policy and notice mapping; device evidence is listed in PR notes.*
+- **Home and unified Settings** (`58d90cb`, built and checked on the Hisense): a shared 960x540 dp design canvas, Inter (OFL-1.1, license in `licenses/`), one logo for Home, launcher icon and banner (owner decision 2026-10-28), one Settings menu that maps legacy routes.
+- **Camera country, flag and location** (`521486f`, `5ef7a1e`): the root cause of missing countries was that M3U import dropped every `#EXTINF` attribute and cut titles at their last comma. The parser now keeps `group-title`/`#EXTGRP`, `tvg-country`, city, region time zone and paired coordinates. Countries resolve from ISO codes, names in common languages, aliases or the camera time zone, and are shown localized with their flag. Cameras that name a city but lack country, coordinates or time zone are completed from Open-Meteo geocoding (only the city and known country are sent, never stream URLs; unambiguous results only; blank fields only; rate-limited, bounded and remembered for a week). The source editor has *Find location*. The location label now defaults to on for new installs. *Parser, resolver and matching logic: 28 JVM tests passing. Android integration: see PR validation.*
+- Cameras with no city at all (title and URL only, e.g. from the phone pairing page) still need *Find location* or a list that declares metadata; nothing is inferred from titles, because a wrong country or local time is worse than none.
 
-## Open source and content policy
+## October 28 source synchronization and QA
 
-- The repository is currently **private**; the MIT license applies to its source, but its presence does not imply a published or downloadable application.
-- No bundled stream URLs, playlists, wallpapers or videos in runtime packages (C-01).
-- The user chooses authorized live URLs and local media; research assets are never a first-party media catalog.
-- The official NWS API uses the required identifying HTTP User-Agent, and the app does not add an on-video provider-credit label. Weather is optional and viewer-coordinates-based, without background geolocation permission.
-- The prototype retains application identity **com.openvista.prototype**, app version **0.2.0-implementation-preview** (version code 2), Android minimum API 28. This is **not** a stable distribution identity.
-- Do not activate pairing/update gates or publish APKs without security/release approval.
+The local live overlay was reconciled with PR #40 and the newest English/Portuguese README commits. The selected overlay has a 32-position display-care cycle (four compositions, eight drift offsets) with independent hiding; its earlier historical four-position description remains a baseline, not an exhaustive account of current behavior. The source editor height and camera header visibility fixes are included. All 32 physical timed phases still need real-device evidence.
 
-## Repository history and closed work
+The integrated debug source passed 51 player tests, 4 diagnostic tests, 2 source-core test suites, 23 Python tests, Android build and Lint, document checks and the static packaged-stream guard. The installed TV APK and the local integrated debug APK were SHA-256-identical. These facts do not establish public-release readiness. See [integration details](testing/integrated-tv-snapshot-2026-10-28.md).
+## Release blockers and risks
 
-PRs [#20](https://github.com/murilaiooo/openvista/pull/20), [#21](https://github.com/murilaiooo/openvista/pull/21), [#22](https://github.com/murilaiooo/openvista/pull/22), and [#23](https://github.com/murilaiooo/openvista/pull/23) were closed unmerged at the owner's request. The code was subsequently consolidated into the development mainline (not an owner-approved release). Their branches and dated comments remain for provenance, without implying each closed PR passed release QA.
+1. Precisely compare Home, Settings and Live Camera Playback against all three original reference images. Reconcile typography/spacing/blur treatment, focus, correct labels/real data, all secondary screens and the **single** Settings navigation structure.
+2. Prove every burn-in movement phase and persisted setting on the actual TV, over bright/dark scenes, long translations and missing data. Prevent clipping, overlap, static forecast footer, playback flicker and focus jumps.
+3. Verify camera switching under weak networks, decoding stalls, app/Dream transitions, source and viewer forecast failures, daily high/low, library data preservation and lifecycle. Never mask live video with a static frame to conceal flashes.
+4. Run end-to-end D-pad/focus/accessibility, user-library SAF duplicate identity, real USB unplug/replug, grants/revocation, media containers/codecs, formats, pause/resume and fallback test matrices.
+5. Measure startup, memory/CPU, decoder errors, dropped frames and **at least 24-hour** unattended playback/recovery on physical hardware. No such acceptance has yet been certified.
+6. Keep pairing, updater and experimental YouTube embed out of stable v1 until accepted. Official YouTube embeds cannot guarantee uninterrupted ad-free ambient playback.
+7. Audit licenses/third-party source history/private URLs before changing GitHub visibility. Current-tree deletion **does not erase Git history**. Review the unmerged repository-cleanup draft [#32](https://github.com/murilaiooo/openvista/pull/32) and the [content guard](testing/release-content-guard.md). Never commit the owner's untracked camera research and QA scratch artifacts.
+8. Complete final signed artifact content/privacy/security checks and obtain owner approval for publishing, signing and release.
 
-Issues #2, #5–#8 and #13–#15 were also closed, in several cases as **not planned/administrative closure** rather than implemented and tested. Closed issue count is not a v1 quality metric.
+## Active issue/PR tracking
 
-## Next release-gate sequence
+- [#36](https://github.com/murilaiooo/openvista/issues/36): unified TV design and precise mockup fidelity. Integration record [PR #37](https://github.com/murilaiooo/openvista/pull/37).
+- [#34](https://github.com/murilaiooo/openvista/issues/34): consistent, nonintrusive loading/error states.
+- [#33](https://github.com/murilaiooo/openvista/issues/33): visual saved-camera selection preview.
+- Other open draft PRs are independent proposals or historical overlaps. Do not merge them blindly or claim a closed issue proves its requirements passed.
 
-Follow [the live roadmap](roadmap.md), [device compatibility](testing/compatibility.md) and [the stable-v1 acceptance contract](product/v1-acceptance.md). Prioritize duplicate media identity, physical media/remote tests, security and upstream provider approval, fault recovery, measured 24-hour soak, and signing/channel/owner approval. **Do not turn an incomplete gate into a passing gate merely by closing its GitHub issue.**
+## Engineering rules
+
+- English-only repository code, docs, PRs and commit messages; EN/PT-BR app localization retained.
+- The package is still `com.openvista.prototype`, version code 2, `0.2.0-implementation-preview`; this is **not** a final public identity. Different source commits can produce the same version string, so compare artifacts by hash and Git state.
+- Preserve user data, launcher and OS screensaver settings. Avoid bundled streams, fake location/media/weather data, unlicensed imagery, release-ready assumptions and unauthorized device modifications.
+- Use applicable `.claude/skills` and `.agents/skills` instructions, local Gradle/unit/Lint plus independent physical hardware checks. No GitHub Actions required.

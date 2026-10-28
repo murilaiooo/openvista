@@ -16,14 +16,12 @@
     <string name="my_videos">Meus vídeos</string>
     <string name="favorites">Favoritos</string>
     <string name="settings">Configurações</string>
-    <string name="back">Voltar</string>
     <string name="add_stream">Adicionar transmissão</string>
     <string name="import_list">Importar lista</string>
     <string name="play_my_videos">Reproduzir meus vídeos</string>
     <string name="choose_folder">Escolher pasta de vídeos</string>
     <string name="choose_video">Escolher arquivo de vídeo</string>
     <string name="manage_folders">Gerenciar pastas</string>
-    <string name="library_empty">Sua biblioteca está pronta para suas fontes.</string>
     <string name="camera_empty">Adicione uma transmissão HLS ou DASH, importe sua lista M3U ou reproduza um vídeo de uma pasta.</string>
     <string name="video_empty">Escolha uma pasta ou arquivo na TV ou unidade USB. O acesso fica limitado à sua seleção.</string>
     <string name="favorite_empty">Salve um favorito nos detalhes de uma câmera ou vídeo.</string>
@@ -48,8 +46,6 @@
     <string name="confirm_delete_playlist">Excluir esta lista? Suas fontes e arquivos serão mantidos.</string>
     <string name="name">Nome</string>
     <string name="stream_url">URL da transmissão</string>
-    <string name="stream_type">Formato da transmissão</string>
-    <string name="source_details">Detalhes da fonte</string>
     <string name="category">Categoria</string>
     <string name="country">País</string>
     <string name="city">Cidade</string>
@@ -87,10 +83,8 @@
     <string name="empty_playlist">Esta lista não tem itens. Adicione fontes da biblioteca.</string>
     <string name="shuffle">Aleatório</string>
     <string name="sequence">Em ordem</string>
-    <string name="order">Ordem de reprodução</string>
     <string name="playlist_copy">%1$s (cópia)</string>
     <string name="fallback_set">Usar como alternativa sem internet</string>
-    <string name="fallback_clear">Desativar alternativa local</string>
     <string name="fallback_notice">A alternativa local é usada apenas quando você escolhe uma lista de vídeos.</string>
     <string name="filter">Buscar e filtrar</string>
     <string name="search">Buscar nome, cidade ou categoria</string>
@@ -107,12 +101,9 @@
     <string name="map_cluster">%1$d fontes</string>
     <string name="next_page">Próxima página</string>
     <string name="previous_page">Página anterior</string>
-    <string name="menu">Controles</string>
     <string name="pause_play">Pausar / reproduzir</string>
     <string name="next">Próxima fonte</string>
     <string name="previous">Fonte anterior</string>
-    <string name="seek_back">Voltar 10 segundos</string>
-    <string name="seek_forward">Avançar 10 segundos</string>
     <string name="sound">Som</string>
     <string name="audio_track">Faixa de áudio</string>
     <string name="auto_audio">Seleção automática de áudio</string>
@@ -121,14 +112,11 @@
     <string name="retry">Tentar fontes novamente</string>
     <string name="stay_local">Continuar nos vídeos locais</string>
     <string name="library">Biblioteca</string>
-    <string name="player_hint">OK abre os controles. As setas trocam câmeras ou avançam vídeos. Voltar retorna à biblioteca.</string>
-    <string name="clock_overlays">Relógio e sobreposições</string>
     <string name="weather">Clima</string>
     <string name="weather_loading">Carregando clima…</string>
     <string name="weather_no_location">Escolha uma localização para o clima</string>
     <string name="weather_provider_required">Provedor de clima não configurado</string>
     <string name="weather_unavailable">Clima indisponível</string>
-    <string name="weather_license_notice">Clima e busca de cidades precisam de um provedor aprovado. Esta versão não envia consultas de clima ou geocodificação. Você pode salvar suas coordenadas para depois.</string>
     <string name="forecast">Previsão de sete dias</string>
     <string name="weather_context">Localização do clima</string>
     <string name="camera_location">Câmera atual</string>
@@ -141,8 +129,6 @@
     <string name="weather_attribution">Dados: %1$s</string>
     <string name="weather_day">%1$s · %2$s / %3$s · Chance de chuva %4$s%% · Vento %5$s km/h · Umidade %6$s%%</string>
     <string name="not_available">Não disponível</string>
-    <string name="basic">Configurações básicas</string>
-    <string name="advanced">Configurações avançadas</string>
     <string name="playback">Reprodução</string>
     <string name="language">Idioma</string>
     <string name="system_default">Padrão da TV</string>
@@ -166,9 +152,7 @@
     <string name="temperature">Temperatura</string>
     <string name="overlay_preset">Predefinição de sobreposição</string>
     <string name="preset_minimal">Apenas relógio</string>
-    <string name="preset_weather">Relógio e clima</string>
     <string name="preset_none">Sem sobreposições</string>
-    <string name="overlay_editor">Editor visual de sobreposição</string>
     <string name="overlay_corner">Canto</string>
     <string name="top_left">Superior esquerdo</string>
     <string name="top_right">Superior direito</string>
@@ -186,7 +170,6 @@
     <string name="overlay_hiding">Ocultar sobreposições após inatividade</string>
     <string name="overlay_hide_delay">Tempo de inatividade da sobreposição (segundos)</string>
     <string name="overlay_notice">Movimento e ocultação são independentes. Essas opções não garantem proteção contra retenção permanente da imagem.</string>
-    <string name="schedule">Horário do protetor de tela</string>
     <string name="schedule_enable">Limitar a reprodução automática a um horário diário</string>
     <string name="schedule_start">Início (HH:mm)</string>
     <string name="schedule_end">Fim (HH:mm)</string>
@@ -205,7 +188,6 @@
     <string name="copy">Copiar relatório</string>
     <string name="copied">Relatório copiado.</string>
     <string name="share_unavailable">Nenhum aplicativo pode compartilhar o relatório. Você pode copiá-lo.</string>
-    <string name="updates">Atualizações do aplicativo</string>
     <string name="check_updates">Buscar atualizações</string>
     <string name="download_update">Baixar atualização confiável</string>
     <string name="install_update">Continuar com o instalador do Android</string>
@@ -225,8 +207,6 @@
     <string name="app_unverified">Prévia da implementação · aguardando validação independente</string>
     <string name="report_header">Relatório de diagnóstico local do OpenVista</string>
     <string name="map_source">%1$s · %2$.3f, %3$.3f</string>
-    <string name="remote_list">Importar lista de uma URL</string>
-    <string name="remote_list_notice">O OpenVista baixará a lista apenas quando você confirmar. As fontes serão salvas localmente; nenhuma transmissão será reproduzida durante a importação.</string>
     <string name="sensitive_url_notice">Este editor mostra a URL privada da fonte. Ela nunca é incluída nos relatórios.</string>
     <string name="weather_nws_notice">Previsão gratuita de sete dias nos EUA para as coordenadas salvas. Defina a cidade e as coordenadas abaixo. A busca de cidades ainda não está disponível.</string>
     <string name="city_search_unavailable">A busca de cidades não está disponível. Informe a cidade e as coordenadas manualmente.</string>

@@ -1,18 +1,15 @@
 package com.openvista.prototype.ui
 
 import android.app.AlertDialog
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
+import android.os.Bundle
 import android.text.InputType
-import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.media3.common.util.UnstableApi
 import com.openvista.prototype.LibraryRoute
 import com.openvista.prototype.OpenVistaActivity
 import com.openvista.prototype.R
+import com.openvista.prototype.ambient.CountryResolver
 import com.openvista.prototype.ambient.SourceMapView
 import com.openvista.prototype.library.Availability
 import com.openvista.prototype.library.LibraryItem
@@ -35,33 +32,19 @@ class LibraryScreens(private val host: OpenVistaActivity) {
     private var favoriteOnly = false
     private var availableOnly = false
 
-    fun home(body: LinearLayout) {
-        body.addView(ui.heading(s(R.string.app_name)))
-        body.addView(ui.description(s(R.string.library_empty)))
-        val cards = ui.row()
-        listOf(Triple(R.string.cameras, "cameras", R.drawable.home_cameras),
-            Triple(R.string.my_videos, "videos", R.drawable.home_videos),
-            Triple(R.string.favorites, "favorites", R.drawable.home_favorites)).forEach { (title, page, artwork) ->
-            val card = ui.column().apply {
-                background = GradientDrawable().apply { setColor(0xFF142A3C.toInt()); cornerRadius = ui.dp(16).toFloat() }
-            }
-            card.addView(ImageView(host).apply {
-                setImageResource(artwork); scaleType = ImageView.ScaleType.CENTER_CROP
-                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(145)))
-            ui.button(card, s(title), page) { host.open(LibraryRoute(page)) }
-            cards.addView(card, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                setMargins(ui.dp(8), ui.dp(12), ui.dp(8), ui.dp(16))
-            })
-        }
-        body.addView(cards)
-        store.lastItemId()?.let(store::item)?.let { item ->
-            ui.button(body, s(R.string.resume_last), "resume_last") {
-                host.play(store.items().filter { it.family == item.family }, item.id, item.family == MediaFamily.CAMERAS)
-            }
-        }
-        body.addView(ui.description(s(R.string.local_only)))
-        body.addView(ui.description(s(R.string.app_unverified)))
+    fun saveState(state: Bundle) {
+        state.putString("filterSearch", search); state.putString("filterCountry", country)
+        state.putString("filterCity", city); state.putString("filterCategory", category)
+        state.putBoolean("filterFavorite", favoriteOnly); state.putBoolean("filterAvailable", availableOnly)
+    }
+
+    fun restoreState(state: Bundle?) {
+        if (state == null) return
+        search = state.getString("filterSearch").orEmpty().take(100)
+        country = state.getString("filterCountry").orEmpty().take(100)
+        city = state.getString("filterCity").orEmpty().take(100)
+        category = state.getString("filterCategory").orEmpty().take(100)
+        favoriteOnly = state.getBoolean("filterFavorite"); availableOnly = state.getBoolean("filterAvailable")
     }
 
     fun onboarding(body: LinearLayout, revisit: Boolean) {
@@ -93,7 +76,9 @@ class LibraryScreens(private val host: OpenVistaActivity) {
             var hasNext = false
             val offset = route.offset
             listOf(MediaFamily.CAMERAS, MediaFamily.VIDEOS).forEach { section ->
-                body.addView(ui.heading(s(if (section == MediaFamily.CAMERAS) R.string.cameras else R.string.my_videos)))
+                body.addView(ui.caps(s(if (section == MediaFamily.CAMERAS) R.string.cameras else R.string.my_videos)).apply {
+                    setPadding(ui.dp(2), ui.dp(12), ui.dp(2), ui.dp(5))
+                })
                 val items = store.items().filter { it.family == section && it.favorite }
                 if (items.isEmpty()) body.addView(ui.description(s(R.string.favorite_empty)))
                 else items.drop(offset).take(PAGE_SIZE).forEach { item -> sourceRow(body, item) }
@@ -138,9 +123,15 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         body.addView(pages)
     }
 
+    /** One library entry in the shared row style; favorites carry the star icon instead of a text mark. */
     private fun sourceRow(body: LinearLayout, item: LibraryItem) {
         val place = listOf(item.city, item.country, item.category).filter(String::isNotBlank).joinToString(" · ")
-        ui.button(body, (if (item.favorite) "★ " else "") + item.title + if (place.isNotBlank()) " · $place" else "", "source_${item.id}") {
+        val icon = when {
+            item.favorite -> TvIcon.Symbol.STAR
+            item.family == MediaFamily.CAMERAS -> TvIcon.Symbol.CAMERA
+            else -> TvIcon.Symbol.FILM
+        }
+        ui.settingRow(body, item.title, key = "source_${item.id}", summary = place.ifBlank { null }, icon = icon) {
             host.open(LibraryRoute("details", item.id, item.family))
         }
     }
@@ -211,9 +202,38 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         val zone = ui.field(fields, s(R.string.time_zone), item?.timeZone.orEmpty())
         val credit = ui.field(fields, s(R.string.attribution), item?.attribution.orEmpty(), 500)
         val error = ui.description(""); fields.addView(error)
+        var picker: AlertDialog? = null
+        if (host.locations.available) {
+            // One search fills city, country, coordinates and time zone together, so they always agree.
+            fields.addView(ui.description(s(R.string.location_lookup_privacy)))
+            val row = ui.row()
+            ui.button(row, s(R.string.find_location), "find_location") {
+                val query = city.text.toString().split(',').first().trim().ifBlank { title.text.toString().trim() }
+                val code = CountryResolver.resolve(country.text.toString(), zone.text.toString().trim().ifBlank { null })
+                error.text = s(R.string.location_searching)
+                host.locations.search(query, code) { places ->
+                    error.text = when {
+                        places == null -> s(R.string.city_search_unavailable)
+                        places.isEmpty() -> s(R.string.no_location_matches)
+                        else -> ""
+                    }
+                    if (places.isNullOrEmpty()) return@search
+                    picker?.dismiss()
+                    picker = AlertDialog.Builder(host).setTitle(R.string.find_location)
+                        .setItems(places.map { place -> listOf(place.name, place.region, host.locations.displayCountry(place))
+                            .filter(String::isNotBlank).distinct().joinToString(", ") }.toTypedArray()) { _, index ->
+                            val place = places[index]
+                            city.setText(place.name); country.setText(host.locations.displayCountry(place))
+                            latitude.setText(place.latitude.toString()); longitude.setText(place.longitude.toString())
+                            zone.setText(place.timeZone)
+                        }.setNegativeButton(R.string.cancel, null).show()
+                }
+            }
+            fields.addView(row)
+        }
         val dialog = AlertDialog.Builder(host).setTitle(if (item == null) R.string.add_stream else R.string.edit)
             .setView(ui.scroll(fields)).setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
-        host.showDialog(dialog)
+        host.showDialog(dialog) { picker?.dismiss() }
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val name = title.text.toString().trim()
             val source = if (camera) UserSourceParser().manualUrl(url!!.text.toString(), kind, name) else null
@@ -238,7 +258,7 @@ class LibraryScreens(private val host: OpenVistaActivity) {
                     latitude = lat, longitude = lon, timeZone = tz, attribution = credit.text.toString(),
                     availability = if (source != null && source.url != base.uri) Availability.UNKNOWN else base.availability,
                     observedAt = if (source != null && source.url != base.uri) 0 else base.observedAt))
-                dialog.dismiss(); host.refresh(); host.persisted(s(R.string.source_saved))
+                dialog.dismiss(); host.refresh(); host.persisted(s(R.string.source_saved)); host.completeLocations()
             } catch (_: Exception) { error.text = s(R.string.operation_failed) }
         }
     }
@@ -384,6 +404,13 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         ui.button(controls, s(R.string.zoom_out)) { map.zoom(-1) }
         ui.button(controls, s(R.string.reset_view)) { map.reset() }
         body.addView(controls)
+        body.addView(ui.description(s(R.string.map_pan_help)))
+        val pan = ui.row()
+        ui.button(pan, s(R.string.map_west)) { map.pan(-1, 0) }
+        ui.button(pan, s(R.string.map_north)) { map.pan(0, 1) }
+        ui.button(pan, s(R.string.map_south)) { map.pan(0, -1) }
+        ui.button(pan, s(R.string.map_east)) { map.pan(1, 0) }
+        body.addView(pan)
         val panels = ui.row()
         panels.addView(map, LinearLayout.LayoutParams(0, ui.dp(300), 1.4f))
         val list = ui.column()

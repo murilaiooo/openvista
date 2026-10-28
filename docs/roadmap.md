@@ -1,54 +1,37 @@
-# OpenVista roadmap
+# OpenVista: final development and release roadmap
 
-**Updated 2026-10-26.** Native app development and physical Hisense testing are underway. This is the **current work plan**; the older [October 25 implementation sequence](implementation/first-apk-sequencing-review-2026-10-25.md) is historical. See [current status and observed evidence](STATUS.md).
+**Updated October 27, 2026.** Read [current engineering status](STATUS.md), [Claude's full handoff](implementation/claude-release-handoff-2026-10-27.md), and [owner decisions/acceptance](product/v1-acceptance.md). This roadmap replaces the older October 26 phase priorities; prior plans are historical.
 
-## Completed milestones (development only)
+## Completed as development implementation, not release acceptance
+- [x] Owner decisions D-01..D-78 and later C-01 user-managed content policy.
+- [x] Kotlin Android TV/Fire TV application, Media3 HLS/DASH playback, user-supplied M3U and local SAF video/folder import, playlists, favorites, screensaver entry point and English/pt-BR UI.
+- [x] Physical Hisense scoped tests for basic playback, source lists, storage, clocks/weather and application workflows.
+- [x] Initial unified 3-panel Home, atlas-style Settings and ambient overlays with measured group-level display-care movement.
+- [x] NWS current/seven-day forecast plus international Open-Meteo camera weather and missing current-day viewer high completion.
+- [x] Remove the unsafe PixelCopy frame-hold that froze a live-camera image; device motion verified in a short capture.
+- [x] Merge the latest mainline SAF identity/Dream validation and 3 real README captures into the active redesign integration branch.
+- [x] After resolving the SAF scanner cancel-contract test conflict, 35 Android player unit tests, debug APK assembly and Android Lint passed for the integrated source.
 
-- [x] Original product decisions D-01–D-78, with C-01 superseding first-party camera-feed/catalog expectations.
-- [x] Windows toolchain, Kotlin/Gradle Android source tree and independent diagnostic baseline.
-- [x] User-managed HLS/DASH parser, M3U import, Home + Cameras/My Videos/Favorites, localized EN/PT-BR UI.
-- [x] Media3 player architecture, local/video source entry, bounded SAF folder scanning, saved library/playlists, overlays and settings.
-- [x] Physically reproduce HLS/DASH 720p, local MP4, user-selected M3U import, folder permission restoration, weather and basic TV navigation on Hisense.
-- [x] Implement official U.S. National Weather Service current hourly forecast and seven-day view; physically test Tucson.
-- [x] Validate debug APK build, Android tests, Python checks, Android Lint and no-bundled-stream/media guard.
-- [x] Close old issues/PRs administratively at the owner's request while preserving commits and outstanding release requirements.
+## Phase 1: precise visual and interaction finalization
+- [ ] Use **all three original owner-provided design reference screenshots**, not the README's real current-state screenshots, to implement close Home / Settings / Live Camera Playback visual fidelity.
+- [ ] Ensure there is **one Settings menu** with coherent subsections, no duplicated/disconnected configuration screens, persisted real controls and consistent shared dialog/focus states across all screens.
+- [ ] Validate 1080p and 720p, typography/weight/spacing, background readability, large/long EN/PT-BR text, safe areas, focus/D-pad/Back and zero-source/no-weather screens.
+- [ ] Verify the four full-overlay anti-burn-in positions over live video, independent inactivity hide, persistent preference changes and no overlap, clipping, frozen frames or disruptive transitions.
+- [ ] Address open issues #33 (camera-list visual preview), #34 (loading/error states), #36 (design) with real acceptance evidence.
 
-These are implementation and **scoped test milestones**, not public-stable acceptance.
+## Phase 2: performance, reliability and regression proof
+- [ ] Profile cold/warm startup, view inflation, CPU/RAM/GPU, decoder lifecycle, network fetch/cache and background transitions. Optimize only where there is a clear practical benefit.
+- [ ] Stress rapid camera changes, stream failures/timeouts, pause/resume, reconnect, rolling queues, one-decoder fallback, Dream/app ownership, muted screensaver and screen wake.
+- [ ] Verify U.S. and international camera/current-viewer weather, timezones, today high/low, units and locale, provider failures, credit, cache expiry and source invalidation.
+- [ ] Validate media dedup/SAF identity after fresh and upgraded installs, real USB unplug/replug, persisted and revoked permissions, local playlists, video containers/codecs and fallback.
+- [ ] Add regression tests where risk is high; rerun player/source-core/diagnostics tests, Android Lint, and content guard on produced packages.
 
-## Phase A: improve the existing development preview
+## Phase 3: public repo and signed-release gates
+- [ ] Audit current Git tree **and entire history** for private stream URLs, research lists, credentials, imagery/media licensing and personal data. Unmerged cleanup PR #32 alone is insufficient for public visibility.
+- [ ] Confirm licenses, clean README/screenshots, contributor documentation, source package identity, data policies, privacy notices and owner-managed content rules.
+- [ ] Test and record at least 24 hours of real Hisense playback/rotation, memory, thermal and network recovery; additional TV models remain unverified.
+- [ ] Independently check the **actual signed candidate** for packaged unauthorized media, stream links, dependencies and signing/installer behavior; don't mistake debug tests for a production gate.
+- [ ] Obtain owner approval before changing GitHub visibility, merging the final release candidate, publishing a GitHub Release or enabling updater/LAN pairing.
 
-- [ ] Fix the reproduced duplicate-video issue when the same SAF media is added by document and folder routes.
-- [ ] Audit complete D-pad focus, Back, first-run, import/error prompts, settings, localized text and accessibility on physical Fire OS.
-- [ ] Confirm camera rotation, video resume, source switching, favorites, local playlist ordering/looping and failure recovery with reproducible device evidence.
-- [ ] Verify NWS caching, hourly-to-daily normalization, offline stale states and locale-friendly weather descriptions.
-- [ ] Resolve existing TV picker and UI regressions without changes to unrelated apps or the user's screen-saver preference.
-
-## Phase B: compatibility and provider gates
-
-- [ ] Complete USB unplug/replug, persisted-grant revocation, nested folder traversal and video format matrix (MP4/MKV/WebM/MOV, supported codecs only).
-- [ ] Run representative user-supplied 1080p and 4K sources, HDR capability checks, decoder fallback, CPU/RAM/network/dropped-frame measurements.
-- [ ] Prove or explicitly document Hisense Fire OS 7 DreamService selection/idle/remote support with owner-approved OS settings and rollback.
-- [ ] Review/select geographically suitable, legally usable map tiles and city geocoding; keep current schematic/list fallback until then.
-- [ ] Securely validate QR/LAN phone-to-TV input before enabling PairingSecurity.REVIEWED; no unreviewed HTTP exposure.
-- [ ] Approve signing/update-channel policy and test Android PackageInstaller user confirmation without silent-install claims.
-- [ ] Keep experimental Golden Hour/daylight filters and extra display-care variants outside v1 scope unless separately approved.
-
-## Phase C: stable-v1 certification
-
-- [ ] Complete all [G01–G10 acceptance gates](product/v1-acceptance.md) with repeatable evidence, not inferred coverage from closed GitHub issues.
-- [ ] Execute at least 24 hours of documented physical Hisense playback/recovery/thermal/CPU/RAM/dropped-frame testing.
-- [ ] Verify no packaged first-party streams, sample lists, third-party videos or credentials in the **signed release** artifact.
-- [ ] Finalize privacy/security review, Android TV remote ergonomics, EN/PT-BR copy and honest non-Hisense compatibility labels.
-- [ ] Have the owner approve actual signing, package identity, release notes and publication **before** creating a GitHub Release.
-
-## Explicitly outside the first stable release
-
-- Bundled or hosted camera streams, built-in M3U lists, video downloads, subscriptions/accounts, cloud sync and user tracking.
-- RTSP and untested protocols; automatic TV boot launch; root/privileged TV modifications.
-- Guaranteed 4K/HDR decoding, silent installation or compatibility with devices that have not been tested.
-
-## Where development work lives
-
-The current app source is on the development mainline. Earlier implementation PRs [#20](https://github.com/murilaiooo/openvista/pull/20), [#21](https://github.com/murilaiooo/openvista/pull/21), [#22](https://github.com/murilaiooo/openvista/pull/22) and [#23](https://github.com/murilaiooo/openvista/pull/23) were closed unmerged by administrative request; their commits/branches and acceptance notes remain for traceability. Historical issues were likewise closed, not necessarily delivered. New work should use focused branches and real validation evidence.
-
-See the [implementation module guide](implementation/production-module-guide.md), [latest status](STATUS.md), [dated integrated-app QA](testing/production-pr22-validation-2026-10-26.md), and [NWS QA](testing/nws-weather-integration-2026-10-26.md).
+## Branch and issue policy
+The active integrated work is draft PR [#37](https://github.com/murilaiooo/openvista/pull/37) on `codex/ui-redesign-36`, after reconciling the new mainline changes. `main` remains the conservative non-redesign baseline until the review is accepted. Keep experimental official YouTube embedding isolated: its ad behavior does not satisfy the zero-interruption ambient requirement. No GitHub Actions are required; local and real-TV evidence is authoritative.

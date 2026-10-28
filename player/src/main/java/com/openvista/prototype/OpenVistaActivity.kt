@@ -7,7 +7,9 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.CancellationSignal
 import android.view.KeyEvent
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -18,6 +20,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.media3.common.util.UnstableApi
+import com.openvista.prototype.ambient.LocationLookup
 import com.openvista.prototype.library.LibraryAccess
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.LibraryStore
@@ -25,10 +28,15 @@ import com.openvista.prototype.library.MediaFamily
 import com.openvista.prototype.diagnostics.DiagnosticJournal
 import com.openvista.prototype.playback.PlaybackSnapshot
 import com.openvista.prototype.ui.AppLocale
+import com.openvista.prototype.ui.HomeScreen
 import com.openvista.prototype.ui.LibraryScreens
 import com.openvista.prototype.ui.PlayerScreen
 import com.openvista.prototype.ui.SettingsScreens
+import com.openvista.prototype.ui.OpenVistaLogo
+import com.openvista.prototype.ui.ScreenShell
+import com.openvista.prototype.ui.SettingsShell
 import com.openvista.prototype.ui.TvUi
+import com.openvista.prototype.ui.TvDesign
 import com.openvista.sources.PlaylistResult
 import com.openvista.sources.UserSourceParser
 import org.json.JSONArray
@@ -51,16 +59,21 @@ class OpenVistaActivity : ComponentActivity() {
     private lateinit var feedback: TextView
     private lateinit var access: LibraryAccess
     private lateinit var libraryScreens: LibraryScreens
+    private lateinit var homeScreen: HomeScreen
     private lateinit var settingsScreens: SettingsScreens
     private lateinit var playerScreen: PlayerScreen
+    lateinit var locations: LocationLookup
+        private set
     private val history = ArrayList<LibraryRoute>()
     var route = LibraryRoute("home")
         private set
     private val worker = Executors.newSingleThreadExecutor()
     private var importTask: Future<*>? = null
     @Volatile private var importStream: java.io.InputStream? = null
+    @Volatile private var importCancellation: CancellationSignal? = null
     private var importGeneration = 0
     private var started = false
+    private var resumed = false
     private var ready = false
     private var activeDialog: AlertDialog? = null
     private var pendingMessage: String? = null
@@ -89,9 +102,11 @@ class OpenVistaActivity : ComponentActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
         ui = TvUi(this)
-        root = FrameLayout(this).apply { setBackgroundColor(0xFF0B1929.toInt()) }
+        root = FrameLayout(this).apply { setBackgroundColor(TvDesign.background) }
         setContentView(root)
-        root.addView(ui.heading(getString(R.string.loading)))
+        // Until the library opens, show only the logo; the window background already matches it.
+        root.addView(OpenVistaLogo.create(this, 22f).apply { alpha = .9f },
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         savedInstanceState?.getString("navigation")?.let(::restoreNavigation)
         playbackIds = savedInstanceState?.getStringArrayList("playbackIds")?.take(2000).orEmpty()
         playbackSelected = savedInstanceState?.getString("playbackSelected")
@@ -103,14 +118,24 @@ class OpenVistaActivity : ComponentActivity() {
                 runOnUiThread {
                     if (isDestroyed || isFinishing) return@runOnUiThread
                     store = loaded
+                    if (AppLocale.language(applicationContext) != store.settings().language) {
+                        AppLocale.save(applicationContext, store.settings().language)
+                        recreate()
+                        return@runOnUiThread
+                    }
                     access = LibraryAccess(this, store)
                     libraryScreens = LibraryScreens(this)
+                    libraryScreens.restoreState(savedInstanceState)
+                    homeScreen = HomeScreen(this)
+                    homeScreen.restoreState(savedInstanceState)
                     settingsScreens = SettingsScreens(this)
                     playerScreen = PlayerScreen(this, store)
+                    locations = LocationLookup(this, store)
                     ready = true
                     if (!store.settings().onboardingComplete && savedInstanceState == null) route = LibraryRoute("onboarding")
                     refresh()
                     if (started) resumeForeground()
+                    completeLocations()
                     pendingPicker?.let { pending -> pendingPicker = null; handlePicker(pending.first, pending.second, pending.third) }
                 }
             } catch (_: Exception) {
@@ -142,8 +167,23 @@ class OpenVistaActivity : ComponentActivity() {
 
     override fun onStart() { super.onStart(); started = true; if (ready) resumeForeground() }
 
+    override fun onResume() {
+        super.onResume()
+        resumed = true
+        if (ready && started && route.page == "player") renderPlayer()
+    }
+
+    override fun onPause() {
+        resumed = false
+        if (ready && route.page == "player") {
+            rememberPlayback()
+            playerScreen.suspendPlayback()?.let { playbackSnapshot = it }
+        }
+        super.onPause()
+    }
+
     private fun resumeForeground() {
-        if (route.page == "player") renderPlayer()
+        if (route.page == "player" && resumed) renderPlayer()
         access.restore { status ->
             if (route.page != "player") refresh()
             message(status)
@@ -170,7 +210,7 @@ class OpenVistaActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        if (ready) { access.close(); playerScreen.stop(); settingsScreens.close() }
+        if (ready) { access.close(); playerScreen.stop(); settingsScreens.close(); homeScreen.close(); locations.close() }
         activeDialog?.dismiss()
         cancelImport()
         worker.shutdownNow()
@@ -179,7 +219,7 @@ class OpenVistaActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         rememberFocus()
-        if (ready) rememberPlayback()
+        if (ready) { rememberPlayback(); libraryScreens.saveState(outState); homeScreen.saveState(outState) }
         outState.putString("navigation", JSONArray().apply {
             (history + route).takeLast(32).forEach { r -> put(JSONObject().put("page", r.page)
                 .put("id", r.id).put("family", r.family.name).put("offset", r.offset).put("focus", r.focus)) }
@@ -202,30 +242,51 @@ class OpenVistaActivity : ComponentActivity() {
     fun open(destination: LibraryRoute) {
         rememberFocus()
         leaveScreen()
-        if (route.page != "onboarding" && route != destination) history.add(route)
+        // Moving between Settings categories replaces the page, so one Back leaves Settings.
+        val withinSettings = ready && settingsScreens.ownsPage(route.page) && settingsScreens.ownsPage(destination.page)
+        if (route.page != "onboarding" && route != destination && !withinSettings) history.add(route)
         if (history.size > 32) history.removeAt(0)
         route = destination
         refresh()
     }
 
+    fun goHome() {
+        rememberFocus()
+        leaveScreen()
+        history.clear()
+        route = LibraryRoute("home")
+        refresh()
+    }
+
     fun refresh() {
         if (!ready || isDestroyed || isFinishing) return
-        if (route.page == "player") { if (started) renderPlayer(); return }
-        val focused = currentFocus?.tag as? String
+        if (route.page == "player") { if (resumed) renderPlayer(); return }
+        val focused = if (root.tag == route.page) currentFocus?.tag as? String else null
         root.removeAllViews()
-        val outer = ui.column().apply { setPadding(ui.dp(32), ui.dp(18), ui.dp(32), ui.dp(18)) }
-        val navigation = ui.row()
-        ui.button(navigation, getString(R.string.back), "navigation_back") { onBackPressedDispatcher.onBackPressed() }
-        ui.button(navigation, getString(R.string.home), "navigation_home") {
-            leaveScreen(); history.clear(); route = LibraryRoute("home"); refresh()
+        root.tag = route.page
+        val desired = focused ?: route.focus
+        if (route.page == "home") {
+            val home = homeScreen.create()
+            addBoundedScreen(home)
+            home.post { if (route.page == "home" && home.isAttachedToWindow) homeScreen.focusTarget(home, desired)?.requestFocus() }
+            return
         }
-        ui.button(navigation, getString(R.string.settings), "navigation_settings") { open(LibraryRoute("settings")) }
-        outer.addView(navigation)
-        feedback = ui.description(pendingMessage.orEmpty()).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
-        outer.addView(feedback)
+        if (settingsScreens.ownsPage(route.page)) {
+            val page = route.page
+            val settings = settingsScreens.createShell(page)
+            addBoundedScreen(settings)
+            val category = SettingsShell.category(page)
+            settings.post {
+                if (route.page == page && settings.isAttachedToWindow) {
+                    (settings.findViewWithTag<View>(desired)
+                        ?: settings.findViewWithTag<View>("settings_category_$category")
+                        ?: firstFocusable(settings))?.requestFocus()
+                }
+            }
+            return
+        }
         val body = ui.column()
         when (route.page) {
-            "home" -> libraryScreens.home(body)
             "onboarding", "setup" -> libraryScreens.onboarding(body, route.page == "setup")
             "cameras", "videos", "favorites" -> libraryScreens.library(body, route)
             "details" -> libraryScreens.details(body, route.id)
@@ -235,10 +296,27 @@ class OpenVistaActivity : ComponentActivity() {
             "map" -> libraryScreens.map(body)
             else -> settingsScreens.render(body, route.page)
         }
-        outer.addView(ui.scroll(body), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        root.addView(outer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        val desired = focused ?: route.focus
-        body.post { (body.findViewWithTag<View>(desired) ?: firstFocusable(body) ?: firstFocusable(navigation))?.requestFocus() }
+        val shell = ScreenShell(this).create(body, pendingMessage.orEmpty())
+        feedback = shell.feedback
+        root.addView(shell.root, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        body.post { (shell.root.findViewWithTag<View>(desired) ?: firstFocusable(body) ?: firstFocusable(shell.navigation))?.requestFocus() }
+    }
+
+    private fun addBoundedScreen(screen: View) {
+        root.addView(screen, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        feedback = ui.description(pendingMessage.orEmpty()).apply {
+            textSize = 10f
+            setTextColor(TvDesign.text)
+            setPadding(ui.dp(12), ui.dp(6), ui.dp(12), ui.dp(6))
+            background = TvDesign.panel(this@OpenVistaActivity, 0xE6081826.toInt(), TvDesign.glassStroke, radiusDp = 12f)
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            visibility = if (pendingMessage.isNullOrBlank()) View.GONE else View.VISIBLE
+        }
+        val settingsFeedback = screen.findViewWithTag<FrameLayout>("settings_feedback_container")
+        val container = settingsFeedback ?: screen.findViewWithTag<FrameLayout>("home_feedback_container")
+        // A compact pill aligned with its screen's edge; it wraps rather than truncating long messages.
+        container?.addView(feedback, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            if (settingsFeedback != null) Gravity.END else Gravity.START))
     }
 
     fun play(items: List<LibraryItem>, selectedId: String? = null, shuffle: Boolean = false) {
@@ -253,10 +331,12 @@ class OpenVistaActivity : ComponentActivity() {
     }
 
     private fun renderPlayer() {
+        if (!resumed) return
         if (playerScreen.isAttached) return
         val items = (playbackSnapshot?.itemIds ?: playbackIds).mapNotNull(store::item)
         if (items.isEmpty()) { route = LibraryRoute("home"); refresh(); message(R.string.no_playable_items); return }
         root.removeAllViews()
+        root.tag = "player"
         try {
             root.addView(playerScreen.create(items, playbackSelected, playbackShuffle, playbackSnapshot), FrameLayout.LayoutParams(-1, -1))
         } catch (_: RuntimeException) {
@@ -267,7 +347,17 @@ class OpenVistaActivity : ComponentActivity() {
     fun message(resource: Int) = message(getString(resource))
     fun message(value: String) {
         pendingMessage = value
-        if (::feedback.isInitialized && route.page != "player") ui.announce(feedback, value)
+        if (::feedback.isInitialized && route.page != "player") {
+            ui.announce(feedback, value)
+            feedback.visibility = if (value.isBlank()) View.GONE else View.VISIBLE
+            // Confirmations on bounded screens fade on their own; the live region has announced them.
+            if (value.isNotBlank() && (value == getString(R.string.library_restored) || route.page == "home" ||
+                    settingsScreens.ownsPage(route.page))) {
+                feedback.postDelayed({
+                    if (!isDestroyed && pendingMessage == value) message("")
+                }, if (value == getString(R.string.loading)) 15_000L else 4_000L)
+            }
+        }
     }
 
     fun mutate(change: () -> Unit) {
@@ -330,30 +420,39 @@ class OpenVistaActivity : ComponentActivity() {
     }
     fun playbackDiagnostics(): String = if (::playerScreen.isInitialized && playerScreen.isAttached) playerScreen.diagnosticText() else lastDiagnostics
     fun editSource(item: LibraryItem? = null) = libraryScreens.editSource(item)
+    /** Completes missing camera locations in the background; the player picks them up on its next source. */
+    fun completeLocations() = locations.completeLibrary { if (route.page != "player") refresh() }
     fun pairing() = settingsScreens.startPairing()
     fun openForecast(item: LibraryItem? = null) = settingsScreens.forecast(item)
 
     private fun importList(uri: Uri) {
         cancelImport()
         val generation = importGeneration
+        val cancellation = CancellationSignal()
+        importCancellation = cancellation
         message(R.string.reading_list)
         importTask = worker.submit {
             val listName = try {
-                contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { rows ->
+                contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null, cancellation)?.use { rows ->
                     if (!rows.moveToFirst()) null else rows.getString(0)?.filterNot(Char::isISOControl)?.take(100)
                 }
             } catch (_: Exception) { null }
             val parsed = try {
+                cancellation.throwIfCanceled()
                 contentResolver.openInputStream(uri)?.let { input -> importStream = input; UserSourceParser().parseM3u(input) }
             } catch (_: Exception) { null } finally { importStream = null }
             runOnUiThread {
                 if (!started || isDestroyed || generation != importGeneration) return@runOnUiThread
                 if (parsed is PlaylistResult.Ready) {
                     try {
-                        val batch = parsed.sources.map { source -> LibraryItem(UUID.randomUUID().toString(), source.title, source.url,
-                            MediaFamily.CAMERAS, streamKind = source.kind.name) }
+                        val zones = java.util.TimeZone.getAvailableIDs().toSet()
+                        val batch = parsed.sources.map { source -> val place = source.metadata
+                            LibraryItem(UUID.randomUUID().toString(), source.title, source.url, MediaFamily.CAMERAS,
+                                streamKind = source.kind.name, category = place.category, country = place.country, city = place.city,
+                                latitude = place.latitude, longitude = place.longitude, timeZone = place.timeZone.takeIf { it in zones }.orEmpty()) }
                         val imported = store.importCameraList(listName?.takeIf(String::isNotBlank) ?: getString(R.string.imported_list), batch)
                         open(LibraryRoute("playlist", imported.playlistId, MediaFamily.CAMERAS))
+                        completeLocations()
                         persisted(getString(R.string.import_complete, imported.added, parsed.skippedEntries,
                             parsed.duplicateEntries + imported.duplicateCount))
                     } catch (_: Exception) { message(R.string.operation_failed) }
@@ -364,10 +463,17 @@ class OpenVistaActivity : ComponentActivity() {
 
     private fun cancelImport() {
         importGeneration++; importTask?.cancel(true); importTask = null
+        importCancellation?.cancel(); importCancellation = null
         try { importStream?.close() } catch (_: Exception) { }
         importStream = null
     }
-    private fun leaveScreen() { if (ready && route.page == "player") { rememberPlayback(); playerScreen.stop() } }
+    private fun leaveScreen() {
+        cancelImport()
+        if (ready) {
+            settingsScreens.onScreenExit()
+            if (route.page == "player") { rememberPlayback(); playerScreen.stop() }
+        }
+    }
     private fun rememberPlayback() {
         if (ready && route.page == "player") {
             playerScreen.currentItemId?.let { playbackSelected = it }
@@ -395,7 +501,7 @@ class OpenVistaActivity : ComponentActivity() {
         try {
             val array = JSONArray(value)
             val allowed = setOf("home", "onboarding", "setup", "cameras", "videos", "favorites", "details", "playlists",
-                "playlist", "folders", "map", "player", "settings", "playback_settings", "overlays", "overlay_editor", "weather_settings", "advanced", "schedule", "privacy", "updates", "screensaver")
+                "playlist", "folders", "map", "player", "settings", "playback_settings", "overlays", "overlay_editor", "weather_settings", "advanced", "schedule", "privacy", "updates", "screensaver", "appearance", "library_settings", "about")
             for (i in 0 until array.length().coerceAtMost(32)) {
                 val r = array.getJSONObject(i)
                 if (r.getString("page") !in allowed) continue

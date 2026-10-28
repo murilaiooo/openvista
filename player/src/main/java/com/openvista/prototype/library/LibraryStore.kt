@@ -44,6 +44,9 @@ class LibraryStore(context: Context) : AutoCloseable {
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "OpenVista-library-store") }
     private var migrationRequired = false
     private var state = read()
+    // Playback resolves every queued identifier on each camera switch and every checkpoint;
+    // a lookup index keeps that constant-time for large libraries instead of a list scan.
+    private var byId = index(state)
     private var generation = if (migrationRequired) 1L else 0L
     private var persistedGeneration = 0L
     private var pending = false
@@ -55,7 +58,7 @@ class LibraryStore(context: Context) : AutoCloseable {
     }
 
     fun items(): List<LibraryItem> = synchronized(lock) { state.items.map(::detached) }
-    fun item(id: String): LibraryItem? = synchronized(lock) { state.items.find { it.id == id || id in it.formerIds }?.let(::detached) }
+    fun item(id: String): LibraryItem? = synchronized(lock) { byId[id]?.let(::detached) }
     fun playlists(): List<SavedPlaylist> = synchronized(lock) {
         state.playlists.map { it.copy(itemIds = it.itemIds.toList()) }
     }
@@ -118,6 +121,17 @@ class LibraryStore(context: Context) : AutoCloseable {
         // All item, identifier, playlist and byte-budget checks precede the state swap.
         change { old -> old.copy(items = old.items + additions, playlists = old.playlists + playlist) }
         ImportedCameraList(additions.size, items.size - additions.size, playlist.id)
+    }
+
+    /**
+     * Applies a location lookup to the item as it is now, so a lookup that finishes after the user
+     * edited or removed the source never restores stale values.
+     */
+    fun completeLocation(id: String, complete: (LibraryItem) -> LibraryItem) = change { old ->
+        val canonical = resolveId(old, id)
+        old.copy(items = old.items.map { item ->
+            if (item.id != canonical || item.family != MediaFamily.CAMERAS) item else normalize(complete(item))
+        })
     }
 
     fun removeItem(id: String) = change { old ->
@@ -277,6 +291,7 @@ class LibraryStore(context: Context) : AutoCloseable {
             validate(next)
             if (next == state) return
             state = next
+            byId = index(next)
             generation++
             scheduleWrite()
         }
@@ -466,6 +481,16 @@ class LibraryStore(context: Context) : AutoCloseable {
         checkValue(estimate <= MAX_BYTES, "The library has reached its storage limit.")
     }
 
+    /** Same precedence as a front-to-back search of current IDs and prior IDs. */
+    private fun index(value: State): Map<String, LibraryItem> {
+        val result = HashMap<String, LibraryItem>(value.items.size * 2)
+        value.items.forEach { item ->
+            result.putIfAbsent(item.id, item)
+            item.formerIds.forEach { result.putIfAbsent(it, item) }
+        }
+        return result
+    }
+
     private fun detached(item: LibraryItem): LibraryItem = item.copy(accessRoutes = item.accessRoutes.toList(), formerIds = item.formerIds.toList())
 
     private fun identity(item: LibraryItem): Pair<MediaFamily, String> = item.family to
@@ -584,6 +609,11 @@ class LibraryStore(context: Context) : AutoCloseable {
             overlayY = s.overlayY.coerceIn(-4_096, 4_096), overlayHideSeconds = s.overlayHideSeconds.coerceIn(5, 3_600),
             weatherContext = s.weatherContext.takeIf { it in setOf("camera", "viewer") } ?: "camera",
             viewerCity = text(s.viewerCity, 120), viewerTimeZone = zone(s.viewerTimeZone),
+            overlayLayout = s.overlayLayout.takeIf { it in setOf("cinematic", "compact") } ?: "cinematic",
+            viewerForecastDays = s.viewerForecastDays.coerceIn(3, 7),
+            sourceOpacity = s.sourceOpacity.coerceIn(20, 100), viewerOpacity = s.viewerOpacity.coerceIn(20, 100),
+            forecastOpacity = s.forecastOpacity.coerceIn(20, 100), brandOpacity = s.brandOpacity.coerceIn(20, 100),
+            overlayMoveMinutes = s.overlayMoveMinutes.coerceIn(1, 30),
             scheduleStartMinute = s.scheduleStartMinute.coerceIn(0, 1_439), scheduleEndMinute = s.scheduleEndMinute.coerceIn(0, 1_439),
         )
     }
@@ -656,8 +686,17 @@ class LibraryStore(context: Context) : AutoCloseable {
         .put("scheduleEnabled", s.scheduleEnabled).put("scheduleStartMinute", s.scheduleStartMinute)
         .put("scheduleEndMinute", s.scheduleEndMinute).put("onboardingComplete", s.onboardingComplete)
         .put("diagnosticsEnabled", s.diagnosticsEnabled).put("automaticUpdates", s.automaticUpdates)
+        .put("overlayLayout", s.overlayLayout).put("showBrand", s.showBrand)
+        .put("showSourceInfo", s.showSourceInfo).put("showViewerInfo", s.showViewerInfo)
+        .put("showForecast", s.showForecast).put("viewerForecastDays", s.viewerForecastDays)
+        .put("sourceOpacity", s.sourceOpacity).put("viewerOpacity", s.viewerOpacity)
+        .put("forecastOpacity", s.forecastOpacity).put("brandOpacity", s.brandOpacity)
+        .put("overlayMoveMinutes", s.overlayMoveMinutes)
 
-    private fun readSettings(j: JSONObject) = AppSettings(
+    private fun readSettings(j: JSONObject): AppSettings {
+        val legacyVisible = listOf("showClock", "showWeather", "showDate", "showLocation").any { j.getBoolean(it) }
+        val legacyContext = j.getString("weatherContext")
+        return AppSettings(
         language = j.getString("language"), muted = j.getBoolean("muted"), rotationMinutes = j.getInt("rotationMinutes"),
         maxVideoHeight = j.getInt("maxVideoHeight"), resizeMode = j.getString("resizeMode"), smoothTransitions = j.getBoolean("smoothTransitions"),
         keepAwake = j.getBoolean("keepAwake"), fallbackPlaylistId = j.nullableString("fallbackPlaylistId"), stayLocal = j.getBoolean("stayLocal"),
@@ -670,7 +709,15 @@ class LibraryStore(context: Context) : AutoCloseable {
         viewerLongitude = j.nullableDouble("viewerLongitude"), viewerTimeZone = j.getString("viewerTimeZone"), scheduleEnabled = j.getBoolean("scheduleEnabled"),
         scheduleStartMinute = j.getInt("scheduleStartMinute"), scheduleEndMinute = j.getInt("scheduleEndMinute"), onboardingComplete = j.getBoolean("onboardingComplete"),
         diagnosticsEnabled = j.getBoolean("diagnosticsEnabled"), automaticUpdates = j.getBoolean("automaticUpdates"),
+        overlayLayout = j.optString("overlayLayout", "cinematic"), showBrand = j.optBoolean("showBrand", legacyVisible),
+        showSourceInfo = j.optBoolean("showSourceInfo", legacyVisible),
+        showViewerInfo = j.optBoolean("showViewerInfo", legacyVisible && (legacyContext == "viewer" || j.getString("viewerCity").isNotBlank())),
+        showForecast = j.optBoolean("showForecast", j.getBoolean("showWeather")), viewerForecastDays = j.optInt("viewerForecastDays", 5),
+        sourceOpacity = j.optInt("sourceOpacity", 100), viewerOpacity = j.optInt("viewerOpacity", 100),
+        forecastOpacity = j.optInt("forecastOpacity", 100), brandOpacity = j.optInt("brandOpacity", 70),
+        overlayMoveMinutes = j.optInt("overlayMoveMinutes", 5),
     )
+    }
 
     private fun JSONObject.nullableString(key: String): String? = if (isNull(key)) null else getString(key)
     private fun JSONObject.nullableDouble(key: String): Double? = if (isNull(key)) null else getDouble(key)

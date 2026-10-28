@@ -67,7 +67,8 @@ class SafVideoScannerTest {
             DocumentsContract.buildTreeDocumentUri(AUTHORITY, "root"),
             cancellation,
         )
-        assertEquals(SafVideoScanner.Result.Unavailable, result)
+        assertEquals("A scan canceled before starting must be unavailable.", SafVideoScanner.Result.Unavailable, result)
+        assertEquals("Cancellation must prevent all provider queries.", 0, provider.rootQueries)
     }
 
     class TestTreeProvider : ContentProvider() {

@@ -7,7 +7,6 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,12 +14,9 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
 import com.openvista.prototype.LibraryRoute
 import com.openvista.prototype.OpenVistaActivity
 import com.openvista.prototype.R
-import com.openvista.prototype.ambient.AmbientOverlay
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.LibraryStore
 import com.openvista.prototype.library.MediaFamily
@@ -33,42 +29,29 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
     private val ui get() = host.ui
     private val main = Handler(Looper.getMainLooper())
     private var session: PlaybackSession? = null
-    private var video: PlayerView? = null
-    private var ambient: AmbientOverlay? = null
+    private var scene: SceneView? = null
+    private val ambient get() = scene?.ambient
     private var menu: LinearLayout? = null
-    private var status: TextView? = null
     private var diagnostics: TextView? = null
     private var attached = false
     private var dialog = false
     private val hide = Runnable { if (!dialog) dismissMenu() }
-    private val hideStatus = Runnable { status?.visibility = View.GONE }
-    val isAttached get() = attached
+    val isAttached get() = attached && session?.isReleased != true
     val currentItemId get() = session?.currentItem?.id
 
     fun create(items: List<LibraryItem>, selected: String?, shuffle: Boolean, saved: PlaybackSnapshot? = null): View {
         stop()
         attached = true
         val frame = FrameLayout(host).apply { setBackgroundColor(Color.BLACK) }
-        video = PlayerView(host).apply {
-            useController = false
-            setKeepContentOnPlayerReset(true)
-            resizeMode = if (store.settings().resizeMode == "fit") AspectRatioFrameLayout.RESIZE_MODE_FIT else AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            setShutterBackgroundColor(Color.BLACK)
-            isFocusable = true
-        }.also { frame.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        ambient = AmbientOverlay(host, store).also { frame.addView(it, FrameLayout.LayoutParams(-1, -1)) }
-        val transition = View(host).apply { setBackgroundColor(Color.BLACK); alpha = 0f; isClickable = false }
-        frame.addView(transition, FrameLayout.LayoutParams(-1, -1))
-        status = ui.description(host.getString(R.string.player_hint)).apply {
-            gravity = Gravity.CENTER; setPadding(ui.dp(32), ui.dp(12), ui.dp(32), ui.dp(12)); setBackgroundColor(0xC0000000.toInt())
-            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
-        }.also { frame.addView(it, FrameLayout.LayoutParams(-1, -2, Gravity.TOP)) }
+        // Loading states stay silent; only failures the viewer can act on are shown.
+        val createdScene = SceneView(host, store).also { frame.addView(it, FrameLayout.LayoutParams(-1, -1)) }
+        scene = createdScene
         diagnostics = ui.description("").apply {
             setBackgroundColor(0xC0000000.toInt()); visibility = View.GONE
         }.also { frame.addView(it, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_VERTICAL or Gravity.END)) }
         val panel = ui.column().apply {
             setPadding(ui.dp(24), ui.dp(8), ui.dp(24), ui.dp(12))
-            setBackgroundColor(0xEE0B1929.toInt()); visibility = View.GONE
+            background = TvDesign.panel(host, 0xF007121F.toInt()); visibility = View.GONE
         }
         menu = panel
         val transport = ui.row()
@@ -92,34 +75,25 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         val content = FrameLayout(host).apply { addView(ui.scroll(panel), FrameLayout.LayoutParams(-1, -2)) }
         // The panel is capped to half the display so transport controls cannot cover the whole scene.
         frame.addView(content, FrameLayout.LayoutParams(-1, (host.resources.displayMetrics.heightPixels * .52).toInt(), Gravity.BOTTOM))
-        val created = PlaybackSession(host, store, { message ->
-            status?.text = message
-            status?.visibility = View.VISIBLE
-            main.removeCallbacks(hideStatus)
-            if (message == host.getString(R.string.playback_playing)) main.postDelayed(hideStatus, 5000)
+        val created = PlaybackSession(host, store, { notice ->
+            scene?.show(notice)
             updateDiagnostics()
         }, { item ->
             ambient?.updateItem(item)
-            if (store.settings().smoothTransitions) { transition.animate().cancel(); transition.alpha = 1f; transition.animate().alpha(0f).setDuration(350).start() }
+        }, {
+            attached = false
+            main.removeCallbacksAndMessages(null)
+            scene?.detach()
         })
         session = created
-        video?.player = created.player
+        createdScene.attach(created)
         created.player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
-                updateDiagnostics()
-                val keep = store.settings().keepAwake && created.player.playWhenReady && playbackState != Player.STATE_IDLE
-                if (keep) host.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                else host.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            }
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (attached && store.settings().keepAwake && created.player.playWhenReady &&
-                    created.player.playbackState != Player.STATE_IDLE) host.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                else host.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                if (session === created && !created.isReleased) updateDiagnostics()
             }
         })
         if (saved != null) created.restore(saved) else created.play(items, selected, shuffle)
-        ambient?.start()
-        video?.requestFocus()
+        createdScene.video.requestFocus()
         return frame
     }
 
@@ -128,22 +102,32 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
         if (event.keyCode == KeyEvent.KEYCODE_BACK) return false
         if (event.action != KeyEvent.ACTION_DOWN) return false
         ambient?.userInteraction()
+        when (event.keyCode) {
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { if (event.repeatCount == 0) session?.togglePause(); interaction(); return true }
+            KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                session?.let { if (!it.isReleased && !it.player.playWhenReady) it.togglePause() }
+                interaction(); return true
+            }
+            KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                session?.let { if (!it.isReleased && it.player.playWhenReady) it.togglePause() }
+                interaction(); return true
+            }
+            KeyEvent.KEYCODE_MEDIA_NEXT -> { if (event.repeatCount == 0) session?.next(); interaction(); return true }
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { if (event.repeatCount == 0) session?.previous(); interaction(); return true }
+            KeyEvent.KEYCODE_MEDIA_REWIND -> { session?.seekBy(-10_000); interaction(); return true }
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> { session?.seekBy(10_000); interaction(); return true }
+        }
         if (menu?.visibility == View.VISIBLE) { interaction(); return false }
         return when (event.keyCode) {
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> { showMenu(); true }
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> { if (event.repeatCount == 0) showMenu(); true }
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (session?.currentItem?.family == MediaFamily.VIDEOS) session?.seekBy(-10_000) else session?.previous()
+                if (session?.currentItem?.family == MediaFamily.VIDEOS) session?.seekBy(-10_000) else if (event.repeatCount == 0) session?.previous()
                 true
             }
             KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP -> {
-                if (session?.currentItem?.family == MediaFamily.VIDEOS) session?.seekBy(10_000) else session?.next()
+                if (session?.currentItem?.family == MediaFamily.VIDEOS) session?.seekBy(10_000) else if (event.repeatCount == 0) session?.next()
                 true
             }
-            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { session?.togglePause(); true }
-            KeyEvent.KEYCODE_MEDIA_NEXT -> { session?.next(); true }
-            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { session?.previous(); true }
-            KeyEvent.KEYCODE_MEDIA_REWIND -> { session?.seekBy(-10_000); true }
-            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> { session?.seekBy(10_000); true }
             else -> false
         }
     }
@@ -154,16 +138,17 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
     }
     fun dialogOpened() { dialog = true; main.removeCallbacks(hide) }
     fun dialogClosed() { dialog = false; interaction() }
-    private fun showMenu() { menu?.visibility = View.VISIBLE; (menu?.getChildAt(0) as? LinearLayout)?.getChildAt(0)?.requestFocus(); interaction() }
-    private fun dismissMenu() { main.removeCallbacks(hide); menu?.visibility = View.GONE; diagnostics?.visibility = View.GONE; video?.requestFocus() }
+    private fun showMenu() { menu?.visibility = View.VISIBLE; ambient?.setControlsVisible(true); (menu?.getChildAt(0) as? LinearLayout)?.getChildAt(0)?.requestFocus(); interaction() }
+    private fun dismissMenu() { main.removeCallbacks(hide); menu?.visibility = View.GONE; ambient?.setControlsVisible(false); diagnostics?.visibility = View.GONE; scene?.video?.requestFocus() }
     private fun interaction() { ambient?.userInteraction(); main.removeCallbacks(hide); if (!dialog) main.postDelayed(hide, 5000); updateDiagnostics() }
     private fun switchFamily(family: MediaFamily) {
         val items = store.items().filter { it.family == family }
-        if (items.isEmpty()) { status?.text = host.getString(R.string.no_playable_items); status?.visibility = View.VISIBLE; interaction(); return }
+        if (items.isEmpty()) { scene?.message(host.getString(R.string.no_playable_items), persistent = false); interaction(); return }
         if (family == MediaFamily.CAMERAS) host.mutate { store.saveSettings(store.settings().copy(stayLocal = false)) }
         host.play(items, shuffle = family == MediaFamily.CAMERAS)
     }
     private fun selectAudio() {
+        if (session?.isReleased != false) return
         val player = session?.player ?: return
         val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }.flatMap { group ->
             (0 until group.length).filter { group.isTrackSupported(it) }.map { index -> group to index }
@@ -176,6 +161,7 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
             host.getString(R.string.audio_track_name, i + 1, format.label ?: format.language ?: host.getString(R.string.unknown))
         }
         host.showDialog(AlertDialog.Builder(host).setTitle(R.string.audio_track).setItems(labels.toTypedArray()) { _, which ->
+            if (session?.isReleased != false || session?.player !== player) return@setItems
             val builder = player.trackSelectionParameters.buildUpon().clearOverridesOfType(C.TRACK_TYPE_AUDIO)
             if (which > 0) tracks[which - 1].let { (group, index) -> builder.addOverride(TrackSelectionOverride(group.mediaTrackGroup, listOf(index))) }
             player.trackSelectionParameters = builder.build()
@@ -188,13 +174,12 @@ class PlayerScreen(private val host: OpenVistaActivity, private val store: Libra
     }
     fun diagnosticText() = session?.diagnostics().orEmpty()
     fun snapshot(): PlaybackSnapshot? = session?.snapshot()
+    fun suspendPlayback(): PlaybackSnapshot? = snapshot().also { stop() }
     fun stop() {
         attached = false; dialog = false
         main.removeCallbacksAndMessages(null)
-        video?.player = null
+        scene?.detach()
         session?.release(); session = null
-        ambient?.stop(); ambient = null
-        video = null; menu = null; status = null; diagnostics = null
-        host.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        scene = null; menu = null; diagnostics = null
     }
 }
