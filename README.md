@@ -146,7 +146,7 @@ OpenVista does not include an advertising system, user accounts or a subscriptio
 
 **Is OpenVista available to download?**
 
-OpenVista v0.3.0-preview.1 is available as a **signed preview APK** in [GitHub Releases](https://github.com/murilaiooo/openvista/releases/tag/v0.3.0-preview.1) to collaborators who can access this private repository. It is not a stable public release. Existing debug installations use a different signing certificate and cannot be updated in place; back up your cameras and playlists before changing installations.
+OpenVista v0.3.0-preview.1 is available as a **public signed preview APK** in [GitHub Releases](https://github.com/murilaiooo/openvista/releases/tag/v0.3.0-preview.1). This is an early testing release, not a stable version. Existing debug installations use a different signing certificate and cannot be updated in place; back up your cameras and playlists before changing installations.
 
 ---
 
