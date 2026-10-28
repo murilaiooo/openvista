@@ -29,8 +29,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private val viewer = LocationGroup()
     private val forecastPanel = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        background = TvDesign.scrim()
-        setPadding(dp(10), dp(7), dp(10), dp(7))
+        background = subtleAmbientScrim()
+        setPadding(dp(8), dp(5), dp(8), dp(5))
     }
     private val forecastTitle = label("", 11f)
     private val forecastState = label("", 13f)
@@ -149,7 +149,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             movementAt = now
             phase = 0
         } else if (motionEnabled && now - movementAt >= settings.overlayMoveMinutes * 60_000L) {
-            phase = (phase + 1) % MOVEMENT.size
+            phase = (phase + 1) % 4
             movementAt = now
         }
         val cameraLocation = item?.let { source ->
@@ -196,7 +196,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             else -> R.string.ambient_paused
         })
         source.bind(sourceMode + " · " + sourceStatus,
-            if (settings.showLocation && sourcePlace.isNotBlank()) sourcePlace else item?.title.orEmpty(),
+            if (settings.showLocation) sourcePlace else "",
             sourceZone, current, sourceSlot, settings.showSourceInfo && item != null)
         val viewerConfigured = settings.viewerCity.isNotBlank() || viewerLocation != null || settings.viewerTimeZone.isNotBlank()
         val deviceClockOnly = settings.showClock && !settings.showSourceInfo && !viewerConfigured
@@ -241,7 +241,11 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         listOf(forecastTitle, forecastState, forecastCredit).forEach { it.setTextColor(settings.overlayColor) }
     }
 
-    /** Reserve travel before measuring; glyphs, dividers and scrims share the same safe rectangle. */
+    /**
+     * Measure each widget within one of two non-overlapping rows. In the cinematic
+     * layout the forecast is a compact 62%-width panel, not a permanent full-width
+     * footer. Measuring before positioning preserves all seven days and attribution.
+     */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val w = MeasureSpec.getSize(widthMeasureSpec)
         val h = MeasureSpec.getSize(heightMeasureSpec)
@@ -249,71 +253,59 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         val preview = h < dp(320)
         safeX = maxOf(dp(if (preview) 12 else 32), (w * .05f).roundToInt())
         safeY = maxOf(dp(if (preview) 10 else 22), (h * .05f).roundToInt())
-        travel = minOf(dp(12), (minOf(w, h) * .025f).roundToInt())
+        travel = dp(if (preview) 2 else 8)
         compositionWidth = (w - 2 * (safeX + travel)).coerceAtLeast(0)
         compositionHeight = (h - 2 * (safeY + travel)).coerceAtLeast(0)
         val scale = settings.overlaySize.coerceIn(14, 40) / 20f *
             (h.toFloat() / dp(540)).coerceIn(if (preview) .45f else .7f, 1f)
         source.size(scale)
         viewer.size(scale * .82f)
-        cells.forEach { it.size(if (preview) .7f else 1f) }
-        val atMostWidth = MeasureSpec.makeMeasureSpec((compositionWidth * .46f).toInt(), MeasureSpec.AT_MOST)
+        cells.forEach { it.size(if (preview) .7f else if (settings.viewerForecastDays >= 6) .84f else 1f) }
+        fun atMost(fraction: Float) = MeasureSpec.makeMeasureSpec(
+            (compositionWidth * fraction).roundToInt(), MeasureSpec.AT_MOST)
         fun measure(view: View, widthSpec: Int, maxHeight: Int) {
-            if (view.visibility == View.GONE) view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
+            if (view.visibility == View.GONE) view.measure(
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY))
             else view.measure(widthSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
-            // Measure natural text before fitting the entire optional group, including its scrim.
-            // Never constrain LinearLayout's height and then clip its last forecast/credit row.
             val fit = if (view.measuredHeight == 0) 1f else
                 (maxHeight.coerceAtLeast(0).toFloat() / view.measuredHeight).coerceAtMost(1f)
-            view.pivotX = 0f; view.pivotY = 0f
-            view.scaleX = fit; view.scaleY = fit
+            view.pivotX = 0f
+            view.pivotY = 0f
+            view.scaleX = fit
+            view.scaleY = fit
         }
-        measure(source, atMostWidth, (compositionHeight * .48f).toInt())
-        measure(brand, atMostWidth, (compositionHeight * .12f).toInt())
-        measure(forecastPanel, MeasureSpec.makeMeasureSpec(compositionWidth, MeasureSpec.EXACTLY),
-            (compositionHeight * .36f).toInt())
-        val lowerHeight = compositionHeight - drawnHeight(forecastPanel) - dp(12) -
-            maxOf(drawnHeight(source), drawnHeight(brand))
-        measure(viewer, atMostWidth, lowerHeight)
+        measure(source, atMost(.42f), (compositionHeight * .42f).toInt())
+        measure(brand, atMost(.30f), (compositionHeight * .12f).toInt())
+        measure(viewer, atMost(.32f), (compositionHeight * .38f).toInt())
+        measure(forecastPanel, MeasureSpec.makeMeasureSpec(
+            (compositionWidth * .62f).roundToInt(), MeasureSpec.EXACTLY),
+            (compositionHeight * .38f).toInt())
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        val offset = if (settings.moveOverlay) MOVEMENT[phase] else (0 to 0)
-        // Editor offsets consume only reserved allowance, never push forecast columns offscreen.
-        val dx = (offset.first * travel + settings.overlayX.coerceIn(0, 100) / 100f * travel).roundToInt().coerceIn(-travel, travel)
-        val dy = (offset.second * travel + settings.overlayY.coerceIn(0, 100) / 100f * travel).roundToInt().coerceIn(-travel, travel)
-        val x = safeX + travel + dx
-        val y = safeY + travel + dy
-        val end = x + compositionWidth
-        val lower = y + compositionHeight
-        val mirror = settings.overlayCorner % 2 == 1
-        fun place(view: View, px: Int, py: Int) {
-            view.layout(px, py, px + view.measuredWidth, py + view.measuredHeight)
+        val positions = AmbientPlacement.calculate(
+            left = safeX + travel,
+            top = safeY + travel,
+            width = compositionWidth,
+            height = compositionHeight,
+            brand = OverlayExtent(drawnWidth(brand), drawnHeight(brand)),
+            source = OverlayExtent(drawnWidth(source), drawnHeight(source)),
+            viewer = OverlayExtent(drawnWidth(viewer), drawnHeight(viewer)),
+            forecast = OverlayExtent(drawnWidth(forecastPanel), drawnHeight(forecastPanel)),
+            phase = if (settings.moveOverlay) phase else 0,
+            corner = settings.overlayCorner,
+            controlsVisible = controlsVisible,
+            insetX = (dp(32) * settings.overlayX.coerceIn(0, 100) / 100f).roundToInt(),
+            insetY = (dp(32) * settings.overlayY.coerceIn(0, 100) / 100f).roundToInt(),
+        )
+        fun place(view: View, origin: OverlayOrigin) {
+            view.layout(origin.x, origin.y, origin.x + view.measuredWidth, origin.y + view.measuredHeight)
         }
-        if (settings.overlayLayout == "compact") {
-            val bottomAnchor = settings.overlayCorner >= 2
-            val sourceY = if (bottomAnchor) lower - drawnHeight(forecastPanel) - drawnHeight(source) - dp(12) else y
-            val sourceX = if (mirror) end - drawnWidth(source) else x
-            // Percentage offsets retain their full safe travel in compact mode. The two
-            // information groups occupy separate horizontal lanes, preventing collisions.
-            val laneWidth = compositionWidth / 2
-            val sourceTravelX = (laneWidth - drawnWidth(source)).coerceAtLeast(0)
-            val sourceTravelY = (compositionHeight - drawnHeight(forecastPanel) - drawnHeight(source) - dp(12)).coerceAtLeast(0)
-            val shiftX = settings.overlayX.coerceIn(0, 100) / 100f * sourceTravelX * if (mirror) -1 else 1
-            val shiftY = settings.overlayY.coerceIn(0, 100) / 100f * sourceTravelY * if (bottomAnchor) -1 else 1
-            place(source, sourceX + shiftX.roundToInt(), (sourceY + shiftY.roundToInt()).coerceAtLeast(y))
-            place(brand, if (mirror) x else end - drawnWidth(brand), y)
-            val viewerY = if (bottomAnchor) y + drawnHeight(brand) + dp(10)
-                else lower - drawnHeight(forecastPanel) - drawnHeight(viewer) - dp(12)
-            place(viewer, if (mirror) x else end - drawnWidth(viewer), viewerY.coerceAtLeast(y))
-        } else {
-            place(brand, if (mirror) end - drawnWidth(brand) else x, y)
-            place(source, if (mirror) x else end - drawnWidth(source), y)
-            place(viewer, if (mirror) end - drawnWidth(viewer) else x,
-                (lower - drawnHeight(forecastPanel) - drawnHeight(viewer) - dp(12)).coerceAtLeast(y))
-        }
-        place(forecastPanel, x + (compositionWidth - drawnWidth(forecastPanel)) / 2, lower - drawnHeight(forecastPanel))
+        place(brand, positions.brand)
+        place(source, positions.source)
+        place(viewer, positions.viewer)
+        place(forecastPanel, positions.forecast)
     }
 
     override fun onDetachedFromWindow() {
@@ -364,7 +356,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private inner class LocationGroup : LinearLayout(context) {
         private val eyebrow = label("", 11f)
         private val place = label("", 19f).apply { typeface = TvDesign.medium; maxLines = 2 }
-        private val clock = label("", 44f).apply { typeface = TvDesign.light; letterSpacing = -.025f }
+        private val clock = label("", 70f).apply { typeface = TvDesign.light; letterSpacing = -.025f }
         private val date = label("", 12f)
         private val conditions = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
         private val symbol = WeatherSymbol(context)
@@ -373,8 +365,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         private val credit = label("", 10f).apply { maxLines = 2 }
         init {
             orientation = VERTICAL
-            background = TvDesign.scrim()
-            setPadding(dp(9), dp(6), dp(9), dp(6))
+            background = subtleAmbientScrim()
+            setPadding(dp(8), dp(5), dp(8), dp(5))
             conditions.addView(symbol, LinearLayout.LayoutParams(dp(26), dp(26)))
             conditions.addView(weather, LinearLayout.LayoutParams(0, -2, 1f))
             listOf(eyebrow, place, clock, date, conditions, metrics, credit).forEach { addView(it) }
@@ -402,7 +394,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         }
         fun size(scale: Float) {
             place.textSize = 19f * scale
-            clock.textSize = 44f * scale
+            clock.textSize = 70f * scale
             weather.textSize = 14f * scale.coerceAtLeast(.8f)
         }
     }
@@ -450,11 +442,13 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         if (text.toString() != value) text = value
         visibility = if (value.isBlank()) View.GONE else View.VISIBLE
     }
+    // No opaque cards: a shallow gradient and text shadow protect contrast over scenery.
+    private fun subtleAmbientScrim() = android.graphics.drawable.GradientDrawable(
+        android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP,
+        intArrayOf(0x7107121F, 0x2C07121F, 0x0007121F),
+    )
     private fun dp(value: Int) = TvDesign.dp(context, value)
     private fun drawnHeight(view: View) = (view.measuredHeight * view.scaleY).roundToInt()
     private fun drawnWidth(view: View) = (view.measuredWidth * view.scaleX).roundToInt()
     private fun coordinateKey(location: WeatherLocation) = java.lang.String.format(java.util.Locale.US, "%.4f/%.4f", location.latitude, location.longitude)
-    companion object {
-        private val MOVEMENT = listOf(0 to 0, -1 to -1, 0 to -1, 1 to -1, 1 to 0, 1 to 1, 0 to 1, -1 to 1, -1 to 0)
-    }
 }

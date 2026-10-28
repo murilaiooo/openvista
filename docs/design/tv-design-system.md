@@ -24,7 +24,7 @@ The original mockup PNGs are not available in the issue or tracked assets. The w
 | Typography | Android `sans-serif`, `sans-serif-medium`, `sans-serif-light`; no bundled font |
 | Page title / body / label | 32sp / 17sp / 13sp |
 | Home destination title | 28–40sp adaptive; number/eyebrow 12sp |
-| Ambient source clock | 44sp at overlay-size 20; viewer clock scaled to 82% |
+| Ambient source clock | 70sp at overlay-size 20; viewer clock scaled to 82% |
 | Spacing rhythm | 4, 8, 12, 16, 24, 32, 40dp |
 | Standard safe padding | 40dp horizontally, 28dp vertically |
 | Ambient safe area | At least 5% or 32dp horizontal / 22dp vertical, plus reserved movement inset |
@@ -69,7 +69,7 @@ Library screens, onboarding, source editing, playlists and dialogs retain their 
 
 ## Weather and source truth
 
-Source city/country comes only from saved source metadata. An actual source title can be shown as a title; it is never interpreted as a city. No flag is fabricated from free-text country names. Source time uses a valid saved timezone or a valid timezone returned for those same coordinates by the official weather provider. If neither exists, the source clock/date is hidden. Viewer time uses the configured timezone, falling back to the TV timezone only in the viewer/device-time group. A clock-only preset can display explicitly labeled device time before a viewer location is configured.
+Source city/country comes only from saved source metadata. Filenames and item titles are never substituted for a location in the ambient overlay. No flag is fabricated from free-text country names. Source time uses a valid saved timezone or a valid timezone returned for those same coordinates by the official weather provider. If neither exists, the source clock/date is hidden. Viewer time uses the configured timezone, falling back to the TV timezone only in the viewer/device-time group. A clock-only preset can display explicitly labeled device time before a viewer location is configured.
 
 Source and viewer current weather remain independent. Matching coordinate requests share a slot; changing a source title does not cancel an in-flight request for the same place. Refreshes normally use the existing 30-minute provider budget; failed requests may retry after five minutes. Requests stop with their owning screen. Forecasts filter actual provider dates and retain 3–7-day selection; the on-demand seven-day dialog remains available.
 
@@ -79,11 +79,11 @@ The NWS adapter keeps provider-supplied daily condition text and optional point 
 
 ## Display care and persistence
 
-Movement and inactivity hiding remain separately switchable and persisted. Movement visits nine bounded offsets using a single timer, with up to 12dp of reserved travel in each direction. It moves the entire information composition, including logos, background gradients, dividers and symbols. Hiding uses the configured inactivity delay; any ordinary player interaction restores information. Neither changes the system screensaver, power configuration or media position.
+Movement and inactivity hiding remain separately switchable and persisted. Movement now cycles through four distinct safe-row compositions using one interval timer. Brand, source, viewer and the compact forecast alternate corners and upper/lower rows, moving the entire visible widgets, including background gradients, dividers and symbols. See [display-care correction](ambient-display-care-2026-10-27.md) for the verified 12dp regression and its repair. Hiding uses the configured inactivity delay; any ordinary player interaction restores information. Neither changes the system screensaver, power configuration or media position.
 
-The cinematic arrangement constrains advanced X/Y offsets to the reserved composition inset because its full-width forecast has no spare horizontal travel. Compact mode preserves percentage positioning within measured non-overlapping source/viewer lanes. Corner selection applies to the source anchor in compact mode; cinematic mode uses it to mirror the reference composition. These are explicit adaptations from the former single-box editor to four information zones.
+The cinematic forecast now uses 62% of the safe width and shares one non-overlapping row with the viewer's location block. Corner selection controls the initial arrangement, while display care periodically alternates the rows and sides. Advanced X/Y insets remain bounded by the measured gaps between groups. The alternate Compact preset retains its own visibility choices and uses the same safe placement engine. These are explicit adaptations from the former single-box editor to four information zones.
 
-New preferences use optional JSON fields. Existing four visibility switches, opacity/color/size, clock/units, movement, hiding and delay are read unchanged. Saved legacy None remains empty and makes no forecast requests. When the new layout and zone keys are absent in older saved data, enabled overlays adopt the approved Cinematic composition, source information and restrained brand; explicitly saved zone choices remain intact. New installations also default to Cinematic. Per-zone opacity is 20–100%; visibility switches turn zones off. Existing source libraries and explicitly saved user settings are never reset.
+New preferences use optional JSON fields. Existing four visibility switches, opacity/color/size, clock/units, movement, hiding and delay are read unchanged. Saved legacy None remains empty and makes no forecast requests. When the new layout and zone keys are absent in older saved data, enabled overlays adopt the approved Cinematic composition, source information and restrained brand; explicitly saved zone choices remain intact. New installations also default to Cinematic with display-care movement enabled and source/viewer date lines available. Explicitly saved movement and date choices are preserved. Per-zone opacity is 20–100%; visibility switches turn zones off. Existing source libraries and explicitly saved user settings are never reset.
 
 Dream sessions start muted even if ordinary app playback was previously unmuted. An explicit Dream sound action changes only that session; the app's saved sound choice is retained. Screensaver selection and device settings are not changed by this implementation. Display care reduces static exposure and cannot guarantee prevention of panel burn-in.
 

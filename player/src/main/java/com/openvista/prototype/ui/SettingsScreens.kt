@@ -127,7 +127,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
                 !settings.showBrand && !settings.showSourceInfo && !settings.showViewerInfo && !settings.showForecast -> "none"
             settings.showClock && !settings.showWeather && !settings.showDate && !settings.showLocation &&
                 !settings.showBrand && !settings.showSourceInfo && settings.showViewerInfo && !settings.showForecast -> "clock"
-            settings.showClock && settings.showWeather && !settings.showDate && settings.showLocation &&
+            settings.showClock && settings.showWeather && settings.showDate && settings.showLocation &&
                 settings.showBrand && settings.showSourceInfo && settings.showViewerInfo &&
                 settings.showForecast && settings.overlayLayout == "cinematic" -> "cinematic"
             settings.showClock && settings.showWeather && !settings.showDate && settings.showLocation &&
@@ -139,7 +139,7 @@ class SettingsScreens(private val host: OpenVistaActivity) {
             listOf(s(R.string.settings_layout_cinematic), s(R.string.settings_layout_compact), s(R.string.preset_minimal), s(R.string.preset_none)), preset) { selected ->
             val all = selected == "cinematic" || selected == "compact"
             store.saveSettings(store.settings().copy(overlayLayout = if (selected == "compact") "compact" else "cinematic",
-                showClock = selected != "none", showWeather = all, showDate = false, showLocation = all,
+                showClock = selected != "none", showWeather = all, showDate = all, showLocation = all,
                 showBrand = all, showSourceInfo = all, showViewerInfo = selected != "none", showForecast = selected == "cinematic"))
         }
         val visibility = group(body, R.string.settings_group_visibility)
