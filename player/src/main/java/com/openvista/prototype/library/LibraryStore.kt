@@ -123,6 +123,17 @@ class LibraryStore(context: Context) : AutoCloseable {
         ImportedCameraList(additions.size, items.size - additions.size, playlist.id)
     }
 
+    /**
+     * Applies a location lookup to the item as it is now, so a lookup that finishes after the user
+     * edited or removed the source never restores stale values.
+     */
+    fun completeLocation(id: String, complete: (LibraryItem) -> LibraryItem) = change { old ->
+        val canonical = resolveId(old, id)
+        old.copy(items = old.items.map { item ->
+            if (item.id != canonical || item.family != MediaFamily.CAMERAS) item else normalize(complete(item))
+        })
+    }
+
     fun removeItem(id: String) = change { old ->
         val canonical = resolveId(old, id)
         old.copy(

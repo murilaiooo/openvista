@@ -35,6 +35,8 @@ interface ForecastProvider {
 interface CitySearchProvider {
     val attribution: String
     fun search(query: String): List<WeatherLocation>
+    /** Structured matches, optionally limited to one ISO 3166-1 country, in provider relevance order. */
+    fun places(query: String, countryCode: String?): List<GeoPlace>
 }
 
 sealed interface WeatherState {

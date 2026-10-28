@@ -20,6 +20,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.media3.common.util.UnstableApi
+import com.openvista.prototype.ambient.LocationLookup
 import com.openvista.prototype.library.LibraryAccess
 import com.openvista.prototype.library.LibraryItem
 import com.openvista.prototype.library.LibraryStore
@@ -59,6 +60,8 @@ class OpenVistaActivity : ComponentActivity() {
     private lateinit var homeScreen: HomeScreen
     private lateinit var settingsScreens: SettingsScreens
     private lateinit var playerScreen: PlayerScreen
+    lateinit var locations: LocationLookup
+        private set
     private val history = ArrayList<LibraryRoute>()
     var route = LibraryRoute("home")
         private set
@@ -123,10 +126,12 @@ class OpenVistaActivity : ComponentActivity() {
                     homeScreen.restoreState(savedInstanceState)
                     settingsScreens = SettingsScreens(this)
                     playerScreen = PlayerScreen(this, store)
+                    locations = LocationLookup(this, store)
                     ready = true
                     if (!store.settings().onboardingComplete && savedInstanceState == null) route = LibraryRoute("onboarding")
                     refresh()
                     if (started) resumeForeground()
+                    completeLocations()
                     pendingPicker?.let { pending -> pendingPicker = null; handlePicker(pending.first, pending.second, pending.third) }
                 }
             } catch (_: Exception) {
@@ -201,7 +206,7 @@ class OpenVistaActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        if (ready) { access.close(); playerScreen.stop(); settingsScreens.close(); homeScreen.close() }
+        if (ready) { access.close(); playerScreen.stop(); settingsScreens.close(); homeScreen.close(); locations.close() }
         activeDialog?.dismiss()
         cancelImport()
         worker.shutdownNow()
@@ -416,6 +421,8 @@ class OpenVistaActivity : ComponentActivity() {
     }
     fun playbackDiagnostics(): String = if (::playerScreen.isInitialized && playerScreen.isAttached) playerScreen.diagnosticText() else lastDiagnostics
     fun editSource(item: LibraryItem? = null) = libraryScreens.editSource(item)
+    /** Completes missing camera locations in the background; the player picks them up on its next source. */
+    fun completeLocations() = locations.completeLibrary { if (route.page != "player") refresh() }
     fun pairing() = settingsScreens.startPairing()
     fun openForecast(item: LibraryItem? = null) = settingsScreens.forecast(item)
 
@@ -439,10 +446,14 @@ class OpenVistaActivity : ComponentActivity() {
                 if (!started || isDestroyed || generation != importGeneration) return@runOnUiThread
                 if (parsed is PlaylistResult.Ready) {
                     try {
-                        val batch = parsed.sources.map { source -> LibraryItem(UUID.randomUUID().toString(), source.title, source.url,
-                            MediaFamily.CAMERAS, streamKind = source.kind.name) }
+                        val zones = java.util.TimeZone.getAvailableIDs().toSet()
+                        val batch = parsed.sources.map { source -> val place = source.metadata
+                            LibraryItem(UUID.randomUUID().toString(), source.title, source.url, MediaFamily.CAMERAS,
+                                streamKind = source.kind.name, category = place.category, country = place.country, city = place.city,
+                                latitude = place.latitude, longitude = place.longitude, timeZone = place.timeZone.takeIf { it in zones }.orEmpty()) }
                         val imported = store.importCameraList(listName?.takeIf(String::isNotBlank) ?: getString(R.string.imported_list), batch)
                         open(LibraryRoute("playlist", imported.playlistId, MediaFamily.CAMERAS))
+                        completeLocations()
                         persisted(getString(R.string.import_complete, imported.added, parsed.skippedEntries,
                             parsed.duplicateEntries + imported.duplicateCount))
                     } catch (_: Exception) { message(R.string.operation_failed) }

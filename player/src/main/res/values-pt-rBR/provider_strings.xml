@@ -35,4 +35,8 @@
     <string name="condition_snow_showers">Pancadas de neve</string>
     <string name="condition_thunderstorms">Trovoadas</string>
     <string name="condition_thunderstorms_hail">Trovoadas com granizo</string>
+    <string name="find_location">Buscar local</string>
+    <string name="location_searching">Buscando…</string>
+    <string name="no_location_matches">Nenhum lugar corresponde a esse nome. Confira a grafia ou informe o país.</string>
+    <string name="location_lookup_privacy">Buscar local envia ao Open-Meteo apenas a cidade ou o nome pesquisado. Câmeras que informam uma cidade, mas não o país, as coordenadas ou o fuso horário, são completadas da mesma forma em segundo plano; os links das transmissões nunca são enviados.</string>
 </resources>

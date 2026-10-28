@@ -35,4 +35,8 @@
     <string name="condition_snow_showers">Snow showers</string>
     <string name="condition_thunderstorms">Thunderstorms</string>
     <string name="condition_thunderstorms_hail">Thunderstorms with hail</string>
+    <string name="find_location">Find location</string>
+    <string name="location_searching">Searching…</string>
+    <string name="no_location_matches">No places match this name. Check the spelling or add the country.</string>
+    <string name="location_lookup_privacy">Find location sends only the city or name you search for to Open-Meteo. Cameras that name a city but lack its country, coordinates or time zone are completed the same way in the background; stream links are never sent.</string>
 </resources>

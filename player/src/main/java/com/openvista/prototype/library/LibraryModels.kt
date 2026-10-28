@@ -56,7 +56,7 @@ data class AppSettings(
     val showClock: Boolean = true,
     val showDate: Boolean = true,
     val showWeather: Boolean = true,
-    val showLocation: Boolean = false,
+    val showLocation: Boolean = true,
     val clockFormat: String = "system",
     val temperatureUnit: String = "system",
     val overlayCorner: Int = 0,

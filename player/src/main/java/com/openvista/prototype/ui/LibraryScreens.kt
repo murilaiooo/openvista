@@ -9,6 +9,7 @@ import androidx.media3.common.util.UnstableApi
 import com.openvista.prototype.LibraryRoute
 import com.openvista.prototype.OpenVistaActivity
 import com.openvista.prototype.R
+import com.openvista.prototype.ambient.CountryResolver
 import com.openvista.prototype.ambient.SourceMapView
 import com.openvista.prototype.library.Availability
 import com.openvista.prototype.library.LibraryItem
@@ -193,9 +194,38 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         val zone = ui.field(fields, s(R.string.time_zone), item?.timeZone.orEmpty())
         val credit = ui.field(fields, s(R.string.attribution), item?.attribution.orEmpty(), 500)
         val error = ui.description(""); fields.addView(error)
+        var picker: AlertDialog? = null
+        if (host.locations.available) {
+            // One search fills city, country, coordinates and time zone together, so they always agree.
+            fields.addView(ui.description(s(R.string.location_lookup_privacy)))
+            val row = ui.row()
+            ui.button(row, s(R.string.find_location), "find_location") {
+                val query = city.text.toString().split(',').first().trim().ifBlank { title.text.toString().trim() }
+                val code = CountryResolver.resolve(country.text.toString(), zone.text.toString().trim().ifBlank { null })
+                error.text = s(R.string.location_searching)
+                host.locations.search(query, code) { places ->
+                    error.text = when {
+                        places == null -> s(R.string.city_search_unavailable)
+                        places.isEmpty() -> s(R.string.no_location_matches)
+                        else -> ""
+                    }
+                    if (places.isNullOrEmpty()) return@search
+                    picker?.dismiss()
+                    picker = AlertDialog.Builder(host).setTitle(R.string.find_location)
+                        .setItems(places.map { place -> listOf(place.name, place.region, host.locations.displayCountry(place))
+                            .filter(String::isNotBlank).distinct().joinToString(", ") }.toTypedArray()) { _, index ->
+                            val place = places[index]
+                            city.setText(place.name); country.setText(host.locations.displayCountry(place))
+                            latitude.setText(place.latitude.toString()); longitude.setText(place.longitude.toString())
+                            zone.setText(place.timeZone)
+                        }.setNegativeButton(R.string.cancel, null).show()
+                }
+            }
+            fields.addView(row)
+        }
         val dialog = AlertDialog.Builder(host).setTitle(if (item == null) R.string.add_stream else R.string.edit)
             .setView(ui.scroll(fields)).setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
-        host.showDialog(dialog)
+        host.showDialog(dialog) { picker?.dismiss() }
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val name = title.text.toString().trim()
             val source = if (camera) UserSourceParser().manualUrl(url!!.text.toString(), kind, name) else null
@@ -220,7 +250,7 @@ class LibraryScreens(private val host: OpenVistaActivity) {
                     latitude = lat, longitude = lon, timeZone = tz, attribution = credit.text.toString(),
                     availability = if (source != null && source.url != base.uri) Availability.UNKNOWN else base.availability,
                     observedAt = if (source != null && source.url != base.uri) 0 else base.observedAt))
-                dialog.dismiss(); host.refresh(); host.persisted(s(R.string.source_saved))
+                dialog.dismiss(); host.refresh(); host.persisted(s(R.string.source_saved)); host.completeLocations()
             } catch (_: Exception) { error.text = s(R.string.operation_failed) }
         }
     }
