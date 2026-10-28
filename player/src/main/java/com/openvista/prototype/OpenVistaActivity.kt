@@ -31,6 +31,8 @@ import com.openvista.prototype.ui.HomeScreen
 import com.openvista.prototype.ui.LibraryScreens
 import com.openvista.prototype.ui.PlayerScreen
 import com.openvista.prototype.ui.SettingsScreens
+import com.openvista.prototype.ui.OpenVistaLogo
+import com.openvista.prototype.ui.ScreenShell
 import com.openvista.prototype.ui.SettingsShell
 import com.openvista.prototype.ui.TvUi
 import com.openvista.prototype.ui.TvDesign
@@ -97,9 +99,11 @@ class OpenVistaActivity : ComponentActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
         ui = TvUi(this)
-        root = FrameLayout(this).apply { setBackgroundColor(0xFF0B1929.toInt()) }
+        root = FrameLayout(this).apply { setBackgroundColor(TvDesign.background) }
         setContentView(root)
-        root.addView(ui.heading(getString(R.string.loading)))
+        // Until the library opens, show only the logo; the window background already matches it.
+        root.addView(OpenVistaLogo.create(this, 22f).apply { alpha = .9f },
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         savedInstanceState?.getString("navigation")?.let(::restoreNavigation)
         playbackIds = savedInstanceState?.getStringArrayList("playbackIds")?.take(2000).orEmpty()
         playbackSelected = savedInstanceState?.getString("playbackSelected")
@@ -233,7 +237,9 @@ class OpenVistaActivity : ComponentActivity() {
     fun open(destination: LibraryRoute) {
         rememberFocus()
         leaveScreen()
-        if (route.page != "onboarding" && route != destination) history.add(route)
+        // Moving between Settings categories replaces the page, so one Back leaves Settings.
+        val withinSettings = ready && settingsScreens.ownsPage(route.page) && settingsScreens.ownsPage(destination.page)
+        if (route.page != "onboarding" && route != destination && !withinSettings) history.add(route)
         if (history.size > 32) history.removeAt(0)
         route = destination
         refresh()
@@ -274,14 +280,6 @@ class OpenVistaActivity : ComponentActivity() {
             }
             return
         }
-        val outer = ui.column().apply { setPadding(ui.dp(32), ui.dp(18), ui.dp(32), ui.dp(18)) }
-        val navigation = ui.row()
-        ui.button(navigation, getString(R.string.back), "navigation_back") { onBackPressedDispatcher.onBackPressed() }
-        ui.button(navigation, getString(R.string.home), "navigation_home", ::goHome)
-        ui.button(navigation, getString(R.string.settings), "navigation_settings") { open(LibraryRoute("settings")) }
-        outer.addView(navigation)
-        feedback = ui.description(pendingMessage.orEmpty()).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
-        outer.addView(feedback)
         val body = ui.column()
         when (route.page) {
             "onboarding", "setup" -> libraryScreens.onboarding(body, route.page == "setup")
@@ -293,9 +291,10 @@ class OpenVistaActivity : ComponentActivity() {
             "map" -> libraryScreens.map(body)
             else -> settingsScreens.render(body, route.page)
         }
-        outer.addView(ui.scroll(body), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        root.addView(outer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        body.post { (outer.findViewWithTag<View>(desired) ?: firstFocusable(body) ?: firstFocusable(navigation))?.requestFocus() }
+        val shell = ScreenShell(this).create(body, pendingMessage.orEmpty())
+        feedback = shell.feedback
+        root.addView(shell.root, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        body.post { (shell.root.findViewWithTag<View>(desired) ?: firstFocusable(body) ?: firstFocusable(shell.navigation))?.requestFocus() }
     }
 
     private fun addBoundedScreen(screen: View) {

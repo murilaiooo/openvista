@@ -2,9 +2,6 @@
 <resources>
     <string name="ambient_your_location">Your location</string>
     <string name="ambient_device_time">Device time</string>
-    <string name="ambient_source">Source</string>
-    <string name="ambient_camera">Camera</string>
-    <string name="ambient_local_video">Local video</string>
     <string name="ambient_live">LIVE</string>
     <string name="ambient_playing">Playing</string>
     <string name="ambient_paused">Paused</string>
@@ -15,7 +12,5 @@
     <string name="ambient_unknown">—</string>
     <string name="ambient_metric_kph">%1$s km/h</string>
     <string name="ambient_metric_mph">%1$s mph</string>
-    <string name="ambient_condition_unavailable">Conditions unavailable</string>
-    <string name="ambient_time_unknown">Source time zone not provided</string>
     <string name="ambient_high_low">H: %1$s   L: %2$s</string>
 </resources>

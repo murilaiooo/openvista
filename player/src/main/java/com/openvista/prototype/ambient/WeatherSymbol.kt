@@ -10,7 +10,10 @@ import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Original monochrome vector marks; unknown conditions use a neutral dash, never a fake sun. */
+/**
+ * Original two-tone vector marks: warm sun, neutral cloud, cool precipitation. Unknown conditions
+ * use a neutral dash, never a fake sun.
+ */
 internal class WeatherSymbol(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -24,6 +27,8 @@ internal class WeatherSymbol(context: Context) : View(context) {
         cubicTo(8f, 5f, 20f, 5f, 21f, 13f)
         cubicTo(29f, 11f, 31f, 21f, 23f, 21f); close()
     }
+    private val sun = Paint(paint).apply { color = 0xFFFFC93C.toInt() }
+    private val wet = Paint(paint).apply { color = 0xFF8FD3F4.toInt() }
     private var kind = Kind.UNKNOWN
     private enum class Kind { UNKNOWN, CLEAR, PARTLY, CLOUD, RAIN, SNOW, STORM, FOG }
 
@@ -67,24 +72,28 @@ internal class WeatherSymbol(context: Context) : View(context) {
         if (kind == Kind.CLEAR || kind == Kind.PARTLY) {
             val cx = if (kind == Kind.PARTLY) 12f else 16f
             val cy = if (kind == Kind.PARTLY) 11f else 16f
-            canvas.drawCircle(cx, cy, 5f, paint)
+            // A partly cloudy sun sits behind the cloud rather than showing through its outline.
+            val clip = canvas.save()
+            if (kind == Kind.PARTLY) canvas.clipOutPath(cloud)
+            canvas.drawCircle(cx, cy, 5f, sun)
             for (i in 0 until 8) {
                 val a = Math.PI * i / 4
                 canvas.drawLine(cx + cos(a).toFloat() * 8, cy + sin(a).toFloat() * 8,
-                    cx + cos(a).toFloat() * 10, cy + sin(a).toFloat() * 10, paint)
+                    cx + cos(a).toFloat() * 10, cy + sin(a).toFloat() * 10, sun)
             }
+            canvas.restoreToCount(clip)
         }
         if (kind in setOf(Kind.PARTLY, Kind.CLOUD, Kind.RAIN, Kind.SNOW, Kind.STORM)) canvas.drawPath(cloud, paint)
-        if (kind == Kind.RAIN) for (x in listOf(10f, 16f, 22f)) canvas.drawLine(x, 25f, x - 2, 29f, paint)
+        if (kind == Kind.RAIN) for (x in listOf(10f, 16f, 22f)) canvas.drawLine(x, 25f, x - 2, 29f, wet)
         if (kind == Kind.SNOW) for (x in listOf(10f, 20f)) {
-            canvas.drawLine(x, 24f, x, 30f, paint)
-            canvas.drawLine(x - 3, 25f, x + 3, 29f, paint)
-            canvas.drawLine(x + 3, 25f, x - 3, 29f, paint)
+            canvas.drawLine(x, 24f, x, 30f, wet)
+            canvas.drawLine(x - 3, 25f, x + 3, 29f, wet)
+            canvas.drawLine(x + 3, 25f, x - 3, 29f, wet)
         }
         if (kind == Kind.STORM) {
-            canvas.drawLine(18f, 22f, 14f, 27f, paint)
-            canvas.drawLine(14f, 27f, 20f, 27f, paint)
-            canvas.drawLine(20f, 27f, 16f, 32f, paint)
+            canvas.drawLine(18f, 22f, 14f, 27f, sun)
+            canvas.drawLine(14f, 27f, 20f, 27f, sun)
+            canvas.drawLine(20f, 27f, 16f, 32f, sun)
         }
         if (kind == Kind.FOG) for (y in listOf(10f, 16f, 22f)) canvas.drawLine(6f, y, 26f, y, paint)
         canvas.restore()

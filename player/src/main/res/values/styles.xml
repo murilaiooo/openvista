@@ -1,15 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="PlayerPrototypeTheme" parent="android:style/Theme.Material.NoActionBar">
-        <item name="android:colorAccent">#91DFEA</item>
-        <item name="android:fontFamily">sans</item>
-        <item name="android:windowBackground">#07121F</item>
-        <item name="android:colorBackground">#07121F</item>
-        <item name="android:textColorPrimary">#F3F6F8</item>
-        <item name="android:textColorSecondary">#B9C8D5</item>
-        <item name="android:colorControlHighlight">#3391DFEA</item>
-        <item name="android:statusBarColor">#07121F</item>
-        <item name="android:navigationBarColor">#07121F</item>
+        <item name="android:colorAccent">#7FDDE9</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:windowBackground">#061421</item>
+        <item name="android:colorBackground">#061421</item>
+        <item name="android:textColorPrimary">#F3F5F7</item>
+        <item name="android:textColorSecondary">#AAB8C3</item>
+        <item name="android:colorControlHighlight">#407FDDE9</item>
+        <item name="android:colorControlActivated">#7FDDE9</item>
+        <item name="android:statusBarColor">#061421</item>
+        <item name="android:navigationBarColor">#061421</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:alertDialogTheme">@style/OpenVistaDialog</item>
+    </style>
+
+    <!-- Every AlertDialog shares the TV design system: glass surface, Inter, cyan focus. -->
+    <style name="OpenVistaDialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_surface</item>
+        <item name="android:colorBackground">#0B1D2C</item>
+        <item name="android:colorAccent">#7FDDE9</item>
+        <item name="android:colorControlActivated">#7FDDE9</item>
+        <item name="android:colorControlHighlight">#407FDDE9</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColorPrimary">#F3F5F7</item>
+        <item name="android:textColorSecondary">#C9D4DC</item>
+        <item name="android:textColorAlertDialogListItem">#F3F5F7</item>
+        <item name="android:windowTitleStyle">@style/OpenVistaDialog.Title</item>
+    </style>
+
+    <style name="OpenVistaDialog.Title" parent="android:style/TextAppearance.Material.DialogWindowTitle">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">#F3F5F7</item>
     </style>
 </resources>

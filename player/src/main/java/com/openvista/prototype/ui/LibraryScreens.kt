@@ -75,7 +75,9 @@ class LibraryScreens(private val host: OpenVistaActivity) {
             var hasNext = false
             val offset = route.offset
             listOf(MediaFamily.CAMERAS, MediaFamily.VIDEOS).forEach { section ->
-                body.addView(ui.heading(s(if (section == MediaFamily.CAMERAS) R.string.cameras else R.string.my_videos)))
+                body.addView(ui.caps(s(if (section == MediaFamily.CAMERAS) R.string.cameras else R.string.my_videos)).apply {
+                    setPadding(ui.dp(2), ui.dp(12), ui.dp(2), ui.dp(5))
+                })
                 val items = store.items().filter { it.family == section && it.favorite }
                 if (items.isEmpty()) body.addView(ui.description(s(R.string.favorite_empty)))
                 else items.drop(offset).take(PAGE_SIZE).forEach { item -> sourceRow(body, item) }
@@ -120,9 +122,15 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         body.addView(pages)
     }
 
+    /** One library entry in the shared row style; favorites carry the star icon instead of a text mark. */
     private fun sourceRow(body: LinearLayout, item: LibraryItem) {
         val place = listOf(item.city, item.country, item.category).filter(String::isNotBlank).joinToString(" · ")
-        ui.button(body, (if (item.favorite) "★ " else "") + item.title + if (place.isNotBlank()) " · $place" else "", "source_${item.id}") {
+        val icon = when {
+            item.favorite -> TvIcon.Symbol.STAR
+            item.family == MediaFamily.CAMERAS -> TvIcon.Symbol.CAMERA
+            else -> TvIcon.Symbol.FILM
+        }
+        ui.settingRow(body, item.title, key = "source_${item.id}", summary = place.ifBlank { null }, icon = icon) {
             host.open(LibraryRoute("details", item.id, item.family))
         }
     }

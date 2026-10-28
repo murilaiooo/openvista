@@ -20,7 +20,7 @@ internal object CountryResolver {
         "estados unidos da america" to "US", "uk" to "GB", "great britain" to "GB", "britain" to "GB",
         "england" to "GB", "scotland" to "GB", "wales" to "GB", "northern ireland" to "GB",
         "inglaterra" to "GB", "escocia" to "GB", "holland" to "NL", "holanda" to "NL",
-        "czech republic" to "CZ", "republica tcheca" to "CZ", "south korea" to "KR", "korea" to "KR",
+        "czech republic" to "CZ", "czechia" to "CZ", "republica tcheca" to "CZ", "south korea" to "KR", "korea" to "KR",
         "coreia do sul" to "KR", "russia" to "RU", "uae" to "AE", "emirados arabes" to "AE",
         "vatican" to "VA", "ivory coast" to "CI", "turkey" to "TR", "turquia" to "TR",
     )

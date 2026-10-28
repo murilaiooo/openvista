@@ -22,12 +22,13 @@ import kotlin.math.max
  * None of it represents a camera or a user's media.
  */
 internal object HomeArtwork {
-    /** Upper bound per panel; gradients and soft photography upscale without visible loss. */
-    private const val MAX_HEIGHT = 1080
+    /** Upper bounds per panel: the photograph keeps detail; soft gradients upscale invisibly. */
+    private const val PHOTO_MAX_HEIGHT = 1080
+    private const val PROCEDURAL_MAX_HEIGHT = 720
 
     fun render(resources: Resources, panel: Int, width: Int, height: Int): Bitmap? {
         if (width <= 0 || height <= 0) return null
-        val scale = minOf(1f, MAX_HEIGHT.toFloat() / height)
+        val scale = minOf(1f, (if (panel == 0) PHOTO_MAX_HEIGHT else PROCEDURAL_MAX_HEIGHT).toFloat() / height)
         val w = max(1, (width * scale).toInt())
         val h = max(1, (height * scale).toInt())
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)

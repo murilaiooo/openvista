@@ -53,6 +53,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         shader = RadialGradient(0f, 0f, 1f, intArrayOf(0x5C060D16, 0x33060D16, 0x00060D16),
             floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
     }
+    private val hazeGroups: List<View> = listOf(source, viewer, forecastPanel, brand)
     private val sourceWeather = WeatherSlot()
     private val viewerWeather = WeatherSlot()
     private var item: LibraryItem? = null
@@ -209,7 +210,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
                 cameraLocation != null && coordinateKey(forecast.location) == coordinateKey(cameraLocation)
             }?.location?.timeZone?.let(presentation::zone)
         val viewerZone = presentation.zone(settings.viewerTimeZone) ?: TimeZone.getDefault()
-        val sourcePlace = item?.let { listOf(it.city, it.country).filter(String::isNotBlank).joinToString(", ") }.orEmpty()
+        val sourcePlace = item?.let { placeLine(it, sourceZone) } ?: ("" to "")
         val liveStatus = live && playing && item?.family == MediaFamily.CAMERAS
         val sourceStatus = context.getString(when {
             liveStatus -> R.string.ambient_live
@@ -218,7 +219,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             else -> R.string.ambient_paused
         })
         source.bind(sourceStatus, liveStatus,
-            if (settings.showLocation) sourcePlace + flagForCountry(item?.country.orEmpty()) else "",
+            if (settings.showLocation) sourcePlace else ("" to ""),
             sourceZone, current, sourceSlot, settings.showSourceInfo && item != null)
         val viewerConfigured = settings.viewerCity.isNotBlank() || viewerLocation != null || settings.viewerTimeZone.isNotBlank()
         val deviceClockOnly = settings.showClock && !settings.showSourceInfo && !viewerConfigured
@@ -385,7 +386,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     /** A feathered haze behind each group moves with it; it never covers the whole frame. */
     override fun dispatchDraw(canvas: Canvas) {
         sceneContrast.draw(canvas)
-        listOf(source, viewer, forecastPanel, brand).forEach { group ->
+        hazeGroups.forEach { group ->
             if (group.visibility != View.VISIBLE || group.alpha <= 0f) return@forEach
             val width = drawnWidth(group).toFloat()
             val height = drawnHeight(group).toFloat()
@@ -445,14 +446,6 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         })
     }
 
-    /** Current conditions shared by the source and viewer groups. */
-    private fun conditionColor(code: Int?) = when (code) {
-        0, 1 -> 0xFFFFC93C.toInt()
-        2 -> 0xFFFFD36B.toInt()
-        in 51..67, in 80..82 -> 0xFF8FD3F4.toInt()
-        else -> settings.overlayColor
-    }
-
     private fun clockText(zone: TimeZone, now: Date): CharSequence {
         val value = presentation.clock(zone, settings, now)
         // A 12-hour suffix sits small beside the digits, as in the reference clocks.
@@ -468,11 +461,13 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         private val dot = View(context).apply {
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(TvDesign.live) }
         }
-        private val status = label(10.3f, TvDesign.semibold).apply { letterSpacing = .04f }
+        private val status = label(10.3f, TvDesign.medium).apply { letterSpacing = .04f }
         private val divider = View(context).apply { setBackgroundColor(0x80FFFFFF.toInt()) }
-        private val place = label(12.6f).apply { maxWidth = dp(240f) }
+        // A long city ellipsizes first; the country and its flag are always shown in full.
+        private val city = label(12.6f).apply { maxWidth = dp(190f); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END }
+        private val country = label(12.6f).apply { maxLines = 1 }
         private val header = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
-        private val clock = label(65f, TvDesign.extraLight).apply { letterSpacing = -.02f; fontFeatureSettings = "tnum"; maxLines = 1 }
+        private val clock = label(65f, TvDesign.extraLight).apply { letterSpacing = -.02f; maxLines = 1 }
         private val date = label(12f)
         private val symbol = WeatherSymbol(context)
         private val temperature = label(15f, TvDesign.light)
@@ -491,7 +486,8 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             header.addView(dot, LayoutParams(dp(6f), dp(6f)).apply { marginEnd = dp(6f) })
             header.addView(status)
             header.addView(divider, LayoutParams(dp(1f), dp(11f)).apply { marginStart = dp(10f); marginEnd = dp(10f) })
-            header.addView(place)
+            header.addView(city)
+            header.addView(country)
             addView(header)
             addView(clock, LayoutParams(-2, -2).apply { topMargin = -dp(1f) })
             addView(date, LayoutParams(-2, -2).apply { topMargin = -dp(5f) })
@@ -514,19 +510,24 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             addView(credit, LayoutParams(-2, -2).apply { topMargin = dp(6f) })
         }
 
-        fun bind(caption: String, isLive: Boolean, location: String, zone: TimeZone?, now: Date, slot: WeatherSlot, visible: Boolean) {
+        fun bind(caption: String, isLive: Boolean, location: Pair<String, String>, zone: TimeZone?, now: Date, slot: WeatherSlot, visible: Boolean) {
             visibility = if (visible) View.VISIBLE else View.GONE
             dot.visibility = if (isLive) View.VISIBLE else View.GONE
             status.put(caption)
             status.setTextColor(if (isLive) TvDesign.live else settings.overlayColor)
-            place.put(location)
-            divider.visibility = if (location.isBlank()) View.GONE else View.VISIBLE
+            city.put(location.first)
+            country.put(when {
+                location.second.isBlank() -> ""
+                location.first.isBlank() -> location.second
+                else -> ", " + location.second
+            })
+            divider.visibility = if (location.first.isBlank() && location.second.isBlank()) View.GONE else View.VISIBLE
             clock.put(if (settings.showClock && zone != null) clockText(zone, now) else "")
             date.put(if (settings.showDate && zone != null) presentation.date(zone, settings, now) else "")
             val current = slot.forecast?.current
             weatherRow.visibility = if (settings.showWeather) View.VISIBLE else View.GONE
             symbol.bind(current?.weatherCode, current?.description)
-            symbol.tint(conditionColor(current?.weatherCode))
+            symbol.tint(settings.overlayColor)
             symbol.visibility = if (current == null) View.GONE else View.VISIBLE
             temperature.put(current?.let { presentation.temperature(it.temperatureC, settings) }.orEmpty())
             condition.put(if (current == null) slot.message() else WeatherText.description(context, current) +
@@ -541,7 +542,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         }
 
         fun tint(color: Int) {
-            listOf(place, clock, temperature, humidity, wind).forEach { it.setTextColor(color) }
+            listOf(city, country, clock, temperature, humidity, wind).forEach { it.setTextColor(color) }
             listOf(date, condition, credit).forEach { it.setTextColor(color and 0x00FFFFFF or (0xD9 shl 24)) }
             if (dot.visibility != View.VISIBLE) status.setTextColor(color)
         }
@@ -552,7 +553,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         private val eyebrowIcon = View(context).apply { background = TvIcon(context, TvIcon.Symbol.NAVIGATE, 8f, 0xFFE3E8EC.toInt(), 2f) }
         private val eyebrow = label(10f)
         private val place = label(18f, TvDesign.light).apply { maxWidth = dp(260f) }
-        private val clock = label(57f, TvDesign.extraLight).apply { letterSpacing = -.02f; fontFeatureSettings = "tnum"; maxLines = 1 }
+        private val clock = label(57f, TvDesign.extraLight).apply { letterSpacing = -.02f; maxLines = 1 }
         private val date = label(12f)
         private val rule = View(context).apply { setBackgroundColor(0x66FFFFFF) }
         private val symbol = WeatherSymbol(context)
@@ -595,7 +596,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             weather.visibility = if (shown) View.VISIBLE else View.GONE
             rule.visibility = weather.visibility
             symbol.bind(current?.weatherCode, current?.description)
-            symbol.tint(conditionColor(current?.weatherCode))
+            symbol.tint(settings.overlayColor)
             symbol.visibility = if (current == null) View.GONE else View.VISIBLE
             temperature.put(current?.let { presentation.temperature(it.temperatureC, settings) }.orEmpty())
             condition.put(if (current == null) slot.message() else WeatherText.description(context, current) +
@@ -665,7 +666,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
     private inner class ForecastCell : LinearLayout(context) {
         private val day = label(10.5f)
         private val symbol = WeatherSymbol(context)
-        private val temperatures = label(12.5f).apply { fontFeatureSettings = "tnum" }
+        private val temperatures = label(12.5f, TvDesign.medium).apply { fontFeatureSettings = "tnum" }
         private val rain = label(10f).apply { fontFeatureSettings = "tnum" }
         private val rainMark = PrecipitationDrop(context)
         private var value: ForecastDay? = null
@@ -673,9 +674,10 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         init {
             orientation = VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            addView(day)
+            // Wrap-width children so day, icon, temperatures and rain share one centered column.
+            addView(day, LayoutParams(-2, -2))
             addView(symbol, LayoutParams(dp(23f), dp(23f)).apply { topMargin = dp(5f); bottomMargin = dp(5f) })
-            addView(temperatures)
+            addView(temperatures, LayoutParams(-2, -2))
             addView(LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 addView(rainMark, LayoutParams(dp(6f), dp(7.5f)).apply { marginEnd = dp(5f) })
@@ -688,7 +690,7 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
             this.day.put(presentation.dayLabel(day.date, zone))
             rain.put(presentation.percent(day.precipitationChancePct))
             symbol.bind(day.weatherCode, day.description)
-            symbol.tint(conditionColor(day.weatherCode))
+            symbol.tint(settings.overlayColor)
             tint(settings.overlayColor)
             contentDescription = listOf(this.day.text, day.description.orEmpty(), temperatures.text,
                 context.getString(R.string.ambient_rain_chance, rain.text)).joinToString(", ")
@@ -719,16 +721,15 @@ class AmbientOverlay(context: Context, private val store: LibraryStore) : FrameL
         if (text.toString() != value.toString() || text.javaClass != value.javaClass) text = value
         visibility = if (value.isBlank()) View.GONE else View.VISIBLE
     }
-    private fun flagForCountry(country: String): String {
-        if (country.isBlank()) return ""
-        val countryCode = java.util.Locale.getISOCountries().firstOrNull { code ->
-            country.equals(java.util.Locale.Builder().setRegion(code).build()
-                .getDisplayCountry(java.util.Locale.ENGLISH), true) ||
-                country.equals(code, true)
-        } ?: return ""
-        val first = 0x1F1E6 + (countryCode[0] - 'A')
-        val second = 0x1F1E6 + (countryCode[1] - 'A')
-        return "  " + String(Character.toChars(first)) + String(Character.toChars(second))
+    /**
+     * "City, Country 🇮🇹" from the camera's own metadata: the country may be saved in any language
+     * or as a code, and otherwise comes from the camera's time zone. The name follows the UI locale.
+     */
+    private fun placeLine(item: LibraryItem, zone: TimeZone?): Pair<String, String> {
+        val code = CountryResolver.resolve(item.country, item.timeZone.ifBlank { zone?.id })
+        val name = CountryResolver.displayName(item.country, code, context.resources.configuration.locales[0])
+        val flag = code?.let(CountryResolver::flag).orEmpty()
+        return item.city.trim() to (name + if (flag.isNotEmpty()) "  $flag" else "").trim()
     }
     private fun dp(value: Float) = TvDesign.dp(context, value)
     private fun drawnHeight(view: View) = if (view.visibility == View.GONE) 0 else (view.measuredHeight * view.scaleY).roundToInt()
