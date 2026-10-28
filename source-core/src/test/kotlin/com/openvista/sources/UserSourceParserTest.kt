@@ -126,4 +126,33 @@ class UserSourceParserTest {
         val body = "#EXTM3U\n#EXTINF:-1,Unknown\nrtsp://example.invalid/camera"
         assertEquals(PlaylistFailure.NO_SUPPORTED_SOURCES, (parser.parseM3u(body.toByteArray()) as PlaylistResult.Rejected).reason)
     }
+    @Test fun importsDeclaredLocationAndKeepsCommasInTitles() {
+        val content = """
+            #EXTM3U
+            #EXTINF:-1 tvg-country="IT;FR" tvg-city="Venice" group-title="Cities, Europe" tvg-timezone="Europe/Rome" latitude="45.438" longitude="12.335",Rialto Bridge, Venice
+            $hls
+            #EXTINF:-1 tvg-name=O'Hare,Lake Shore
+            $dash
+        """.trimIndent()
+        val sources = (parser.parseM3u(content.toByteArray()) as PlaylistResult.Ready).sources
+        assertEquals("Rialto Bridge, Venice", sources[0].title)
+        assertEquals(SourceMetadata("Cities, Europe", "IT", "Venice", "Europe/Rome", 45.438, 12.335), sources[0].metadata)
+        assertEquals("Lake Shore", sources[1].title)
+        assertEquals(SourceMetadata(), sources[1].metadata)
+    }
+
+    @Test fun rejectsLocationValuesThatCannotBeTrusted() {
+        val content = """
+            #EXTM3U
+            #EXTGRP:Beaches
+            #EXTINF:-1 tvg-timezone="UTC+2" latitude="95" longitude="10",Shore
+            $hls
+            #EXTINF:-1 timezone="Etc/GMT-2" lat="10",Harbor
+            $dash
+        """.trimIndent()
+        val sources = (parser.parseM3u(content.toByteArray()) as PlaylistResult.Ready).sources
+        assertEquals(SourceMetadata(category = "Beaches"), sources[0].metadata)
+        // One coordinate alone is dropped; a later entry does not inherit the earlier group.
+        assertEquals(SourceMetadata(), sources[1].metadata)
+    }
 }
