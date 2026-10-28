@@ -82,7 +82,8 @@ class OpenMeteoForecastProvider : ForecastProvider {
 internal class RegionalForecastProvider : ForecastProvider {
     private val nws = NwsForecastProvider()
     private val worldwide = OpenMeteoForecastProvider()
-    override val id = "nws-open-meteo-v1"
+    // v2 invalidates cached nighttime NWS entries missing today's high.
+    override val id = "nws-open-meteo-v2"
     override val attribution = "${nws.attribution}. ${worldwide.attribution}"
     override val minimumRefreshMs = worldwide.minimumRefreshMs
     override val maximumCacheAgeMs = worldwide.maximumCacheAgeMs
@@ -90,8 +91,24 @@ internal class RegionalForecastProvider : ForecastProvider {
         val inNwsRegion = (location.latitude in 18.0..72.0 && location.longitude in -180.0..-60.0) ||
             (location.latitude in -15.0..-10.0 && location.longitude in -172.0..-168.0) ||
             (location.latitude in 12.0..22.0 && location.longitude in 140.0..146.0)
-        val forecast = if (inNwsRegion) try { nws.fetch(location) } catch (error: Exception) {
-            ProviderHttp.interrupted(); worldwide.fetch(location)
+        val forecast = if (inNwsRegion) try {
+            val official = nws.fetch(location)
+            val localToday = runCatching {
+                LocalDate.now(ZoneId.of(official.location.timeZone))
+            }.getOrElse { LocalDate.now() }
+            if (official.days.any { it.date == localToday.toString() && it.maximumC == null }) {
+                // The NWS nighttime feed no longer contains the earlier daytime high.
+                // Reuse the worldwide provider solely to complete that missing value.
+                val supplement = try { worldwide.fetch(location) } catch (_: Exception) {
+                    ProviderHttp.interrupted()
+                    null
+                }
+                if (supplement == null) official
+                else completeTodayHighWithWorldForecast(official, supplement, localToday)
+            } else official
+        } catch (error: Exception) {
+            ProviderHttp.interrupted()
+            worldwide.fetch(location)
         } else worldwide.fetch(location)
         return forecast.copy(providerId = id)
     }

@@ -8,7 +8,7 @@ import org.junit.Test
 class WorldwideWeatherIntegrationTest {
     @Test fun worldwideWeatherIsEnabledForAdFreeNoncommercialBuild() {
         assertTrue(ProviderPolicy.WORLDWIDE_WEATHER_APPROVED)
-        assertTrue(ProviderPolicy.forecast().id == "nws-open-meteo-v1")
+        assertTrue(ProviderPolicy.forecast().id == "nws-open-meteo-v2")
     }
 
     @Test fun openMeteoCreditIsDisplayedForNonUsSources() {
