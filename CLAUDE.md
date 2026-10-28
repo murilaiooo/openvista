@@ -9,9 +9,9 @@ Read this file before changing code. This is a **development preview**, not a ce
 4. [Playback regression record](docs/testing/live-video-freeze-regression-2026-10-27.md), [display care](docs/design/ambient-display-care-2026-10-27.md), and [weather high correction](docs/testing/missing-today-high-weather-qa-2026-10-27.md).
 
 ## Source of truth and working branch
-- Resume from `codex/ui-redesign-36` after its October 27 integration with the latest mainline, not stale `main`, older detached worktrees, old PR #31, or an installed APK inferred from a version name.
-- Draft PR [#37](https://github.com/murilaiooo/openvista/pull/37) is the active visual redesign/finalization review. Keep it in draft until acceptance; do not silently merge or publish.
-- The owner's physical Hisense Fire OS 7 APK is a **previous, independently matched** debug build from October 27, before the new mainline SAF integration. A subsequent source merge is not evidence that the new binary is installed on the TV.
+- Resume from the latest `main` commit. PR #37 merged the owner-TV-matched source after PR #40 and the latest bilingual README work; older `codex/ui-redesign-36`, stale worktrees and prior PRs are historical development branches.
+- [PR #37](https://github.com/murilaiooo/openvista/pull/37) was merged into `main` on October 28. The repository stays private and **no signed/public release** has been authorized.
+- The physical Hisense Fire OS 7 installed APK was SHA-256-identical to the integrated local debug build (18,758,735 bytes). Read [the October 28 verification](docs/testing/integrated-tv-snapshot-2026-10-28.md) for exact scope. This does not prove 24-hour stability or production signing.
 - Three real TV captures in `assets/screenshots/` are README previews. They are **not** the owner's three original design reference images. The owner will provide Home, Settings, and Live Camera Playback references separately. Copy layout and design, never the images' sample text or values.
 
 ## Non-negotiable priorities

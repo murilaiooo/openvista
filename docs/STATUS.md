@@ -7,8 +7,8 @@
 | Question | Current answer |
 | --- | --- |
 | Is the Android TV application implemented? | **Yes, development preview.** Native Kotlin/Media3 with user-managed HLS/DASH/M3U, local videos/SAF, playlists, favorites, Home, a unified Settings design and ambient overlays. |
-| Where is the integrated source? | The latest owner-TV-matched local overlay, PR #40, and the updated English/Portuguese READMEs are consolidated for mainline integration. See [integration QA](testing/integrated-tv-snapshot-2026-10-28.md) and [PR #37](https://github.com/murilaiooo/openvista/pull/37). |
-| Is this ready for a public release? | **No.** The source is consolidated for mainline; historical stream URLs and other distribution gates still need review. |
+| Where is the integrated source? | The latest owner-TV-matched local overlay, PR #40, and the updated English/Portuguese READMEs are merged into `main` through PR #37. See [integration QA](testing/integrated-tv-snapshot-2026-10-28.md) and [PR #37](https://github.com/murilaiooo/openvista/pull/37). |
+| Is this ready for a public release? | **No.** The source is integrated into `main`; historical stream URLs and other distribution gates still need review. |
 | Does the TV match the integrated APK? | **Yes, byte for byte.** The installed October 27 debug APK and the current local build share the same SHA-256. This is not a 24-hour stability certification. See [QA record](testing/integrated-tv-snapshot-2026-10-28.md). |
 | Is this a public, signed or stable release? | **No.** GitHub repository remains private; no approved production APK release or supported cross-device matrix. |
 | Does the APK contain a camera catalog, playlists or bundled videos? | **It must not.** Under owner decision C-01, all live URLs, M3Us and local videos are user-managed, not shipped. Run the actual final-artifact guard before any release. |
@@ -18,8 +18,8 @@
 ## Observed and documented milestones
 
 - Previous October 26 integration tests established HLS/DASH 720p playback, MP4 and user-selected folder flow, M3U import, navigation, scoped UI localization and Tucson NWS on the Hisense. See [integrated app QA](testing/production-pr22-validation-2026-10-26.md).
-- Mainline [SAF canonical identity and migration](testing/saf-canonical-qa-2026-10-26.md) and [DreamService activation](testing/hisense-dreamservice-activation-2026-10-26.md) have separate evidence and are integrated into the new review branch. Do not infer USB grant and OEM behavior are universally validated.
-- Owner-requested 3-panel Home, atlas/sidebar Settings, native styling, real source/viewer clocks and 3-7-day forecasts exist on the active redesign branch. References describe the intended visuals, **not a certified pixel match**.
+- Mainline [SAF canonical identity and migration](testing/saf-canonical-qa-2026-10-26.md) and [DreamService activation](testing/hisense-dreamservice-activation-2026-10-26.md) have separate evidence and are integrated into `main`. Do not infer USB grant and OEM behavior are universally validated.
+- Owner-requested 3-panel Home, atlas/sidebar Settings, native styling, real source/viewer clocks and 3-7-day forecasts are now in `main`. References describe the intended visuals, **not a certified pixel match**.
 - [Display care](design/ambient-display-care-2026-10-27.md): four bounded position arrangements for complete information groups, configurable movement default five minutes plus independent inactivity fading. Unit geometry/device spot-checks exist; timed cycles across varying layouts require further hardware checks. This reduces static exposure; it cannot guarantee burn-in prevention.
 - [Worldwide weather](design/worldwide-weather-provider.md): NWS preferred where available; international Open-Meteo camera weather independently seen on physical hardware, subject to non-commercial and credit requirements.
 - [Player freeze recovery](testing/live-video-freeze-regression-2026-10-27.md): a PixelCopy hold overlay caused stale/frozen moving footage and was removed by `d90c535`. Ten-second physical TV recording around a camera switch showed 21/21 changed frame pairs; short decoder gaps are still possible.
@@ -28,7 +28,7 @@
 
 ## October 28 release-quality pass (branch `claude/project-thread-xcksji`)
 
-Implemented on top of `codex/ui-redesign-36`. Evidence is labeled per item; nothing here is release acceptance.
+Implemented in PR #40 and merged into `main` through PR #37. Evidence is labeled per item; nothing here is release acceptance.
 
 - **Playback recovery** (`9490c31`): a live stream that falls behind its live window resyncs instead of being marked unavailable; a network outage no longer marks every camera unavailable (the session waits for connectivity, plays the fallback playlist when configured and resumes after the network settles); when all cameras fail while online, retries back off at 1, 2, 4, 8 and then 15 minutes. Notices are typed (quiet, brief, persistent) instead of string-matched. The stored *Scene transition: fade through black* setting is now implemented by a shared `SceneView` used by the player and the screensaver; persistent failures darken the surface so a frozen last frame is not left on screen. No PixelCopy or still-frame overlay was reintroduced. Library lookups are indexed. *Unit tests for the retry policy and notice mapping; device evidence is listed in PR notes.*
 - **Home and unified Settings** (`58d90cb`, built and checked on the Hisense): a shared 960x540 dp design canvas, Inter (OFL-1.1, license in `licenses/`), one logo for Home, launcher icon and banner (owner decision 2026-10-28), one Settings menu that maps legacy routes.

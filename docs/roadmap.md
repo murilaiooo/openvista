@@ -1,6 +1,6 @@
 # OpenVista: final development and release roadmap
 
-**Updated October 27, 2026.** Read [current engineering status](STATUS.md), [Claude's full handoff](implementation/claude-release-handoff-2026-10-27.md), and [owner decisions/acceptance](product/v1-acceptance.md). This roadmap replaces the older October 26 phase priorities; prior plans are historical.
+**Updated October 28, 2026.** Read [current engineering status](STATUS.md), [Claude's full handoff](implementation/claude-release-handoff-2026-10-27.md), and [owner decisions/acceptance](product/v1-acceptance.md). This roadmap replaces the older October 26 phase priorities; prior plans are historical.
 
 ## Completed as development implementation, not release acceptance
 - [x] Owner decisions D-01..D-78 and later C-01 user-managed content policy.
@@ -16,7 +16,7 @@
 - [ ] Use **all three original owner-provided design reference screenshots**, not the README's real current-state screenshots, to implement close Home / Settings / Live Camera Playback visual fidelity.
 - [ ] Ensure there is **one Settings menu** with coherent subsections, no duplicated/disconnected configuration screens, persisted real controls and consistent shared dialog/focus states across all screens.
 - [ ] Validate 1080p and 720p, typography/weight/spacing, background readability, large/long EN/PT-BR text, safe areas, focus/D-pad/Back and zero-source/no-weather screens.
-- [ ] Verify the four full-overlay anti-burn-in positions over live video, independent inactivity hide, persistent preference changes and no overlap, clipping, frozen frames or disruptive transitions.
+- [ ] Verify the complete 32-position display-care cycle (four compositions with eight drift offsets), independent inactivity hiding, saved preferences and no overlap, clipping, frozen frames or distracting transitions on physical hardware.
 - [ ] Address open issues #33 (camera-list visual preview), #34 (loading/error states), #36 (design) with real acceptance evidence.
 
 ## Phase 2: performance, reliability and regression proof
@@ -34,4 +34,5 @@
 - [ ] Obtain owner approval before changing GitHub visibility, merging the final release candidate, publishing a GitHub Release or enabling updater/LAN pairing.
 
 ## Branch and issue policy
-The active integrated work is draft PR [#37](https://github.com/murilaiooo/openvista/pull/37) on `codex/ui-redesign-36`, after reconciling the new mainline changes. `main` remains the conservative non-redesign baseline until the review is accepted. Keep experimental official YouTube embedding isolated: its ad behavior does not satisfy the zero-interruption ambient requirement. No GitHub Actions are required; local and real-TV evidence is authoritative.
+
+The consolidated development source is now on `main` following [PR #37](https://github.com/murilaiooo/openvista/pull/37) and [PR #40](https://github.com/murilaiooo/openvista/pull/40). [October 28 integration QA](testing/integrated-tv-snapshot-2026-10-28.md) documents the physical debug APK hash, passing local tests/build/lint, and remaining release gates. Keep experimental YouTube embedding and older overlapping draft PRs separate. GitHub remains private, and no signed release or public APK is authorized until the owner approves after privacy/history review.
