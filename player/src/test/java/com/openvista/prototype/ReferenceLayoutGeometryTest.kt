@@ -16,17 +16,11 @@ class ReferenceLayoutGeometryTest {
         val panelWidth = 1744
         val panelHeight = 984
         for (phase in 0..3) for (corner in 0..3) {
-            val p = AmbientPlacement.calculate(panelLeft, panelTop, panelWidth, panelHeight,
-                brand, source, viewer, forecast, phase, corner, false)
-            val sourceBottom = (corner >= 2) != (phase >= 2)
-            val sourceRight = (corner % 2 == 0) != (phase % 2 == 1)
-            val adjustedViewer = OverlayOrigin(p.viewer.x, p.viewer.y + if (sourceBottom) 18 else -18)
-            val adjustedForecast = OverlayOrigin(
-                p.forecast.x + if (sourceRight) -90 else 90,
-                p.forecast.y + if (sourceBottom) 16 else -16,
-            )
-            val regions = listOf(p.brand to brand, p.source to source,
-                adjustedViewer to viewer, adjustedForecast to forecast)
+            val travel = 16
+            val p = AmbientPlacement.calculate(panelLeft + travel, panelTop + travel, panelWidth - 2 * travel,
+                panelHeight - 2 * travel, brand, source, viewer, forecast, phase, corner, false,
+                drift = AmbientPlacement.drift(phase * 5 + corner, travel))
+            val regions = listOf(p.brand to brand, p.source to source, p.viewer to viewer, p.forecast to forecast)
             regions.forEach { (origin, extent) ->
                 assertTrue("left $phase/$corner", origin.x >= panelLeft)
                 assertTrue("top $phase/$corner", origin.y >= panelTop)

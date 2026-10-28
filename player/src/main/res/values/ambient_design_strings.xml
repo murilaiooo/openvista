@@ -12,11 +12,10 @@
     <string name="ambient_forecast_days">%1$d-day forecast</string>
     <string name="ambient_today">Today</string>
     <string name="ambient_rain_chance">%1$s precipitation</string>
-    <string name="ambient_humidity">Humidity %1$s</string>
-    <string name="ambient_wind">Wind %1$s</string>
     <string name="ambient_unknown">—</string>
     <string name="ambient_metric_kph">%1$s km/h</string>
     <string name="ambient_metric_mph">%1$s mph</string>
     <string name="ambient_condition_unavailable">Conditions unavailable</string>
     <string name="ambient_time_unknown">Source time zone not provided</string>
+    <string name="ambient_high_low">H: %1$s   L: %2$s</string>
 </resources>

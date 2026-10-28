@@ -57,15 +57,11 @@ internal class AmbientPresentation(private val context: Context) {
             if (unit) { if (fahrenheit) "F" else "C" } else "")
     }
 
-    fun metrics(current: CurrentWeather?, settings: AppSettings): String = listOfNotNull(
-        current?.humidity?.let { context.getString(R.string.ambient_humidity, percent(it)) },
-        current?.windKph?.let { speed ->
-            val imperial = fahrenheit(settings)
-            val value = String.format(locale, "%.0f", if (imperial) speed / 1.609344 else speed)
-            context.getString(R.string.ambient_wind, context.getString(
-                if (imperial) R.string.ambient_metric_mph else R.string.ambient_metric_kph, value))
-        },
-    ).joinToString("  ·  ")
+    fun speed(kph: Double, settings: AppSettings): String {
+        val imperial = fahrenheit(settings)
+        val value = String.format(locale, "%.0f", if (imperial) kph / 1.609344 else kph)
+        return context.getString(if (imperial) R.string.ambient_metric_mph else R.string.ambient_metric_kph, value)
+    }
 
     fun percent(value: Double?) = value?.takeIf(Double::isFinite)?.let {
         java.text.NumberFormat.getPercentInstance(locale).format(it.coerceIn(0.0, 100.0) / 100)

@@ -1,5 +1,7 @@
 package com.openvista.prototype.ambient
 
+import kotlin.math.roundToInt
+
 /** The visible bounds of an overlay group, after any fit-to-safe-area scaling. */
 internal data class OverlayExtent(val width: Int, val height: Int)
 
@@ -16,10 +18,34 @@ internal data class AmbientPositions(
  * Four distinct, non-overlapping compositions. Both information rows change sides
  * and alternate between the upper and lower safe bands. Unlike pixel shifting,
  * this moves the entire clock/forecast/logo footprint away from fixed pixels.
+ * Each visit to a composition also uses a different drift offset inside a reserved
+ * travel margin, so no group returns to exactly the same pixels for 32 cycles.
  *
  * This calculation is Android-independent so the safe-area contract can be tested.
  */
 internal object AmbientPlacement {
+    /** Distinct (composition, drift) pairs before the schedule repeats. */
+    const val CYCLE_LENGTH = 32
+
+    /** Unit drift directions: the eight compass points of the reserved travel margin. */
+    private val directions = listOf(
+        0f to 0f, 1f to 0f, .71f to .71f, 0f to 1f, -.71f to .71f, -1f to 0f, -.71f to -.71f, 0f to -1f,
+    )
+
+    fun phase(cycle: Int) = Math.floorMod(cycle, 4)
+
+    /** Every composition sees all eight drift offsets: (c % 4, (c + c / 4) % 8) is unique for c < 32. */
+    fun drift(cycle: Int, travel: Int): OverlayOrigin {
+        val c = Math.floorMod(cycle, CYCLE_LENGTH)
+        val (dx, dy) = directions[(c + c / 4) % directions.size]
+        return OverlayOrigin((dx * travel).roundToInt(), (dy * travel).roundToInt())
+    }
+
+    /**
+     * Places groups inside [left, top, width, height]. A non-zero [drift] moves every group
+     * together; callers reserve |drift| on each side so the result stays inside the safe area.
+     * [gap] is the minimum horizontal space kept between the two groups that share a row.
+     */
     fun calculate(
         left: Int,
         top: Int,
@@ -34,6 +60,7 @@ internal object AmbientPlacement {
         controlsVisible: Boolean,
         insetX: Int = 0,
         insetY: Int = 0,
+        drift: OverlayOrigin = OverlayOrigin(0, 0),
     ): AmbientPositions {
         val sourceRight = ((corner % 2) == 0) != (phase % 2 == 1)
         // Contextual controls occupy the lower screen; never move text into them.
@@ -65,7 +92,7 @@ internal object AmbientPlacement {
 
         // Bottom content is baseline-aligned; upper content starts at the same top edge.
         fun atRow(x: Int, extent: OverlayExtent, row: Int, rowHeight: Int): OverlayOrigin =
-            OverlayOrigin(x, if (row == upper) row else row + rowHeight - extent.height)
+            OverlayOrigin(x + drift.x, (if (row == upper) row else row + rowHeight - extent.height) + drift.y)
 
         return AmbientPositions(
             brand = atRow(brandX, brand, sourceRow, if (sourceBottom) bottomRowHeight else topRowHeight),

@@ -54,6 +54,28 @@ class AmbientPlacementTest {
         }
     }
 
+    @Test fun scheduleVisitsEveryCompositionWithEightDistinctDriftsBeforeRepeating() {
+        val travel = 12
+        val pairs = (0 until AmbientPlacement.CYCLE_LENGTH).map { AmbientPlacement.phase(it) to AmbientPlacement.drift(it, travel) }
+        assertEquals(AmbientPlacement.CYCLE_LENGTH, pairs.distinct().size)
+        for (phase in 0..3) assertEquals(8, pairs.filter { it.first == phase }.map { it.second }.distinct().size)
+        assertEquals(pairs[0], AmbientPlacement.phase(32) to AmbientPlacement.drift(32, travel))
+    }
+
+    @Test fun driftStaysInsideTheReservedTravelMargin() {
+        val travel = 14
+        for (cycle in 0 until AmbientPlacement.CYCLE_LENGTH) for (corner in 0..3) {
+            val drift = AmbientPlacement.drift(cycle, travel)
+            assertTrue(kotlin.math.abs(drift.x) <= travel && kotlin.math.abs(drift.y) <= travel)
+            val p = AmbientPlacement.calculate(60 + travel, 40 + travel, 900 - 2 * travel, 560 - 2 * travel,
+                brand, source, viewer, forecast, AmbientPlacement.phase(cycle), corner, false, drift = drift)
+            listOf(p.brand to brand, p.source to source, p.viewer to viewer, p.forecast to forecast).forEach { (point, box) ->
+                assertTrue(point.x >= 60 && point.y >= 40)
+                assertTrue(point.x + box.width <= 960 && point.y + box.height <= 600)
+            }
+        }
+    }
+
     @Test fun movementIsEnabledForNewInstallationsButRemainsUserConfigurable() {
         assertTrue(AppSettings().moveOverlay)
         assertFalse(AppSettings().copy(moveOverlay = false).moveOverlay)

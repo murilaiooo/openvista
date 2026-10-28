@@ -12,11 +12,10 @@
     <string name="ambient_forecast_days">Previsão de %1$d dias</string>
     <string name="ambient_today">Hoje</string>
     <string name="ambient_rain_chance">%1$s de precipitação</string>
-    <string name="ambient_humidity">Umidade %1$s</string>
-    <string name="ambient_wind">Vento %1$s</string>
     <string name="ambient_unknown">—</string>
     <string name="ambient_metric_kph">%1$s km/h</string>
     <string name="ambient_metric_mph">%1$s mph</string>
     <string name="ambient_condition_unavailable">Condições indisponíveis</string>
     <string name="ambient_time_unknown">Fuso horário da fonte não informado</string>
+    <string name="ambient_high_low">Máx.: %1$s   Mín.: %2$s</string>
 </resources>

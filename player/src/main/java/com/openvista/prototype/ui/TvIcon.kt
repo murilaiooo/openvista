@@ -27,7 +27,7 @@ class TvIcon(
         CAMERA, FILM, HEART, STAR, ARROW_RIGHT, CHEVRON_RIGHT, CHEVRON_DOWN, NAVIGATE,
         DATABASE, UPLOAD, FOLDER, EYE, REFRESH, CLOCK, GLOBE, SEARCH, LINK, MOVE, TIMER,
         VOLUME, POWER, SHIELD, REPORT, DOWNLOAD, PLAYLIST, LAYERS, PALETTE, SUN, FIT, QUALITY,
-        TRANSITION, HOME, LANGUAGE, TEXT_SIZE, OPACITY, PIN, PLAY,
+        TRANSITION, HOME, LANGUAGE, TEXT_SIZE, OPACITY, PIN, PLAY, WIND,
     }
 
     private val size = TvDesign.dp(context, sizeDp)
@@ -270,6 +270,15 @@ class TvIcon(
                 canvas.drawCircle(12f, 12f, 9.5f, paint)
                 path.rewind(); path.moveTo(12f, 2.5f); path.arcTo(2.5f, 2.5f, 21.5f, 21.5f, -90f, 180f, false)
                 path.close(); paint.style = Paint.Style.FILL; canvas.drawPath(path, paint); paint.style = Paint.Style.STROKE
+            }
+            Symbol.WIND -> {
+                path.rewind(); path.moveTo(2.5f, 9f); path.lineTo(15f, 9f)
+                path.cubicTo(18.5f, 9f, 18.5f, 4f, 15.5f, 4f); path.cubicTo(14f, 4f, 13f, 5f, 13f, 6.2f)
+                canvas.drawPath(path, paint)
+                path.rewind(); path.moveTo(2.5f, 14f); path.lineTo(19f, 14f)
+                path.cubicTo(22.5f, 14f, 22.5f, 19.5f, 19f, 19.5f); path.cubicTo(17.5f, 19.5f, 16.5f, 18.5f, 16.5f, 17.3f)
+                canvas.drawPath(path, paint)
+                canvas.drawLine(2.5f, 18.5f, 11f, 18.5f, paint)
             }
             Symbol.PIN -> {
                 path.rewind(); path.moveTo(12f, 21.5f); path.cubicTo(6.5f, 15.5f, 4.5f, 12.3f, 4.5f, 9.5f)
