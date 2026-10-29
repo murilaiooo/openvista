@@ -43,3 +43,9 @@ Fetched all then-current **22 v2 Markdown files**, resolved their relative Markd
 ## Honest final limitation
 
 The depth increase is substantive **desk engineering research**, not a disguised E2/E3 implementation. No Gradle tests, fake HTTP servers, camera URLs played, 24h soak, physical Fire TV measurements, Google OAuth approval or HA/Multi-TV setups were run. GitHub-only constraints make those unavailable; withholding such evidence is necessary for correct product decisions. An E1 memo can justify a cheap falsifiable prototype; it cannot approve integration or production compatibility.
+
+## Final post-index PR verification
+
+After linking the v2 index from the legacy dossier index, updating the research issues and the PR body, fetched the whole PR changed-file list and patch again. **Final observed changed-file count: 47 (23 v2 Markdown + 24 earlier Markdown); 47/47 are in `docs/research/` and end `.md`; zero `.kt` changes**. PR remains draft/open/unmerged. The added patch text was approximately **328k characters** at that check. Narrow scans on the added patch found **0** Google API-key-shaped strings, GitHub-token-shaped strings, AWS-key-shaped strings, credentials embedded in HTTP/RTSP URI syntax and direct `m3u8`/`mpd` HTTP stream links. This does not prove no secret could ever be present: it is a pattern scan, not full history/file/license forensics.
+
+All 22 pre-existing v2 files were independently fetched for relative Markdown links before this audit was created and had **zero missing relative file targets** against the branch Git tree. The new audit itself references only previously confirmed repo paths and v2 files. **No compilation, test execution or hardware/protocol proof** was performed during review. Therefore the evidence grade and product HOLD gates are unchanged.
