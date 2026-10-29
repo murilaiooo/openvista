@@ -95,3 +95,11 @@ User's required product experience is **ad-free, uninterrupted ambient video**. 
 | Packaging | Zero stream URLs/videos in release APK; no private research fixtures | Must run final artifact guard |
 
 This is a set of **research decisions**, not evidence of an implemented feature.
+
+## GitHub source dataset verification: deeper inspection (2026-10-28)
+
+The [Live Environment Streams source metadata](https://github.com/william-ricchiuti/Live-Environment-Streams/blob/main/sources.json) declares 67 provider families (total 5,997 items). **License labels by family:** 53 `fair_use`, 11 `public_domain`, 1 `open_data`, 2 `unknown`. Treat these as curator descriptions only; especially, **fair use is not a permission grant**, and purported public domain requires verification from the originating provider for each relevant media source.
+
+Its public [validation script](https://github.com/william-ricchiuti/Live-Environment-Streams/blob/main/scripts/validate.py) checks HLS URL **HTTP 2xx** and HTTP images 2xx/3xx; it does not by itself decode or measure a valid moving HD stream. The project README claims separate production playback verification, which was not independently available for this audit. Do not equate any dataset “active” total with verified permissioned, stable, TV-compatible HD cameras. YouTube/HTML/tokenized URLs are excluded from meaningful OpenVista source counts.
+
+**Result:** maintain **HOLD** on claims of expanded global camera supply until source-by-source rights and playback verification. No camera URL was copied or added to the app.
