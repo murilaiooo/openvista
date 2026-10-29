@@ -113,3 +113,7 @@ All selected features are placed within existing 3-card Home and 7-section Setti
 - **Blast radius:** documents and issue planning only; no runtime code.
 - **Risks:** readers may mistake research recommendations for approved requirements or third-party repository counts for verified legal streams. Labels, E-levels and linked source assumptions must accompany any future handoff.
 - **Merge danger:** keep as draft until owner deliberately wants the research reference on main; never conflate documentation merge with feature sign-off.
+
+## Addendum to pass 3: independent dataset implementation review
+
+A deeper GitHub source-only check read [Live Environment Streams sources.json](https://github.com/william-ricchiuti/Live-Environment-Streams/blob/main/sources.json) and [scripts/validate.py](https://github.com/william-ricchiuti/Live-Environment-Streams/blob/main/scripts/validate.py). Dataset metadata tags 53/67 source families `fair_use` (not authorization); the public validator's HLS test is an HTTP 2xx request rather than full codec/live playback. Its separate claimed production validation was not reproduced. **Review implication:** no new camera protocol is justified by claimed record counts until legal usage and actual HD video playback are independently proved. The initial R26 dossier and media feasibility report were amended to state this explicitly.
