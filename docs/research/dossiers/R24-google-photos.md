@@ -1,0 +1,32 @@
+# R24 — Google Photos: optional personal-media integration
+
+**Research verdict:** **HOLD** (provider eligibility, API-use policy, authentication and target-device UX). **E1** design evaluation against project policy; *no* Google API token was acquired, no partner approval, no login or images downloaded. [Research #47](https://github.com/murilaiooo/openvista/issues/47).
+
+## Actual user job and conflict to resolve
+A viewer wants photos and videos already stored in Google Photos to appear among **My Videos / personal memories** without transferring everything to USB. They may want specific albums or recently added trip videos, a random slideshow and an offline fallback. OpenVista is currently free with **no app account required** ([approved decisions](../../product/decisions.md)); an optional third-party Google authorization could be acceptable only with explicit owner approval, a clear unlink path, and no blocking of basic use. **Do not promise full Google Photos library sync**.
+
+## Three distinct official interface families (research hypotheses to recheck with Google)
+1. **Google Photos Ambient API:** purpose-built for TV/digital-photo-frame ambient presentation, but requires **Google Photos Partner Program admission**. This is the closest fit for a true TV photo/video carousel. Partner approval, exact supported media classes, device-auth methods, quota, partner restrictions, cache rules and pricing must be confirmed by Google **before architecture commitment**. Reference entry point: https://developers.google.com/photos/ambient/guides/about (external URL *not fetched* in this GitHub-only session).
+2. **Google Photos Picker API:** explicit **user-selected** media access, not unrestricted automatic access to personal albums. An OAuth/browser session may require another device on the same network, but QR pairing is only a UX idea, not authorization scope. Session/media URLs and auth may expire, require re-selection or short-term refresh; verify exact TTL with primary Google docs. References: https://developers.google.com/photos/picker/guides/get-started-picker and https://developers.google.com/photos/picker/guides/media-items (external docs not revalidated in this GitHub-only research).
+3. **Google Photos Library API:** changes since 2025 restrict access to preexisting personal library content outside app-created media. Do **not** build full-library import on legacy assumptions. Verify current scope/policy in https://developers.google.com/photos/support/updates and https://developers.google.com/photos/support/api-policy before choosing implementation.
+
+**Hard rule:** Google Photos APIs are not generic gallery scraping proxies. Never scrape the Google Photos web UI, reverse-engineer private endpoints, borrow cookies, request broad scopes as a shortcut, embed third-party credentials in the APK, or silently host a user photo mirror.
+
+## Alternative architectures
+- **A: Official Google partner integration** (preferred if attainable): OpenVista delegates account consent to official Google authorization and handles playlist display only within permitted partner use case.
+- **B: Picker-to-local optional import**: users handpick allowed files, with explicit cache/retention consent and token expiration semantics. Potentially useful but may be so manual that a standard phone-to-TV transfer is preferable. Confirm Picker terms permit the actual ambient display use case.
+- **C: Self-hosted Google Takeout folder over WebDAV/SMB**: user controls media files, independent of Google API partner acceptance; less automatic but compatible with the existing user-managed-content model. Never advertise as direct Google Photos sync.
+- **D: Google Drive as Google Photos library replacement**: false equivalence; not a replacement unless users separately store videos there.
+- **E: Immich/Nextcloud personal libraries**: [Immich Android TV](https://github.com/giejay/Immich-Android-TV) and [Aerial Views](https://github.com/theothernt/AerialViews) demonstrate self-hosted photos/video slideshow, but are different providers and should not be labelled Google Photos.
+
+## Data and access threat model
+Scopes and consent minimized. Auth flow must work without touch, distinguish device login from OpenVista account, and display which Google identity is connected. Use platform-appropriate encrypted token storage; avoid writing tokens to current unencrypted user library JSON. Token expiration, revocation, HTTP 401, rate 429, shared Google album deletion, child account/age restrictions, private sharing and changed photo privacy must have clean recovery. Avoid persisting geotags/faces beyond display needs; never scan a user's library automatically unless specifically permitted. No uploads to the developer or background analytics.
+
+## UX flow and media types
+My Videos → **Add personal source** → (USB / Network / **Google Photos**, only if eligible) → explanation → Google authorization on phone/TV according to official supported flow → choose permitted photos/videos/albums → preview selection → save a source label. Playback should visually distinguish **photo slideshow** (durations, Ken Burns optional but potentially expensive) from **video file** and **live camera**, rather than treating JPEG as live video. Provide logout/revoke, “Remove saved media references”, temporary download indicator, and explicit offline availability.
+
+## Evidence to collect before any GO
+Partner eligibility/approval *in writing*; exact API terms, user data policy, OAuth consent verification, media formats and HD/4K limits; token/request rate; short-lived URL refresh; offline storage rights; quota/cost; any attribution and branding requirements. Automated mock tests for denial, revoke, empty picker, 500 items, image rotation/EXIF, portrait/landscape, huge HDR video, expired URL while playing, picker relaunch, network loss and unlink during slideshow. End-to-end Android 9 TV only with sanctioned test account and independent consent. **No partner data acquired in this phase**.
+
+## Decision record
+**Ambient: HOLD (partner gate); Picker: HOLD (scope + policy + UX viability); unrestricted legacy Library: NO-GO** until new official evidence changes that assessment. This integration cannot become a dependency of OpenVista's basic offline playback. All external Google policy links above are candidate primary sources requiring fresh verification; this session accessed **GitHub only**.
