@@ -117,3 +117,11 @@ All selected features are placed within existing 3-card Home and 7-section Setti
 ## Addendum to pass 3: independent dataset implementation review
 
 A deeper GitHub source-only check read [Live Environment Streams sources.json](https://github.com/william-ricchiuti/Live-Environment-Streams/blob/main/sources.json) and [scripts/validate.py](https://github.com/william-ricchiuti/Live-Environment-Streams/blob/main/scripts/validate.py). Dataset metadata tags 53/67 source families `fair_use` (not authorization); the public validator's HLS test is an HTTP 2xx request rather than full codec/live playback. Its separate claimed production validation was not reproduced. **Review implication:** no new camera protocol is justified by claimed record counts until legal usage and actual HD video playback are independently proved. The initial R26 dossier and media feasibility report were amended to state this explicitly.
+
+## Final GitHub PR diff checks (research safety)
+
+After the dossier index and source-permission addenda, retrieved [draft PR #50's changed-file patches](https://github.com/murilaiooo/openvista/pull/50/files) through the GitHub connector. **24 files changed, all 24 Markdown documents under `docs/research/`; 18 are individual dossiers.** The merged patch is approximately 165k characters. Rechecked the relative Markdown links of all 18 individual dossiers against the actual research-branch file tree: **zero broken relative targets detected** by that check. This does not validate external URLs or GitHub anchor fragments.
+
+An explicit pattern scan of added patch text detected **zero credential-bearing RTSP URLs, zero direct `.m3u8` URL patterns, zero Google API-key prefixes, and zero GitHub personal token prefixes**. This is a narrow static heuristic, **not** a comprehensive secret scan, source-history audit or licensing certification. The repository's existing signed-release gate still requires checking the actual APK and Git history.
+
+No code was compiled, no physical display was controlled, no streaming URL was opened and no vendor account connected. **E1 remains the final evidence level**, with E2/E3/rights checks outstanding.
