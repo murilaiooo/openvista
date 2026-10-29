@@ -1,4 +1,6 @@
-# OpenVista R&D dossiers — master index
+# OpenVista R&D dossiers — first-pass E1 index
+
+> **Updated research:** The first-pass studies below are preserved for historical traceability. For the substantive code-level second-pass analysis, experiment contracts, security findings and corrected architecture, **start at [OpenVista R&D v2](../v2/README.md)**. The original studies are not E2 test evidence.
 
 **As of 2026-10-28.** Parent issue: [Research program #42](https://github.com/murilaiooo/openvista/issues/42). Documentation-only [draft PR #50](https://github.com/murilaiooo/openvista/pull/50). **Nothing below is a shipped or owner-approved new feature.** This is a GitHub-only desk research pass: existing repo source, published GitHub project code/readmes, past owner decisions and preexisting project notes. No general web browsing, laboratory test, device test, independent streaming probe, OAuth or API partner communication was performed.
 
