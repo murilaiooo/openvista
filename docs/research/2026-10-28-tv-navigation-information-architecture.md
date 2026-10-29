@@ -39,9 +39,9 @@ Home: [Cameras] [My Videos] [Favorites]               Settings icon / Resume
   * Currently disabled pending security/release approval
 ```
 
-### Audit finding: verify route coverage first
+### Audit correction: `folders` route is implemented
 
-`OpenVistaActivity.refresh()` dispatches `onboarding/setup`, `cameras/videos/favorites`, `details`, `playlists`, `playlist`, and `map`, but the inspected `when(route.page)` does **not** explicitly handle `folders` even though the library and Settings link to `LibraryRoute("folders")` and `LibraryScreens.folders()` exists. The fallback currently routes through `settingsScreens.render(...)`. **Potential broken navigation path, requires an isolated reproduction/code test**. Do not silently repair as part of this documentation PR.
+A renewed read of the current [OpenVistaActivity.refresh()](../../player/src/main/java/com/openvista/prototype/OpenVistaActivity.kt) explicitly shows `"folders" -> libraryScreens.folders(body)`. The earlier suspicion that this route was missing was **wrong and retracted**; there is no evidence of a `folders` dispatch bug. Continue general route/focus tests, but **do not open an implementation bug on this disproven basis**. The detailed route matrix and states appear in [R27](dossiers/R27-tv-navigation-system.md).
 
 Other audit questions: legacy `overlays` alias should not make the user enter duplicate Settings trees; verify actual D-pad focus return, canceled source editor, player-to-Settings, Home/resume state, and settings top-level Back behavior. Focus must be visually obvious and deterministic.
 
