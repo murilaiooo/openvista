@@ -70,4 +70,17 @@ Future E2 commands must be documented with fake counter provider and known fixtu
 
 Advanced → Diagnostics → Data usage: segmented Today/7 days/30 days; Received, Sent, Total, Measured coverage, Projection (explicit “estimate”). A 30-day projected estimate needs **sample hours and confidence interval**; no arbitrary extrapolation from single camera. Prefer static display when no traffic rather than polling while Settings stays open.
 
-**Kill/hold:** if UID counters unsupported and source-level measurement excludes most media, show partial media-only estimator and do not market “total OpenVista usage”. If counter subsystem threatens playback/favorites durability, do not ship. Complexity S/M for app-only UID, M/L with robust per-source bytes. Open source proof: [AndroidX Media](https://github.com/androidx/media) has DataSource transfer listeners; Android SDK references need platform verification later. 
+**Kill/hold:** if UID counters unsupported and source-level measurement excludes most media, show partial media-only estimator and do not market “total OpenVista usage”. If counter subsystem threatens playback/favorites durability, do not ship. Complexity S/M for app-only UID, M/L with robust per-source bytes. Open source proof: [AndroidX Media](https://github.com/androidx/media) has DataSource transfer listeners; Android SDK references need platform verification later.
+
+## Illustrative 8-hour-per-day streaming budgets (not measured OpenVista consumption)
+
+Network budgeting is important even before an app counter works. **Assume** a steady encoded video bitrate, 8 playback hours/day, 30 days/month, decimal GB, and ignore overhead, thumbnail/weather fetches, retries, audio, adaptive variant changes and caches. Derived purely from bitrate × time:
+
+| Assumed steady stream bitrate | 1 hour | 8h/day | 30 × 8h month |
+|---|---:|---:|---:|
+| 2 Mbps | 0.9 GB | 7.2 GB | 216 GB |
+| 4 Mbps | 1.8 GB | 14.4 GB | 432 GB |
+| 8 Mbps | 3.6 GB | 28.8 GB | 864 GB |
+| 12 Mbps | 5.4 GB | 43.2 GB | 1,296 GB |
+
+This is a **scenario chart, not a benchmark** of the current app, the owner's internet or the TV. HLS ABR can switch variants; a “1080p” label does not establish a known bitrate. Provider calls, preview thumbnails, retries and uploads change totals. User-facing projection must therefore report measured coverage and uncertainty, e.g. “Based on the last 12 observed active hours, if usage stays similar.” If a UIDs API is unsupported, do not silently substitute table values as if measured.
