@@ -12,7 +12,8 @@ This is a **new layer of engineering research**, not a cosmetic rewrite. It is g
 3. [Actual open-source competitor capabilities and differentiation](91-comparison-with-real-world-open-source-apps.md)
 4. [Synthetic and real-device experimental test protocol](92-experiment-protocols-test-data-and-measurement.md)
 5. [Privacy, source-permissions, credential and LAN threat ledger](93-security-privacy-media-rights-ledger.md)
-6. [Existing screen and app information architecture, full route/focus test matrix](R27-information-architecture-acceptance.md)
+6. [Five-pass factual/source/link/static-risk audit and remaining blockers](94-five-pass-audit-and-evidence-limitations.md)
+7. [Existing screen and app information architecture, full route/focus test matrix](R27-information-architecture-acceptance.md)
 
 ## All original owner-selected 14 items
 
