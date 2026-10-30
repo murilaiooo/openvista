@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="preview_idle">Highlight a camera to preview it here.</string>
+    <string name="preview_loading">Connecting to this camera…</string>
+    <string name="preview_hint">Press OK to watch full screen.</string>
+    <string name="preview_unavailable">This camera did not respond. Check the stream or try again.</string>
+    <string name="preview_offline">The TV is offline. The preview will load when the network returns.</string>
+    <string name="preview_unsupported">This TV cannot decode this stream.</string>
+    <string name="preview_retry">Retry</string>
+    <string name="preview_details">Details</string>
+    <string name="preview_muted">Muted preview</string>
+    <string name="still_working">Still working…</string>
+    <string name="section_actions">Actions</string>
+    <string name="section_organize">Organize</string>
+    <string name="section_folders">Saved folders</string>
+    <plurals name="playlist_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+</resources>

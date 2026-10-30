@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="preview_idle">Destaque uma câmera para ver a prévia aqui.</string>
+    <string name="preview_loading">Conectando a esta câmera…</string>
+    <string name="preview_hint">Pressione OK para assistir em tela cheia.</string>
+    <string name="preview_unavailable">Esta câmera não respondeu. Verifique a transmissão ou tente novamente.</string>
+    <string name="preview_offline">A TV está sem internet. A prévia carrega quando a rede voltar.</string>
+    <string name="preview_unsupported">Esta TV não consegue decodificar esta transmissão.</string>
+    <string name="preview_retry">Tentar de novo</string>
+    <string name="preview_details">Detalhes</string>
+    <string name="preview_muted">Prévia sem som</string>
+    <string name="still_working">Ainda trabalhando…</string>
+    <string name="section_actions">Ações</string>
+    <string name="section_organize">Organizar</string>
+    <string name="section_folders">Pastas salvas</string>
+    <plurals name="playlist_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d itens</item>
+    </plurals>
+</resources>

@@ -29,6 +29,7 @@ import com.openvista.prototype.diagnostics.DiagnosticJournal
 import com.openvista.prototype.playback.PlaybackSnapshot
 import com.openvista.prototype.ui.AppLocale
 import com.openvista.prototype.ui.HomeScreen
+import com.openvista.prototype.ui.LoadingDrawable
 import com.openvista.prototype.ui.LibraryScreens
 import com.openvista.prototype.ui.PlayerScreen
 import com.openvista.prototype.ui.SettingsScreens
@@ -344,18 +345,52 @@ class OpenVistaActivity : ComponentActivity() {
         }
     }
 
-    fun message(resource: Int) = message(getString(resource))
-    fun message(value: String) {
+    fun message(resource: Int, busy: Boolean = false) = message(getString(resource), busy)
+
+    /**
+     * Shows [value] in the screen's feedback line. A [busy] message marks pending work with the shared
+     * spinner, but only once the work has taken longer than [BUSY_REVEAL_MS], so near-instant saves
+     * never flicker; after [BUSY_LIMIT_MS] the spinner stops and the text says the work continues.
+     */
+    fun message(value: String, busy: Boolean = false) {
         pendingMessage = value
+        if (!::feedback.isInitialized) return
+        root.removeCallbacks(revealBusy)
+        root.removeCallbacks(busyLimit)
+        if (busy && route.page != "player") {
+            busyText = value
+            root.postDelayed(revealBusy, BUSY_REVEAL_MS)
+            return
+        }
+        busyText = null
+        show(value, spinner = false)
+    }
+
+    private var busyText: String? = null
+    private val revealBusy = Runnable {
+        val text = busyText ?: return@Runnable
+        if (isDestroyed || pendingMessage != text) return@Runnable
+        show(text, spinner = true)
+        root.postDelayed(busyLimit, BUSY_LIMIT_MS)
+    }
+    private val busyLimit = Runnable {
+        if (!isDestroyed && busyText != null && pendingMessage == busyText) { busyText = null; show(getString(R.string.still_working), false) }
+    }
+
+    private fun show(value: String, spinner: Boolean) {
         if (::feedback.isInitialized && route.page != "player") {
+            (feedback.compoundDrawablesRelative[0] as? LoadingDrawable)?.stop()
+            val mark = if (spinner) LoadingDrawable(this, 11f).also { it.start() } else null
+            feedback.setCompoundDrawablesRelativeWithIntrinsicBounds(mark, null, null, null)
+            feedback.compoundDrawablePadding = ui.dp(7)
             ui.announce(feedback, value)
             feedback.visibility = if (value.isBlank()) View.GONE else View.VISIBLE
             // Confirmations on bounded screens fade on their own; the live region has announced them.
-            if (value.isNotBlank() && (value == getString(R.string.library_restored) || route.page == "home" ||
+            if (!spinner && value.isNotBlank() && (value == getString(R.string.library_restored) || route.page == "home" ||
                     settingsScreens.ownsPage(route.page))) {
                 feedback.postDelayed({
                     if (!isDestroyed && pendingMessage == value) message("")
-                }, if (value == getString(R.string.loading)) 15_000L else 4_000L)
+                }, 4_000L)
             }
         }
     }
@@ -365,7 +400,7 @@ class OpenVistaActivity : ComponentActivity() {
         catch (_: Exception) { DiagnosticJournal.record(this, DiagnosticJournal.Event.LIBRARY_STORAGE_ERROR); message(R.string.operation_failed) }
     }
     fun persisted(success: String) {
-        message(R.string.loading)
+        message(R.string.loading, busy = true)
         worker.submit {
             val saved = try { store.flush(); true } catch (_: Exception) { false }
             runOnUiThread {
@@ -388,6 +423,34 @@ class OpenVistaActivity : ComponentActivity() {
             onDismiss()
         }
         dialog.show()
+        styleDialog(dialog)
+    }
+
+    /**
+     * Fire OS swaps in its own grey dialog surface and buttons regardless of the app theme, so the
+     * shared glass panel and control styles are applied after the dialog is shown.
+     */
+    private fun styleDialog(dialog: AlertDialog) {
+        val window = dialog.window ?: return
+        window.setBackgroundDrawable(TvDesign.panel(this, 0xFF0B1D2C.toInt(), TvDesign.glassStroke, radiusDp = 10f))
+        // Clear the platform's grey layout backgrounds so the glass surface shows through.
+        fun clear(view: View) {
+            if (view !is ViewGroup) return
+            view.background = null
+            // Our own dialog content keeps its row and control backgrounds.
+            if (view.id == android.R.id.custom) return
+            for (i in 0 until view.childCount) clear(view.getChildAt(i))
+        }
+        (window.decorView as? ViewGroup)?.let { decor -> for (i in 0 until decor.childCount) clear(decor.getChildAt(i)) }
+        listOf(AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_NEGATIVE).forEach { which ->
+            dialog.getButton(which)?.apply {
+                background = TvDesign.control(this@OpenVistaActivity, base = if (which == AlertDialog.BUTTON_POSITIVE) 0x33205F6E else TvDesign.surfaceRaised)
+                setTextColor(TvDesign.text)
+                typeface = TvDesign.medium
+                isAllCaps = false
+                stateListAnimator = null
+            }
+        }
     }
 
     fun confirm(title: String, action: () -> Unit) {
@@ -410,7 +473,7 @@ class OpenVistaActivity : ComponentActivity() {
         try { launcher.launch(intent) } catch (_: RuntimeException) { message(R.string.picker_unavailable) }
     }
 
-    fun rescan() { message(R.string.loading); access.restore { status -> refresh(); message(status) } }
+    fun rescan() { message(R.string.loading, busy = true); access.restore { status -> refresh(); message(status) } }
     fun forgetFolder(uri: String) {
         if (route.page == "player") { playerScreen.stop(); route = LibraryRoute("videos") }
         access.forgetFolder(uri) { status -> refresh(); message(status) }
@@ -430,7 +493,7 @@ class OpenVistaActivity : ComponentActivity() {
         val generation = importGeneration
         val cancellation = CancellationSignal()
         importCancellation = cancellation
-        message(R.string.reading_list)
+        message(R.string.reading_list, busy = true)
         importTask = worker.submit {
             val listName = try {
                 contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null, cancellation)?.use { rows ->
@@ -487,10 +550,15 @@ class OpenVistaActivity : ComponentActivity() {
         if (resultCode != RESULT_OK || uri == null) { message(R.string.selection_cancelled); return }
         when (kind) {
             0 -> importList(uri)
-            1 -> { message(R.string.loading); access.selectFolder(uri, data.flags) { status -> refresh(); message(status) } }
+            1 -> { message(R.string.loading, busy = true); access.selectFolder(uri, data.flags) { status -> refresh(); message(status) } }
             2 -> access.selectVideo(uri, data.flags) { status -> refresh(); message(status) }
         }
     }
+    private companion object {
+        const val BUSY_REVEAL_MS = 350L
+        const val BUSY_LIMIT_MS = 30_000L
+    }
+
     private fun rememberFocus() { route.focus = currentFocus?.tag as? String ?: route.focus }
     private fun firstFocusable(view: View): View? {
         if (view.isFocusable && view.isEnabled && view.visibility == View.VISIBLE) return view

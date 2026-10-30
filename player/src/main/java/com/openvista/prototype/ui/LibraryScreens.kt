@@ -3,6 +3,7 @@ package com.openvista.prototype.ui
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputType
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.media3.common.util.UnstableApi
@@ -88,14 +89,18 @@ class LibraryScreens(private val host: OpenVistaActivity) {
             if (hasNext) ui.button(body, s(R.string.next_page)) { host.open(route.copy(offset = offset + PAGE_SIZE)) }
             return
         }
-        if (family == MediaFamily.CAMERAS) sourceActions(body) else {
+        val all = store.items().filter { it.family == family }
+        // Saved cameras get a two-pane browser: the list scrolls on the left while the focused camera
+        // previews on the right (issue #33). Everything else keeps the single scrolling column.
+        val browser = family == MediaFamily.CAMERAS && all.isNotEmpty()
+        val list = if (browser) ui.column() else body
+        if (family == MediaFamily.CAMERAS) sourceActions(list) else {
             val actions = ui.row()
             ui.button(actions, s(R.string.choose_folder)) { host.pickFolder() }
             ui.button(actions, s(R.string.choose_video)) { host.pickVideo() }
             ui.button(actions, s(R.string.manage_folders)) { host.open(LibraryRoute("folders")) }
             body.addView(actions)
         }
-        val all = store.items().filter { it.family == family }
         if (all.isEmpty()) {
             body.addView(ui.description(s(if (family == MediaFamily.CAMERAS) R.string.camera_empty else R.string.video_empty)))
             return
@@ -107,32 +112,47 @@ class LibraryScreens(private val host: OpenVistaActivity) {
             ui.button(controls, s(R.string.filter)) { filters() }
             ui.button(controls, s(R.string.map)) { host.open(LibraryRoute("map")) }
         }
-        body.addView(controls)
+        list.addView(controls)
         val filtered = if (family == MediaFamily.CAMERAS) all.filter { item ->
             val values = listOf(item.title, item.country, item.city, item.category).joinToString(" ")
             values.contains(search, true) && item.country.contains(country, true) && item.city.contains(city, true) &&
                 item.category.contains(category, true) && (!favoriteOnly || item.favorite) &&
                 (!availableOnly || availability(item) == Availability.AVAILABLE)
         } else all
-        if (filtered.isEmpty()) body.addView(ui.description(s(R.string.no_matches)))
+        if (filtered.isEmpty()) list.addView(ui.description(s(R.string.no_matches)))
         val offset = route.offset.coerceAtMost(((filtered.size - 1).coerceAtLeast(0) / PAGE_SIZE) * PAGE_SIZE)
-        filtered.drop(offset).take(PAGE_SIZE).forEach { item -> sourceRow(body, item) }
+        val preview = if (browser) CameraPreviewPane(host, ui, ::availability).apply {
+            onDetails = { item -> host.open(LibraryRoute("details", item.id, item.family)) }
+        } else null
+        filtered.drop(offset).take(PAGE_SIZE).forEach { item ->
+            val row = sourceRow(list, item, if (preview == null) null else { ->
+                host.play(filtered, item.id, shuffle = true)
+            })
+            preview?.let { pane -> row.setOnFocusChangeListener { view, focused -> if (focused) pane.show(item, view) } }
+        }
         val pages = ui.row()
         if (offset > 0) ui.button(pages, s(R.string.previous_page)) { host.open(route.copy(offset = offset - PAGE_SIZE)) }
         if (offset + PAGE_SIZE < filtered.size) ui.button(pages, s(R.string.next_page)) { host.open(route.copy(offset = offset + PAGE_SIZE)) }
-        body.addView(pages)
+        list.addView(pages)
+        if (preview == null) return
+        val panels = ui.row().apply { gravity = Gravity.TOP }
+        panels.addView(ui.scroll(list), LinearLayout.LayoutParams(0, ui.dp(BROWSER_HEIGHT), 1.15f))
+        panels.addView(preview, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = ui.dp(18) })
+        body.addView(panels)
     }
 
     /** One library entry in the shared row style; favorites carry the star icon instead of a text mark. */
-    private fun sourceRow(body: LinearLayout, item: LibraryItem) {
+    private fun sourceRow(body: LinearLayout, item: LibraryItem, select: (() -> Unit)? = null): LinearLayout {
         val place = listOf(item.city, item.country, item.category).filter(String::isNotBlank).joinToString(" · ")
         val icon = when {
             item.favorite -> TvIcon.Symbol.STAR
             item.family == MediaFamily.CAMERAS -> TvIcon.Symbol.CAMERA
             else -> TvIcon.Symbol.FILM
         }
-        ui.settingRow(body, item.title, key = "source_${item.id}", summary = place.ifBlank { null }, icon = icon) {
-            host.open(LibraryRoute("details", item.id, item.family))
+        // A row that plays on OK has no chevron; the chevron promises the details page.
+        return ui.settingRow(body, item.title, key = "source_${item.id}", summary = place.ifBlank { null }, icon = icon,
+            control = if (select == null) TvUi.RowControl.CHEVRON else TvUi.RowControl.NONE) {
+            select?.invoke() ?: host.open(LibraryRoute("details", item.id, item.family))
         }
     }
 
@@ -159,24 +179,37 @@ class LibraryScreens(private val host: OpenVistaActivity) {
                 .apply { timeZone = TimeZone.getTimeZone(item.timeZone) }.format(java.util.Date())
             body.addView(ui.description(host.getString(R.string.camera_local_time, time)))
         }
-        val actions = ui.row()
-        ui.button(actions, s(R.string.play), "play_${item.id}") {
+        val actions = group(body, R.string.section_actions)
+        ui.settingRow(actions, s(R.string.play), key = "play_${item.id}", icon = TvIcon.Symbol.PLAY) {
             host.play(store.items().filter { it.family == item.family }, item.id, item.family == MediaFamily.CAMERAS)
         }
-        ui.button(actions, s(if (item.favorite) R.string.favorite_remove else R.string.favorite_add)) {
+        ui.toggleRow(actions, s(R.string.favorites), item.favorite, "favorite_${item.id}", icon = TvIcon.Symbol.STAR) {
             host.mutate { store.upsert(item.copy(favorite = !item.favorite)) }
         }
-        ui.button(actions, s(R.string.edit)) { editSource(item) }
-        body.addView(actions)
-        ui.button(body, s(R.string.playlists)) { choosePlaylist(item) }
-        val organize = ui.row()
-        ui.button(organize, s(R.string.move_up)) { host.mutate { store.moveItem(item.id, -1) } }
-        ui.button(organize, s(R.string.move_down)) { host.mutate { store.moveItem(item.id, 1) } }
-        body.addView(organize)
-        if (item.family == MediaFamily.CAMERAS) ui.button(body, s(R.string.forecast)) { host.openForecast(item) }
-        ui.button(body, s(R.string.remove)) {
+        if (item.family == MediaFamily.CAMERAS) ui.settingRow(actions, s(R.string.forecast), key = "forecast", icon = TvIcon.Symbol.WEATHER) {
+            host.openForecast(item)
+        }
+        ui.settingRow(actions, s(R.string.playlists), key = "choose_playlist", icon = TvIcon.Symbol.PLAYLIST) { choosePlaylist(item) }
+        ui.settingRow(actions, s(R.string.edit), key = "edit", icon = TvIcon.Symbol.LINK) { editSource(item) }
+        val organize = group(body, R.string.section_organize)
+        ui.settingRow(organize, s(R.string.move_up), key = "move_up", icon = TvIcon.Symbol.MOVE,
+            control = TvUi.RowControl.NONE) { host.mutate { store.moveItem(item.id, -1) } }
+        ui.settingRow(organize, s(R.string.move_down), key = "move_down", icon = TvIcon.Symbol.MOVE,
+            control = TvUi.RowControl.NONE) { host.mutate { store.moveItem(item.id, 1) } }
+        ui.settingRow(organize, s(R.string.remove), key = "remove", icon = TvIcon.Symbol.REPORT, control = TvUi.RowControl.NONE) {
             host.confirm(s(R.string.confirm_remove)) { host.removeItem(item.id) }
         }
+    }
+
+    /** A titled group of rows, matching the section labels of Settings. */
+    private fun group(body: LinearLayout, title: Int): LinearLayout {
+        val group = ui.column()
+        group.addView(ui.caps(s(title), 0xFF8FA3B1.toInt()).apply {
+            textSize = 6.8f
+            setPadding(ui.dp(2), ui.dp(11), ui.dp(2), ui.dp(5))
+        })
+        body.addView(group, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        return group
     }
 
     fun editSource(item: LibraryItem? = null) {
@@ -288,11 +321,19 @@ class LibraryScreens(private val host: OpenVistaActivity) {
 
     fun playlists(body: LinearLayout, family: MediaFamily) {
         body.addView(ui.heading(s(R.string.playlists)))
-        ui.button(body, s(R.string.new_playlist)) { nameDialog(s(R.string.new_playlist)) { name ->
-            host.mutate { store.savePlaylist(SavedPlaylist(UUID.randomUUID().toString(), name, family)) }
-        } }
-        store.playlists().filter { it.family == family }.forEach { playlist ->
-            ui.button(body, playlist.name, "playlist_${playlist.id}") { host.open(LibraryRoute("playlist", playlist.id, family)) }
+        val saved = store.playlists().filter { it.family == family }
+        val list = group(body, R.string.playlists)
+        ui.settingRow(list, s(R.string.new_playlist), key = "new_playlist", icon = TvIcon.Symbol.PLAYLIST) {
+            nameDialog(s(R.string.new_playlist)) { name ->
+                host.mutate { store.savePlaylist(SavedPlaylist(UUID.randomUUID().toString(), name, family)) }
+            }
+        }
+        saved.forEach { playlist ->
+            ui.settingRow(list, playlist.name, key = "playlist_${playlist.id}",
+                summary = host.resources.getQuantityString(R.plurals.playlist_count, playlist.itemIds.size, playlist.itemIds.size),
+                icon = if (family == MediaFamily.CAMERAS) TvIcon.Symbol.CAMERA else TvIcon.Symbol.FILM) {
+                host.open(LibraryRoute("playlist", playlist.id, family))
+            }
         }
     }
 
@@ -300,31 +341,48 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         val playlist = store.playlists().firstOrNull { it.id == id } ?: run { body.addView(ui.description(s(R.string.empty_playlist))); return }
         body.addView(ui.heading(playlist.name))
         val items = playlist.itemIds.mapNotNull(store::item)
-        val actions = ui.row()
-        ui.button(actions, s(R.string.play)) { host.play(items, shuffle = playlist.shuffle) }
-        ui.button(actions, s(R.string.rename)) { nameDialog(s(R.string.rename), playlist.name) { name -> host.mutate { store.savePlaylist(playlist.copy(name = name)) } } }
-        ui.button(actions, s(R.string.duplicate)) { host.mutate { store.savePlaylist(playlist.copy(id = UUID.randomUUID().toString(), name = host.getString(R.string.playlist_copy, playlist.name).take(100))) } }
-        body.addView(actions)
-        val organize = ui.row()
-        ui.button(organize, s(R.string.move_up)) { host.mutate { store.movePlaylist(id, -1) } }
-        ui.button(organize, s(R.string.move_down)) { host.mutate { store.movePlaylist(id, 1) } }
-        ui.button(organize, s(if (playlist.shuffle) R.string.shuffle else R.string.sequence)) { host.mutate { store.savePlaylist(playlist.copy(shuffle = !playlist.shuffle)) } }
-        body.addView(organize)
-        ui.button(body, s(R.string.batch_add)) { batchAdd(playlist) }
-        if (playlist.family == MediaFamily.VIDEOS) ui.button(body, s(R.string.fallback_set)) {
-            host.mutate { store.saveSettings(store.settings().copy(fallbackPlaylistId = id)) }
+        val actions = group(body, R.string.section_actions)
+        ui.settingRow(actions, s(R.string.play), key = "play", icon = TvIcon.Symbol.PLAY) { host.play(items, shuffle = playlist.shuffle) }
+        ui.toggleRow(actions, s(R.string.shuffle), playlist.shuffle, "shuffle", icon = TvIcon.Symbol.REFRESH) {
+            host.mutate { store.savePlaylist(playlist.copy(shuffle = !playlist.shuffle)) }
         }
-        ui.button(body, s(R.string.delete)) { host.confirm(s(R.string.confirm_delete_playlist)) {
-            host.mutate { store.deletePlaylist(id) }; host.open(LibraryRoute("playlists", family = playlist.family))
-        } }
-        body.addView(ui.heading(s(R.string.playlist_items)))
-        if (items.isEmpty()) body.addView(ui.description(s(R.string.empty_playlist)))
+        ui.settingRow(actions, s(R.string.batch_add), key = "batch_add", icon = TvIcon.Symbol.LAYERS) { batchAdd(playlist) }
+        if (playlist.family == MediaFamily.VIDEOS) ui.toggleRow(actions, s(R.string.fallback_set),
+            store.settings().fallbackPlaylistId == id, "fallback", icon = TvIcon.Symbol.SHIELD) {
+            host.mutate { store.saveSettings(store.settings().copy(fallbackPlaylistId = if (store.settings().fallbackPlaylistId == id) null else id)) }
+        }
+        val organize = group(body, R.string.section_organize)
+        ui.settingRow(organize, s(R.string.rename), key = "rename", icon = TvIcon.Symbol.TEXT_SIZE) {
+            nameDialog(s(R.string.rename), playlist.name) { name -> host.mutate { store.savePlaylist(playlist.copy(name = name)) } }
+        }
+        ui.settingRow(organize, s(R.string.duplicate), key = "duplicate", icon = TvIcon.Symbol.LAYERS, control = TvUi.RowControl.NONE) {
+            host.mutate { store.savePlaylist(playlist.copy(id = UUID.randomUUID().toString(), name = host.getString(R.string.playlist_copy, playlist.name).take(100))) }
+        }
+        ui.settingRow(organize, s(R.string.move_up), key = "move_up", icon = TvIcon.Symbol.MOVE, control = TvUi.RowControl.NONE) {
+            host.mutate { store.movePlaylist(id, -1) }
+        }
+        ui.settingRow(organize, s(R.string.move_down), key = "move_down", icon = TvIcon.Symbol.MOVE, control = TvUi.RowControl.NONE) {
+            host.mutate { store.movePlaylist(id, 1) }
+        }
+        ui.settingRow(organize, s(R.string.delete), key = "delete", icon = TvIcon.Symbol.REPORT, control = TvUi.RowControl.NONE) {
+            host.confirm(s(R.string.confirm_delete_playlist)) {
+                host.mutate { store.deletePlaylist(id) }; host.open(LibraryRoute("playlists", family = playlist.family))
+            }
+        }
+        val entries = group(body, R.string.playlist_items)
+        if (items.isEmpty()) entries.addView(ui.description(s(R.string.empty_playlist)))
         val offset = host.route.offset.coerceAtMost(((items.size - 1).coerceAtLeast(0) / PAGE_SIZE) * PAGE_SIZE)
-        items.drop(offset).take(PAGE_SIZE).forEach { item -> ui.button(body, item.title, "playlist_item_${item.id}") { manageItem(playlist, item.id) } }
-        if (offset > 0) ui.button(body, s(R.string.previous_page)) { host.open(host.route.copy(offset = offset - PAGE_SIZE)) }
-        if (offset + PAGE_SIZE < items.size) ui.button(body, s(R.string.next_page)) { host.open(host.route.copy(offset = offset + PAGE_SIZE)) }
+        items.drop(offset).take(PAGE_SIZE).forEach { item ->
+            ui.settingRow(entries, item.title, key = "playlist_item_${item.id}",
+                summary = listOf(item.city, item.country).filter(String::isNotBlank).joinToString(" · ").ifBlank { null },
+                icon = if (item.family == MediaFamily.CAMERAS) TvIcon.Symbol.CAMERA else TvIcon.Symbol.FILM,
+                control = TvUi.RowControl.NONE) { manageItem(playlist, item.id) }
+        }
+        val pages = ui.row()
+        if (offset > 0) ui.button(pages, s(R.string.previous_page)) { host.open(host.route.copy(offset = offset - PAGE_SIZE)) }
+        if (offset + PAGE_SIZE < items.size) ui.button(pages, s(R.string.next_page)) { host.open(host.route.copy(offset = offset + PAGE_SIZE)) }
+        body.addView(pages)
     }
-
     private fun batchAdd(playlist: SavedPlaylist) {
         val candidates = store.items().filter { it.family == playlist.family && it.id !in playlist.itemIds }
         if (candidates.isEmpty()) { host.message(R.string.no_matches); return }
@@ -376,16 +434,20 @@ class LibraryScreens(private val host: OpenVistaActivity) {
 
     fun folders(body: LinearLayout) {
         body.addView(ui.heading(s(R.string.manage_folders)))
-        ui.button(body, s(R.string.choose_folder)) { host.pickFolder() }
-        ui.button(body, s(R.string.choose_video)) { host.pickVideo() }
-        ui.button(body, s(R.string.rescan)) { host.rescan() }
+        val actions = group(body, R.string.section_actions)
+        ui.settingRow(actions, s(R.string.choose_folder), key = "choose_folder", icon = TvIcon.Symbol.FOLDER) { host.pickFolder() }
+        ui.settingRow(actions, s(R.string.choose_video), key = "choose_video", icon = TvIcon.Symbol.FILM) { host.pickVideo() }
+        ui.settingRow(actions, s(R.string.rescan), key = "rescan", icon = TvIcon.Symbol.REFRESH, control = TvUi.RowControl.NONE) { host.rescan() }
+        val saved = group(body, R.string.section_folders)
         val folders = store.folders()
-        if (folders.isEmpty()) body.addView(ui.description(s(R.string.no_folders)))
-        folders.forEach { folder -> ui.button(body, "${folder.title} · ${s(R.string.folder_forget)}", "folder_${folder.uri.hashCode()}") {
-            host.confirm(s(R.string.folder_forget_notice)) { host.forgetFolder(folder.uri) }
-        } }
+        if (folders.isEmpty()) saved.addView(ui.description(s(R.string.no_folders)))
+        folders.forEach { folder ->
+            ui.settingRow(saved, folder.title, key = "folder_${folder.uri.hashCode()}", summary = s(R.string.folder_forget),
+                icon = TvIcon.Symbol.FOLDER, control = TvUi.RowControl.NONE) {
+                host.confirm(s(R.string.folder_forget_notice)) { host.forgetFolder(folder.uri) }
+            }
+        }
     }
-
     fun map(body: LinearLayout) {
         body.addView(ui.heading(s(R.string.map)))
         val notice = ui.description(s(R.string.map_notice)); body.addView(notice)
@@ -399,24 +461,22 @@ class LibraryScreens(private val host: OpenVistaActivity) {
                 else -> R.string.map_notice
             })
         }) { item -> host.open(LibraryRoute("details", item.id)) }
+        // One compact row of map controls; markers and the list carry the selection.
         val controls = ui.row()
-        ui.button(controls, s(R.string.zoom_in)) { map.zoom(1) }
-        ui.button(controls, s(R.string.zoom_out)) { map.zoom(-1) }
-        ui.button(controls, s(R.string.reset_view)) { map.reset() }
+        listOf<Pair<Int, () -> Unit>>(
+            R.string.zoom_in to { map.zoom(1) }, R.string.zoom_out to { map.zoom(-1) }, R.string.reset_view to { map.reset() },
+            R.string.map_west to { map.pan(-1, 0) }, R.string.map_north to { map.pan(0, 1) },
+            R.string.map_south to { map.pan(0, -1) }, R.string.map_east to { map.pan(1, 0) },
+        ).forEach { (label, action) ->
+            ui.button(controls, s(label), "map_${label}") { action() }.apply { textSize = 10f; gravity = Gravity.CENTER }
+        }
         body.addView(controls)
-        body.addView(ui.description(s(R.string.map_pan_help)))
-        val pan = ui.row()
-        ui.button(pan, s(R.string.map_west)) { map.pan(-1, 0) }
-        ui.button(pan, s(R.string.map_north)) { map.pan(0, 1) }
-        ui.button(pan, s(R.string.map_south)) { map.pan(0, -1) }
-        ui.button(pan, s(R.string.map_east)) { map.pan(1, 0) }
-        body.addView(pan)
-        val panels = ui.row()
-        panels.addView(map, LinearLayout.LayoutParams(0, ui.dp(300), 1.4f))
+        val panels = ui.row().apply { gravity = Gravity.TOP; setPadding(0, ui.dp(6), 0, 0) }
+        panels.addView(map, LinearLayout.LayoutParams(0, ui.dp(MAP_HEIGHT), 2f))
         val list = ui.column()
         val offset = host.route.offset.coerceAtMost(((items.size - 1).coerceAtLeast(0) / PAGE_SIZE) * PAGE_SIZE)
         items.drop(offset).take(PAGE_SIZE).forEach { sourceRow(list, it) }
-        panels.addView(ui.scroll(list), LinearLayout.LayoutParams(0, ui.dp(300), 1f))
+        panels.addView(ui.scroll(list), LinearLayout.LayoutParams(0, ui.dp(MAP_HEIGHT), 1f).apply { marginStart = ui.dp(12) })
         body.addView(panels)
         if (offset > 0) ui.button(body, s(R.string.previous_page)) { host.open(host.route.copy(offset = offset - PAGE_SIZE)) }
         if (offset + PAGE_SIZE < items.size) ui.button(body, s(R.string.next_page)) { host.open(host.route.copy(offset = offset + PAGE_SIZE)) }
@@ -425,5 +485,11 @@ class LibraryScreens(private val host: OpenVistaActivity) {
     private fun availability(item: LibraryItem): Availability = if (System.currentTimeMillis() - item.observedAt in 0..900_000)
         item.availability else Availability.UNKNOWN
 
-    companion object { private const val PAGE_SIZE = 30 }
+    companion object {
+        private const val PAGE_SIZE = 30
+        /** Fits under the screen heading on the 540 dp canvas, so the preview never scrolls away. */
+        private const val BROWSER_HEIGHT = 356
+        /** The map and its list share the space under one row of controls. */
+        private const val MAP_HEIGHT = 300
+    }
 }

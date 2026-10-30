@@ -93,7 +93,7 @@
     <string name="clear_filter">Limpar filtros</string>
     <string name="no_matches">Nenhuma fonte corresponde aos filtros.</string>
     <string name="map">Mapa de fontes</string>
-    <string name="map_notice">Mapa de fundo indisponível. Esta grade esquemática mostra apenas as localizações que você informou. As fontes salvas continuam disponíveis na lista.</string>
+    <string name="map_notice">Os tiles de mapa estão desligados. Os continentes são desenhados de forma esquemática e os marcadores usam as coordenadas que você salvou.</string>
     <string name="map_empty">Adicione coordenadas aos detalhes de uma câmera para colocá-la aqui.</string>
     <string name="zoom_in">Ampliar</string>
     <string name="zoom_out">Reduzir</string>

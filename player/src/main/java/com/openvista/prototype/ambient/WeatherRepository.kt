@@ -55,6 +55,8 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var task: Future<*>? = null
+    /** Rate-limit key of the forecast request in flight; released if that request is cancelled. */
+    @Volatile private var pendingKey: String? = null
     @Volatile private var generation = 0
     @Volatile private var closed = false
 
@@ -71,6 +73,7 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
             val fresh = saved != null && now - saved.fetchedAt in 0..adapter.minimumRefreshMs.coerceAtLeast(60_000)
             val key = "${adapter.id}/${coordinateKey(location)}"
             val allowed = fresh || allowAttempt(key, 300_000)
+            if (!fresh && allowed) pendingKey = key
             val state = if (fresh) WeatherState.Ready(saved!!, false)
             else if (!allowed) saved?.let { WeatherState.Ready(it, true) } ?: WeatherState.Unavailable
             else try {
@@ -80,10 +83,14 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
                     abs(received.location.longitude - location.longitude) < .1)
                 require(received.fetchedAt in (now - 86_400_000)..(System.currentTimeMillis() + 60_000))
                 val forecast = sanitize(received.copy(attribution = received.attribution.filterNot(Char::isISOControl).take(1000)))
+                pendingKey = null
                 if (closed || generation != request) return@submit
                 try { writeCache(forecast) } catch (_: Exception) { /* Cache storage is optional. */ }
                 WeatherState.Ready(forecast, false)
             } catch (_: Exception) {
+                // A request cancelled by a camera switch is retried freely; a real failure keeps its back-off.
+                if (Thread.currentThread().isInterrupted || closed || generation != request) return@submit
+                pendingKey = null
                 if (saved != null) WeatherState.Ready(saved, true) else WeatherState.Unavailable
             }
             main.post { if (!closed && generation == request) callback(state) }
@@ -108,7 +115,10 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
         }
     }
 
-    fun cancel() { generation++; task?.cancel(true); task = null }
+    fun cancel() {
+        generation++; task?.cancel(true); task = null
+        pendingKey?.let(::releaseAttempt); pendingKey = null
+    }
     fun close() { closed = true; cancel(); worker.shutdownNow() }
     fun clearCache() { cancel(); synchronized(CACHE_LOCK) { cache.delete(); cityCache.delete() } }
 
@@ -226,6 +236,10 @@ class WeatherRepository(context: Context, private val provider: ForecastProvider
         private val CACHE_LOCK = Any()
         private val attempts = linkedMapOf<String, Long>()
         private val budget = ArrayDeque<Long>()
+        /** Returns an unfinished attempt's slot, so zapping through cameras cannot lock weather out for minutes. */
+        private fun releaseAttempt(key: String) = synchronized(CACHE_LOCK) {
+            attempts.remove(key)?.let { at -> budget.remove(at) }
+        }
         private fun allowAttempt(key: String, interval: Long): Boolean = synchronized(CACHE_LOCK) {
             val now = SystemClock.elapsedRealtime()
             while (budget.isNotEmpty() && now - budget.first() >= 60_000) budget.removeFirst()
