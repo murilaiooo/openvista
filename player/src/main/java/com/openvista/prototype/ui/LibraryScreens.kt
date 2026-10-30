@@ -3,6 +3,7 @@ package com.openvista.prototype.ui
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputType
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.media3.common.util.UnstableApi
@@ -88,14 +89,18 @@ class LibraryScreens(private val host: OpenVistaActivity) {
             if (hasNext) ui.button(body, s(R.string.next_page)) { host.open(route.copy(offset = offset + PAGE_SIZE)) }
             return
         }
-        if (family == MediaFamily.CAMERAS) sourceActions(body) else {
+        val all = store.items().filter { it.family == family }
+        // Saved cameras get a two-pane browser: the list scrolls on the left while the focused camera
+        // previews on the right (issue #33). Everything else keeps the single scrolling column.
+        val browser = family == MediaFamily.CAMERAS && all.isNotEmpty()
+        val list = if (browser) ui.column() else body
+        if (family == MediaFamily.CAMERAS) sourceActions(list) else {
             val actions = ui.row()
             ui.button(actions, s(R.string.choose_folder)) { host.pickFolder() }
             ui.button(actions, s(R.string.choose_video)) { host.pickVideo() }
             ui.button(actions, s(R.string.manage_folders)) { host.open(LibraryRoute("folders")) }
             body.addView(actions)
         }
-        val all = store.items().filter { it.family == family }
         if (all.isEmpty()) {
             body.addView(ui.description(s(if (family == MediaFamily.CAMERAS) R.string.camera_empty else R.string.video_empty)))
             return
@@ -107,32 +112,47 @@ class LibraryScreens(private val host: OpenVistaActivity) {
             ui.button(controls, s(R.string.filter)) { filters() }
             ui.button(controls, s(R.string.map)) { host.open(LibraryRoute("map")) }
         }
-        body.addView(controls)
+        list.addView(controls)
         val filtered = if (family == MediaFamily.CAMERAS) all.filter { item ->
             val values = listOf(item.title, item.country, item.city, item.category).joinToString(" ")
             values.contains(search, true) && item.country.contains(country, true) && item.city.contains(city, true) &&
                 item.category.contains(category, true) && (!favoriteOnly || item.favorite) &&
                 (!availableOnly || availability(item) == Availability.AVAILABLE)
         } else all
-        if (filtered.isEmpty()) body.addView(ui.description(s(R.string.no_matches)))
+        if (filtered.isEmpty()) list.addView(ui.description(s(R.string.no_matches)))
         val offset = route.offset.coerceAtMost(((filtered.size - 1).coerceAtLeast(0) / PAGE_SIZE) * PAGE_SIZE)
-        filtered.drop(offset).take(PAGE_SIZE).forEach { item -> sourceRow(body, item) }
+        val preview = if (browser) CameraPreviewPane(host, ui, ::availability).apply {
+            onDetails = { item -> host.open(LibraryRoute("details", item.id, item.family)) }
+        } else null
+        filtered.drop(offset).take(PAGE_SIZE).forEach { item ->
+            val row = sourceRow(list, item, if (preview == null) null else { ->
+                host.play(filtered, item.id, shuffle = true)
+            })
+            preview?.let { pane -> row.setOnFocusChangeListener { view, focused -> if (focused) pane.show(item, view) } }
+        }
         val pages = ui.row()
         if (offset > 0) ui.button(pages, s(R.string.previous_page)) { host.open(route.copy(offset = offset - PAGE_SIZE)) }
         if (offset + PAGE_SIZE < filtered.size) ui.button(pages, s(R.string.next_page)) { host.open(route.copy(offset = offset + PAGE_SIZE)) }
-        body.addView(pages)
+        list.addView(pages)
+        if (preview == null) return
+        val panels = ui.row().apply { gravity = Gravity.TOP }
+        panels.addView(ui.scroll(list), LinearLayout.LayoutParams(0, ui.dp(BROWSER_HEIGHT), 1.15f))
+        panels.addView(preview, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = ui.dp(18) })
+        body.addView(panels)
     }
 
     /** One library entry in the shared row style; favorites carry the star icon instead of a text mark. */
-    private fun sourceRow(body: LinearLayout, item: LibraryItem) {
+    private fun sourceRow(body: LinearLayout, item: LibraryItem, select: (() -> Unit)? = null): LinearLayout {
         val place = listOf(item.city, item.country, item.category).filter(String::isNotBlank).joinToString(" · ")
         val icon = when {
             item.favorite -> TvIcon.Symbol.STAR
             item.family == MediaFamily.CAMERAS -> TvIcon.Symbol.CAMERA
             else -> TvIcon.Symbol.FILM
         }
-        ui.settingRow(body, item.title, key = "source_${item.id}", summary = place.ifBlank { null }, icon = icon) {
-            host.open(LibraryRoute("details", item.id, item.family))
+        // A row that plays on OK has no chevron; the chevron promises the details page.
+        return ui.settingRow(body, item.title, key = "source_${item.id}", summary = place.ifBlank { null }, icon = icon,
+            control = if (select == null) TvUi.RowControl.CHEVRON else TvUi.RowControl.NONE) {
+            select?.invoke() ?: host.open(LibraryRoute("details", item.id, item.family))
         }
     }
 
@@ -425,5 +445,9 @@ class LibraryScreens(private val host: OpenVistaActivity) {
     private fun availability(item: LibraryItem): Availability = if (System.currentTimeMillis() - item.observedAt in 0..900_000)
         item.availability else Availability.UNKNOWN
 
-    companion object { private const val PAGE_SIZE = 30 }
+    companion object {
+        private const val PAGE_SIZE = 30
+        /** Fits under the screen heading on the 540 dp canvas, so the preview never scrolls away. */
+        private const val BROWSER_HEIGHT = 356
+    }
 }
