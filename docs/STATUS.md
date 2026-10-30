@@ -10,7 +10,7 @@
 | Where is the integrated source? | The latest owner-TV-matched local overlay, PR #40, and the updated English/Portuguese READMEs are merged into `main` through PR #37. See [integration QA](testing/integrated-tv-snapshot-2026-10-28.md) and [PR #37](https://github.com/murilaiooo/openvista/pull/37). |
 | Is this ready for a public release? | **No.** The source is integrated into `main`; historical stream URLs and other distribution gates still need review. |
 | Does the TV match the integrated APK? | **Yes, byte for byte.** The installed October 27 debug APK and the current local build share the same SHA-256. This is not a 24-hour stability certification. See [QA record](testing/integrated-tv-snapshot-2026-10-28.md). |
-| Is there a signed APK? | **Yes: v0.3.0-preview.1** is a private-repository GitHub **prerelease**, built and signed independently of the existing debug key. It is not stable, not publicly accessible, and not a 24-hour soak certification. See [release notes](releases/v0.3.0-preview.1.md). |
+| Is there a signed APK? | **Yes: v0.3.0-preview.1** is a GitHub **prerelease**, built and signed independently of the existing debug key. It is not stable and not a 24-hour soak certification. See [release notes](releases/v0.3.0-preview.1.md). |
 | Does the APK contain a camera catalog, playlists or bundled videos? | **It must not.** Under owner decision C-01, all live URLs, M3Us and local videos are user-managed, not shipped. Run the actual final-artifact guard before any release. |
 | Is weather global? | **Camera weather is now implemented outside the US** through Open-Meteo, while NWS remains preferred within its US coverage. A missing same-day high after sunset is supplemented only for that exact date. Location geocoding and all international failure/terms cases remain subject to review. |
 | What is next? | Reference-accurate design audit; one coherent Settings menu; burn-in phase/device verification; QA/optimization; security/history/content audit; 24-hour hardware soak; explicit owner approval. |
@@ -48,14 +48,14 @@ The integrated debug source passed 51 player tests, 4 diagnostic tests, 2 source
 4. Run end-to-end D-pad/focus/accessibility, user-library SAF duplicate identity, real USB unplug/replug, grants/revocation, media containers/codecs, formats, pause/resume and fallback test matrices.
 5. Measure startup, memory/CPU, decoder errors, dropped frames and **at least 24-hour** unattended playback/recovery on physical hardware. No such acceptance has yet been certified.
 6. Keep pairing, updater and experimental YouTube embed out of stable v1 until accepted. Official YouTube embeds cannot guarantee uninterrupted ad-free ambient playback.
-7. Audit licenses/third-party source history/private URLs before changing GitHub visibility. Current-tree deletion **does not erase Git history**. Review the unmerged repository-cleanup draft [#32](https://github.com/murilaiooo/openvista/pull/32) and the [content guard](testing/release-content-guard.md). Never commit the owner's untracked camera research and QA scratch artifacts.
+7. Audit licenses/third-party source history/private URLs before changing GitHub visibility. Current-tree deletion **does not erase Git history**. As of October 30 the repository is **public**; [PR #51](https://github.com/murilaiooo/openvista/pull/51) (rebased #32) removes the historical stream research from the tree, but a history decision is still needed. Review it and the [content guard](testing/release-content-guard.md). Never commit the owner's untracked camera research and QA scratch artifacts.
 8. Complete final signed artifact content/privacy/security checks and obtain owner approval for publishing, signing and release.
 
 ## Active issue/PR tracking
 
 - [#36](https://github.com/murilaiooo/openvista/issues/36): unified TV design and precise mockup fidelity. Integration record [PR #37](https://github.com/murilaiooo/openvista/pull/37).
-- [#34](https://github.com/murilaiooo/openvista/issues/34): consistent, nonintrusive loading/error states.
-- [#33](https://github.com/murilaiooo/openvista/issues/33): visual saved-camera selection preview.
+- [#34](https://github.com/murilaiooo/openvista/issues/34): consistent, nonintrusive loading/error states. Implemented in [PR #52](https://github.com/murilaiooo/openvista/pull/52); audit in [loading states](design/loading-states.md).
+- [#33](https://github.com/murilaiooo/openvista/issues/33): visual saved-camera selection preview. Implemented in [PR #52](https://github.com/murilaiooo/openvista/pull/52) and checked on the Hisense on October 30.
 - Other open draft PRs are independent proposals or historical overlaps. Do not merge them blindly or claim a closed issue proves its requirements passed.
 
 ## Engineering rules
