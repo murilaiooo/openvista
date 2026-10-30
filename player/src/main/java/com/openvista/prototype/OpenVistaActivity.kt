@@ -423,6 +423,34 @@ class OpenVistaActivity : ComponentActivity() {
             onDismiss()
         }
         dialog.show()
+        styleDialog(dialog)
+    }
+
+    /**
+     * Fire OS swaps in its own grey dialog surface and buttons regardless of the app theme, so the
+     * shared glass panel and control styles are applied after the dialog is shown.
+     */
+    private fun styleDialog(dialog: AlertDialog) {
+        val window = dialog.window ?: return
+        window.setBackgroundDrawable(TvDesign.panel(this, 0xFF0B1D2C.toInt(), TvDesign.glassStroke, radiusDp = 10f))
+        // Clear the platform's grey layout backgrounds so the glass surface shows through.
+        fun clear(view: View) {
+            if (view !is ViewGroup) return
+            view.background = null
+            // Our own dialog content keeps its row and control backgrounds.
+            if (view.id == android.R.id.custom) return
+            for (i in 0 until view.childCount) clear(view.getChildAt(i))
+        }
+        (window.decorView as? ViewGroup)?.let { decor -> for (i in 0 until decor.childCount) clear(decor.getChildAt(i)) }
+        listOf(AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_NEGATIVE).forEach { which ->
+            dialog.getButton(which)?.apply {
+                background = TvDesign.control(this@OpenVistaActivity, base = if (which == AlertDialog.BUTTON_POSITIVE) 0x33205F6E else TvDesign.surfaceRaised)
+                setTextColor(TvDesign.text)
+                typeface = TvDesign.medium
+                isAllCaps = false
+                stateListAnimator = null
+            }
+        }
     }
 
     fun confirm(title: String, action: () -> Unit) {

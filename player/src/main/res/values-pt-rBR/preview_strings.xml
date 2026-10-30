@@ -10,4 +10,11 @@
     <string name="preview_details">Detalhes</string>
     <string name="preview_muted">Prévia sem som</string>
     <string name="still_working">Ainda trabalhando…</string>
+    <string name="section_actions">Ações</string>
+    <string name="section_organize">Organizar</string>
+    <string name="section_folders">Pastas salvas</string>
+    <plurals name="playlist_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d itens</item>
+    </plurals>
 </resources>
