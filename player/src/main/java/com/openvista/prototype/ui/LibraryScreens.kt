@@ -461,24 +461,22 @@ class LibraryScreens(private val host: OpenVistaActivity) {
                 else -> R.string.map_notice
             })
         }) { item -> host.open(LibraryRoute("details", item.id)) }
+        // One compact row of map controls; markers and the list carry the selection.
         val controls = ui.row()
-        ui.button(controls, s(R.string.zoom_in)) { map.zoom(1) }
-        ui.button(controls, s(R.string.zoom_out)) { map.zoom(-1) }
-        ui.button(controls, s(R.string.reset_view)) { map.reset() }
+        listOf<Pair<Int, () -> Unit>>(
+            R.string.zoom_in to { map.zoom(1) }, R.string.zoom_out to { map.zoom(-1) }, R.string.reset_view to { map.reset() },
+            R.string.map_west to { map.pan(-1, 0) }, R.string.map_north to { map.pan(0, 1) },
+            R.string.map_south to { map.pan(0, -1) }, R.string.map_east to { map.pan(1, 0) },
+        ).forEach { (label, action) ->
+            ui.button(controls, s(label), "map_${label}") { action() }.apply { textSize = 10f; gravity = Gravity.CENTER }
+        }
         body.addView(controls)
-        body.addView(ui.description(s(R.string.map_pan_help)))
-        val pan = ui.row()
-        ui.button(pan, s(R.string.map_west)) { map.pan(-1, 0) }
-        ui.button(pan, s(R.string.map_north)) { map.pan(0, 1) }
-        ui.button(pan, s(R.string.map_south)) { map.pan(0, -1) }
-        ui.button(pan, s(R.string.map_east)) { map.pan(1, 0) }
-        body.addView(pan)
-        val panels = ui.row()
-        panels.addView(map, LinearLayout.LayoutParams(0, ui.dp(300), 1.4f))
+        val panels = ui.row().apply { gravity = Gravity.TOP; setPadding(0, ui.dp(6), 0, 0) }
+        panels.addView(map, LinearLayout.LayoutParams(0, ui.dp(MAP_HEIGHT), 2f))
         val list = ui.column()
         val offset = host.route.offset.coerceAtMost(((items.size - 1).coerceAtLeast(0) / PAGE_SIZE) * PAGE_SIZE)
         items.drop(offset).take(PAGE_SIZE).forEach { sourceRow(list, it) }
-        panels.addView(ui.scroll(list), LinearLayout.LayoutParams(0, ui.dp(300), 1f))
+        panels.addView(ui.scroll(list), LinearLayout.LayoutParams(0, ui.dp(MAP_HEIGHT), 1f).apply { marginStart = ui.dp(12) })
         body.addView(panels)
         if (offset > 0) ui.button(body, s(R.string.previous_page)) { host.open(host.route.copy(offset = offset - PAGE_SIZE)) }
         if (offset + PAGE_SIZE < items.size) ui.button(body, s(R.string.next_page)) { host.open(host.route.copy(offset = offset + PAGE_SIZE)) }
@@ -491,5 +489,7 @@ class LibraryScreens(private val host: OpenVistaActivity) {
         private const val PAGE_SIZE = 30
         /** Fits under the screen heading on the 540 dp canvas, so the preview never scrolls away. */
         private const val BROWSER_HEIGHT = 356
+        /** The map and its list share the space under one row of controls. */
+        private const val MAP_HEIGHT = 300
     }
 }

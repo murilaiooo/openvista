@@ -93,7 +93,7 @@
     <string name="clear_filter">Clear filters</string>
     <string name="no_matches">No sources match these filters.</string>
     <string name="map">Source map</string>
-    <string name="map_notice">Map background unavailable. This schematic coordinate grid shows only locations you supplied. Saved sources remain available in the list.</string>
+    <string name="map_notice">Map tiles are off. Continents are drawn schematically and markers use the coordinates you saved.</string>
     <string name="map_empty">Add coordinates to a camera’s details to place it here.</string>
     <string name="zoom_in">Zoom in</string>
     <string name="zoom_out">Zoom out</string>
