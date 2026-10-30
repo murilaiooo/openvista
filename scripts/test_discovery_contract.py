@@ -21,6 +21,15 @@ def copy_fixture(destination: Path):
             ROOT / folder, destination / folder,
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
         )
+    # Research docs link to application sources and agent skills; copy them so those links resolve.
+    for folder in ("player/src", "source-core/src", "diagnostics/src", ".agents", ".claude"):
+        if (ROOT / folder).exists():
+            shutil.copytree(ROOT / folder, destination / folder,
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "build"))
+    for item in ("player/build.gradle.kts", "settings.gradle.kts", "build.gradle.kts"):
+        if (ROOT / item).exists():
+            (destination / item).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / item, destination / item)
     for item in ("AGENTS.md", "README.md", "README.pt-BR.md", "CONTRIBUTING.md", "GLOSSARY.md", "LICENSE"):
         shutil.copy2(ROOT / item, destination / item)
 
